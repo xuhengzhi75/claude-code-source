@@ -18,8 +18,10 @@
 ## Working rules requested by user
 - Proactively execute and report when a task is done
 - If a task exceeds three steps, default to spawning a subagent for the sub-task when appropriate
+- Prefer agent-team style parallelization for independent workstreams, with parent session coordinating integration
 - Write finished work into the repository for traceability
 - Commit partial work incrementally instead of waiting for a large batch
+- Commit/push in ~10-minute cadence when there is a completed chunk, so remote progress remains continuously visible
 
 - User requires hourly self-checks and hourly progress updates
 - User requires immediate incremental commits/pushes because they actively watch remote repo progress

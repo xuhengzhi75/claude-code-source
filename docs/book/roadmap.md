@@ -40,7 +40,9 @@ Primary focus: deepen Claude Code source analysis while continuously converting 
 
 ## Execution rules in effect
 - Commit each clearly finished chunk immediately; do not batch large updates.
+- Use a ~10-minute commit/push cadence whenever a chunk reaches done-state, so remote progress stays continuously visible.
 - Push as soon as a commit is ready so remote progress stays visible.
 - Run an hourly self-check covering progress, acceptance criteria, and drift detection.
 - If a stage does not meet its own acceptance bar, keep correcting before calling it complete.
+- Use agent-team mode by default for independent substreams: parallel execution by subagents, parent session as coordinator/integrator.
 - Persist key planning decisions and user guidance into repo docs for traceability.
