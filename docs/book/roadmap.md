@@ -36,3 +36,11 @@ Primary focus: deepen Claude Code source analysis while continuously converting 
 
 ### Phase 5+
 - Expand to tools, permissions, multi-agent/runtime modes, and later chapter drafts.
+
+
+## Execution rules in effect
+- Commit each clearly finished chunk immediately; do not batch large updates.
+- Push as soon as a commit is ready so remote progress stays visible.
+- Run an hourly self-check covering progress, acceptance criteria, and drift detection.
+- If a stage does not meet its own acceptance bar, keep correcting before calling it complete.
+- Persist key planning decisions and user guidance into repo docs for traceability.

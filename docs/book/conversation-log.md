@@ -20,3 +20,8 @@
 - If a task exceeds three steps, default to spawning a subagent for the sub-task when appropriate
 - Write finished work into the repository for traceability
 - Commit partial work incrementally instead of waiting for a large batch
+
+- User requires hourly self-checks and hourly progress updates
+- User requires immediate incremental commits/pushes because they actively watch remote repo progress
+- User requires the assistant to set acceptance criteria and keep correcting until the bar is met
+- User requires plans and key conversation details to be written into the repository for traceability
