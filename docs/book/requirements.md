@@ -55,3 +55,13 @@ Rules:
 6. Reduce quotation marks and words that depend on quotation marks for emphasis.
 7. Keep tone natural, plain, and objective.
 8. If a chapter reads like obvious AI-produced prose, revise it before considering it complete.
+
+## Audience and correctness bar
+The book should be understandable to an extremely broad non-technical audience while still staying factually correct.
+
+Requirements:
+1. Explanations must be simple enough for a reader with almost no technical background.
+2. Simplicity must not come from making up mechanisms or flattening important distinctions.
+3. Claims about Claude Code internals should be tied to visible source structure whenever possible.
+4. If a point is an inference rather than a directly verified fact, label it clearly and keep the wording conservative.
+5. When clarity and correctness are in tension, revise until both are preserved instead of sacrificing one for the other.
