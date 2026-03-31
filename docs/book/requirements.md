@@ -65,3 +65,12 @@ Requirements:
 3. Claims about Claude Code internals should be tied to visible source structure whenever possible.
 4. If a point is an inference rather than a directly verified fact, label it clearly and keep the wording conservative.
 5. When clarity and correctness are in tension, revise until both are preserved instead of sacrificing one for the other.
+
+## Concision requirement
+Writing should be concise and dense with useful information.
+
+Requirements:
+1. Do not become wordy for the sake of smoothness.
+2. Prefer shorter, information-bearing sentences when they improve clarity.
+3. Remove repeated points, padded transitions, and empty emphasis.
+4. A chapter that is readable but verbose does not pass review.

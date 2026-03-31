@@ -29,3 +29,4 @@
 - User requires plans and key conversation details to be written into the repository for traceability
 - User requires low-AI-tone prose: fewer em dashes, fewer “不是……而是……” contrasts, less rigid structure, less exaggeration, almost no metaphor, fewer quotation marks, and a natural plain objective style
 - User requires the whole book to be understandable even to very non-technical readers while still preserving factual correctness
+- User requires concise, information-dense writing; readable prose that becomes wordy does not pass acceptance
