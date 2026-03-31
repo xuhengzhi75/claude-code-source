@@ -328,6 +328,8 @@ export type RecompactionInfo = {
  * Order: boundaryMarker, summaryMessages, messagesToKeep, attachments, hookResults
  */
 export function buildPostCompactMessages(result: CompactionResult): Message[] {
+  // 顺序即协议：boundary → summary → kept → attachments → hooks。
+  // 下游恢复/渲染/差分逻辑都默认这条“压缩后最小可恢复链路”，改顺序会引发级联兼容问题。
   return [
     result.boundaryMarker,
     ...result.summaryMessages,

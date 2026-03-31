@@ -197,6 +197,9 @@ export async function resetTaskList(taskListId: string): Promise<void> {
  * 5. Session ID - fallback for standalone sessions
  */
 export function getTaskListId(): string {
+  // 架构意图：taskListId 是“协作空间主键”。
+  // 任何执行实体（主会话、同进程 teammate、tmux teammate）最终都要收敛到同一 ID，
+  // 这样任务文件目录才能成为跨进程共享的单一真实来源（single source of truth）。
   if (process.env.CLAUDE_CODE_TASK_LIST_ID) {
     return process.env.CLAUDE_CODE_TASK_LIST_ID
   }
@@ -620,6 +623,8 @@ async function claimTaskWithBusyCheck(
   taskId: string,
   claimantAgentId: string,
 ): Promise<ClaimTaskResult> {
+  // 关键一致性点：把“检查 agent 是否繁忙”与“抢占任务”放进同一把 list-level 锁。
+  // 这是典型的 check-then-act 场景，分离会导致 TOCTOU 竞争（两个 agent 同时看到空闲并同时认领）。
   const lockPath = await ensureTaskListLockFile(taskListId)
 
   let release: (() => Promise<void>) | undefined

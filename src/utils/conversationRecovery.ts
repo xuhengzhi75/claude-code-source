@@ -457,6 +457,8 @@ export async function loadConversationForResume(
   source: string | LogOption | undefined,
   sourceJsonlFile: string | undefined,
 ): Promise<{
+  // 恢复层设计：先尽量“取回事实”（日志链、快照、metadata），再统一做“语义修复”（反序列化/去脏/补哨兵）。
+  // 这样加载路径可扩展（sessionId、latest、jsonl）而恢复规则保持单点维护。
   messages: Message[]
   turnInterruptionState: TurnInterruptionState
   fileHistorySnapshots?: FileHistorySnapshot[]
