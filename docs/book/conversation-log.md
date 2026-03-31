@@ -27,3 +27,4 @@
 - User requires immediate incremental commits/pushes because they actively watch remote repo progress
 - User requires the assistant to set acceptance criteria and keep correcting until the bar is met
 - User requires plans and key conversation details to be written into the repository for traceability
+- User requires low-AI-tone prose: fewer em dashes, fewer “不是……而是……” contrasts, less rigid structure, less exaggeration, almost no metaphor, fewer quotation marks, and a natural plain objective style
