@@ -287,6 +287,8 @@ async function main(): Promise<void> {
     process.env.CLAUDE_CODE_SIMPLE = '1';
   }
 
+  // 控制流收敛点：只有未命中任何 fast-path 时才进入完整 CLI 主路径。
+  // 这使前面的专用模式（daemon/bg/bridge 等）保持低耦合、低启动成本。
   // No special flags detected, load and run the full CLI
   const {
     startCapturingEarlyInput

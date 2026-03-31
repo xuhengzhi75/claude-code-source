@@ -758,6 +758,8 @@ type BuiltTool<D> = Omit<D, DefaultableToolKeys> & {
  * - `toAutoClassifierInput` → `''` (skip classifier — security-relevant tools must override)
  * - `userFacingName` → `name`
  */
+// 默认值采用“安全兜底”思路：未知工具先按不可并发/非只读处理，
+// 由具体工具显式声明更宽松能力，避免遗漏实现时误放权。
 const TOOL_DEFAULTS = {
   isEnabled: () => true,
   isConcurrencySafe: (_input?: unknown) => false,

@@ -1064,6 +1064,8 @@ async function* queryLoop(
       }
     }
 
+    // 终止判定关键点：当本轮 assistant 未产生 tool_use，就进入收尾分支。
+    // 这将“继续调用模型”与“结束当前 turn”的判断从 stop_reason 解耦出来。
     if (!needsFollowUp) {
       const lastMessage = assistantMessages.at(-1)
 

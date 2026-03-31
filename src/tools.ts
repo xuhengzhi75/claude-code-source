@@ -345,6 +345,8 @@ export const getTools = (permissionContext: ToolPermissionContext): Tools => {
  * @param mcpTools - MCP tools from appState.mcp.tools
  * @returns Combined, deduplicated array of built-in and MCP tools
  */
+// 组合策略是“内建优先、MCP补充”：
+// 同名冲突时优先保留内建定义，确保核心行为与权限语义稳定。
 export function assembleToolPool(
   permissionContext: ToolPermissionContext,
   mcpTools: Tools,

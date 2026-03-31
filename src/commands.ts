@@ -449,6 +449,8 @@ export function meetsAvailabilityRequirement(cmd: Command): boolean {
  * Loads all command sources (skills, plugins, workflows). Memoized by cwd
  * because loading is expensive (disk I/O, dynamic imports).
  */
+// 架构分层：先并行收集“外部扩展层”（skills/plugins/workflows），
+// 再拼接内建命令层。这样既保留内建顺序语义，也让扩展来源可独立失效/刷新。
 const loadAllCommands = memoize(async (cwd: string): Promise<Command[]> => {
   const [
     { skillDirCommands, pluginSkills, bundledSkills, builtinPluginSkills },

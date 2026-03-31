@@ -675,6 +675,8 @@ export class QueryEngine {
       ? countToolCalls(this.mutableMessages, SYNTHETIC_OUTPUT_TOOL_NAME)
       : 0
 
+    // QueryEngine 负责“编排与持久化”，query() 负责“推理-工具循环”本体。
+    // 二者分层后，SDK/REPL 可共享核心循环，同时保留各自输出协议与状态管理。
     for await (const message of query({
       messages,
       systemPrompt,
