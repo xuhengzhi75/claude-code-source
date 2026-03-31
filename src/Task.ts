@@ -96,6 +96,8 @@ function getTaskIdPrefix(type: TaskType): string {
 const TASK_ID_ALPHABET = '0123456789abcdefghijklmnopqrstuvwxyz'
 
 export function generateTaskId(type: TaskType): string {
+  // 边界条件：task id 同时用于磁盘输出路径与外部可见标识，
+  // 需要在可读性（prefix 可识别类型）和不可预测性（随机后缀）之间平衡。
   const prefix = getTaskIdPrefix(type)
   const bytes = randomBytes(8)
   let id = prefix

@@ -262,9 +262,14 @@ async function* queryLoop(
   } = params
   const deps = params.deps ?? productionDeps()
 
-  // Mutable cross-iteration state. The loop body destructures this at the top
-  // of each iteration so reads stay bare-name (`messages`, `toolUseContext`).
-  // Continue sites write `state = { ... }` instead of 9 separate assignments.
+  // Mutable cross-iteration state for this turn-level state machine.
+  // Why a single object: each recovery/continue branch can atomically replace
+  // all loop variables, which avoids partial updates when new fields are added.
+  // The loop body destructures it each iteration for readable local names.
+  // queryLoop 是单轮 agentic turn 的状态机核心：
+  // - messages/toolUseContext 在 continue 分支里会被整体替换
+  // - transition 显式记录继续原因，避免只能靠消息内容反推分支
+  // - 所有可变字段集中在 state，降低新增恢复路径时的遗漏风险
   let state: State = {
     messages: params.messages,
     toolUseContext: params.toolUseContext,
@@ -551,9 +556,9 @@ async function* queryLoop(
     const assistantMessages: AssistantMessage[] = []
     const toolResults: (UserMessage | AttachmentMessage)[] = []
     // @see https://docs.claude.com/en/docs/build-with-claude/tool-use
-    // Note: stop_reason === 'tool_use' is unreliable -- it's not always set correctly.
-    // Set during streaming whenever a tool_use block arrives — the sole
-    // loop-exit signal. If false after streaming, we're done (modulo stop-hook retry).
+    // We intentionally derive "need another model turn" from observed tool_use
+    // blocks instead of stop_reason. This keeps behavior stable across provider/
+    // SDK differences where stop_reason may be missing or delayed in stream events.
     const toolUseBlocks: ToolUseBlock[] = []
     let needsFollowUp = false
 

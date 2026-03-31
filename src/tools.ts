@@ -191,6 +191,9 @@ export function getToolsForDefaultPreset(): string[] {
  * NOTE: This MUST stay in sync with https://console.statsig.com/4aF3Ewatb6xPVpCwxb5nA3/dynamic_configs/claude_code_global_system_caching, in order to cache the system prompt across users.
  */
 export function getAllBaseTools(): Tools {
+  // 设计意图：这里维护“理论可用工具全集”（受构建特性与环境变量裁剪）。
+  // 下游 getTools()/权限过滤会再按运行态进一步收敛，形成最终暴露给模型的集合。
+  // 先全集、后过滤，便于统一审计工具可见性与 system prompt 缓存一致性。
   return [
     AgentTool,
     TaskOutputTool,

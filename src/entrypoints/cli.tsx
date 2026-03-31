@@ -33,6 +33,9 @@ if (feature('ABLATION_BASELINE') && process.env.CLAUDE_CODE_ABLATION_BASELINE) {
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
 
+  // 架构意图：在「参数路由层」就做尽可能多的分流，避免落入通用启动路径。
+  // 这保证了 version/daemon/bg/bridge 等模式各自按需加载，降低冷启动与常驻内存成本。
+
   // Fast-path for --version/-v: zero module loading needed
   if (args.length === 1 && (args[0] === '--version' || args[0] === '-v' || args[0] === '-V')) {
     // MACRO.VERSION is inlined at build time

@@ -20,6 +20,8 @@ const MonitorMcpTask: Task | null = feature('MONITOR_TOOL')
  * Note: Returns array inline to avoid circular dependency issues with top-level const
  */
 export function getAllTasks(): Task[] {
+  // 架构边界：任务注册表与运行时状态分离。
+  // 这里仅声明可调度 task 类型，不负责生命周期；生命周期由各 Task 实现 + AppState 管理。
   const tasks: Task[] = [
     LocalShellTask,
     LocalAgentTask,

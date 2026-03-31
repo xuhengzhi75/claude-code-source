@@ -235,6 +235,9 @@ export class QueryEngine {
       orphanedPermission,
     } = this.config
 
+    // 状态转换：submitMessage 是「新一轮 turn」边界。
+    // 需要清理 turn 级缓存（如 discoveredSkillNames），但保留会话级状态
+    // （messages/readFileState/usage），从而兼顾连续对话与单轮可控性。
     this.discoveredSkillNames.clear()
     setCwd(cwd)
     const persistSession = !isSessionPersistenceDisabled()

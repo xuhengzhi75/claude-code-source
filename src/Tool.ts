@@ -155,6 +155,10 @@ export type CompactProgressEvent =
   | { type: 'compact_start' }
   | { type: 'compact_end' }
 
+// ToolUseContext 是工具运行时的“会话总线”：
+// 上游由 QueryEngine/query 组装，下游被所有 Tool.call 消费。
+// 这里区分了可变会话状态（setAppState 等）与只读配置（options），
+// 避免工具侧直接耦合具体 UI/REPL/SDK 实现。
 export type ToolUseContext = {
   options: {
     commands: Command[]

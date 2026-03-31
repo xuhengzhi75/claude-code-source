@@ -255,6 +255,9 @@ export const INTERNAL_ONLY_COMMANDS = [
 
 // Declared as a function so that we don't run this until getCommands is called,
 // since underlying functions read from config, which can't be read at module initialization time
+// 设计边界：命令集合既受 feature gate 影响，也受 runtime 配置影响。
+// 因此这里用 lazy + memoize，避免 import 时机过早导致配置未就绪，
+// 也避免每次解析 slash command 都重复构建完整命令树。
 const COMMANDS = memoize((): Command[] => [
   addDir,
   advisor,
@@ -501,7 +504,9 @@ export async function getCommands(cwd: string): Promise<Command[]> {
     return baseCommands
   }
 
-  // Insert dynamic skills after plugin skills but before built-in commands
+  // Keep dynamic skills ahead of built-ins so user/plugin-discovered skills
+  // remain visible without being buried under the static command list, while
+  // still preserving built-in command ordering semantics.
   const builtInNames = new Set(COMMANDS().map(c => c.name))
   const insertIndex = baseCommands.findIndex(c => builtInNames.has(c.name))
 
