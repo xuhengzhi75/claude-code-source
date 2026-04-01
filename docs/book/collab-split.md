@@ -1,103 +1,101 @@
 # 协作分工对齐文档
 
-更新时间：2026-04-01
-
-本文件用于明确当前两个协作方各自负责的工作范围，避免同时修改同一文件造成冲突。
+更新时间：2026-04-01（v2，轮动机制版）
 
 ---
 
-## 当前进度快照
+## 协作模式（重要，请先读这里）
 
-已完成（已推送，不要重复修改）：
+**轮动机制**：两个协作方不再按章节静态划分，而是按工序轮动：
 
-- `docs/book/chapters/ch01.md` — ch08.md：Part I + Part II 全部 8 章，已润色定稿
-- `docs/book/architecture-notes/`：9 个架构笔记文件，已完成
-- `docs/book/chapter-evidence-map.md`：ch03–ch08 证据对齐，已完成
-- `docs/book/book-outline-v1.md`：22 章大纲，已完成
-- `docs/book/requirements.md`：写作要求，已完成
-- `docs/book/prompt-templates.md`、`workflow-templates.md`、`agent-role-templates.md`、`example-business-agent.md`：配套模板，已完成
+1. **协同方（源码分析侧）**：深入阅读指定源码文件，在文件里写注释或产出 `architecture-notes/` 笔记，说明该模块的结构、关键函数、边界情况、设计意图。
+2. **AI 写作侧（本机）**：依据协同方产出的注释和笔记，结合 `requirements.md` 的写作要求，完成对应章节的写作或完善。
+3. **循环**：写完一章后，协同方继续分析下一章所需的源码，AI 写作侧等注释就绪后再写。
 
----
-
-## AI 侧（本机）负责范围
-
-以下文件由本机 AI 负责，协同方请勿同时修改：
-
-### 正在进行
-
-| 文件 | 状态 | 说明 |
-|------|------|------|
-| `docs/book/chapters/ch09.md` | 待创建 | Part III 第9章：护城河不只是模型 |
-| `docs/book/chapters/ch10.md` | 待创建 | Part III 第10章：难以复制的运行时壁垒 |
-| `docs/book/chapters/ch11.md` | 待创建 | Part III 第11章：为什么很多 Agent 看起来像但干不了真活 |
-| `docs/book/chapters/ch12.md` | 待创建 | Part III 第12章：该学什么、先别急着抄什么 |
-| `docs/book/chapter-evidence-map.md` | 扩充中 | 补充 ch09–ch12 的证据锚点 |
-
-### 依赖的源码文件（只读，不修改）
-
-- `src/utils/conversationRecovery.ts`
-- `src/services/compact/compact.ts`
-- `src/utils/tasks.ts`
-- `src/Task.ts`
-- `docs/book/architecture-notes/moat-and-barriers.md`
-- `docs/book/architecture-notes/recovery-and-continuity.md`
-- `docs/book/architecture-notes/what-to-learn-from-claude-code.md`
+这个模式的好处：写作侧不需要猜测源码细节，分析侧不需要操心文字风格，各做各擅长的事。
 
 ---
 
-## 协同方负责范围
+## 当前进度快照（截至 2026-04-01）
 
-以下文件由协同方负责，本机 AI 不会主动修改：
+已完成并推送：
 
-### 建议协同方接手
+| 范围 | 状态 |
+|------|------|
+| ch01–ch08（Part I + Part II） | 已定稿推送 |
+| ch09–ch12（Part III） | 已定稿推送 |
+| `architecture-notes/`（9 个笔记） | 已完成 |
+| `chapter-evidence-map.md`（ch03–ch12） | 已完成 |
+| 配套模板（prompt/workflow/role/example） | 已完成 |
 
-| 文件 | 状态 | 说明 |
-|------|------|------|
-| `docs/book/chapters/ch13.md` | 待创建 | Part IV 第13章：最小可用 Agent 骨架 |
-| `docs/book/chapters/ch14.md` | 待创建 | Part IV 第14章：工具作为手脚 |
-| `docs/book/chapters/ch15.md` | 待创建 | Part IV 第15章：提示词与任务指令 |
-| `docs/book/chapters/ch16.md` | 待创建 | Part IV 第16章：状态与上下文 |
-| `docs/book/chapters/ch17.md` | 待创建 | Part IV 第17章：任务推进与运行时结构 |
-| `docs/book/chapters/ch18.md` | 待创建 | Part IV 第18章：恢复是玩具和真实系统的分水岭 |
+---
 
-### 协同方可自由修改的文件
+## 下一轮工作：Part IV（ch13–ch18）
 
-- `docs/book/prompt-templates.md`（扩充模板内容）
-- `docs/book/workflow-templates.md`（扩充工作流）
-- `docs/book/agent-role-templates.md`（扩充角色模板）
-- `docs/book/example-business-agent.md`（扩充示例）
+### 协同方需要分析的源码
+
+Part IV 是"动手造一个缩小版"，需要的源码覆盖面比 Part III 更广。建议按章节顺序逐章分析：
+
+| 章节 | 章节主题 | 需要分析的源码 | 产出形式 |
+|------|----------|----------------|----------|
+| ch13 | 最小可用 Agent 骨架 | `src/entrypoints/`、`src/main.tsx`、`src/QueryEngine.ts` 的最小路径 | `architecture-notes/minimal-agent-skeleton.md` |
+| ch14 | 工具作为手脚 | `src/Tool.ts`、`src/tools.ts`、`src/tools/` 目录下典型工具 | `architecture-notes/tool-system-detail.md` |
+| ch15 | 提示词与任务指令 | `src/services/SystemPrompt/`、`src/commands.ts` | `architecture-notes/prompt-and-directive.md` |
+| ch16 | 状态与上下文 | `src/services/SessionManager/`、`src/services/SessionMemory/` | `architecture-notes/state-and-context.md` |
+| ch17 | 任务推进与运行时结构 | `src/query.ts`（状态机部分）、`src/services/TaskManager/` | `architecture-notes/runtime-structure.md` |
+| ch18 | 恢复是玩具和真实系统的分水岭 | `src/utils/conversationRecovery.ts`（完整版）、`src/services/compact/` | `architecture-notes/recovery-deep-dive.md` |
+
+### 笔记格式建议
+
+每个 `architecture-notes/` 笔记文件建议包含：
+
+- **模块职责**：这个模块/文件是干什么的，一句话
+- **关键函数/类**：列出 3–5 个最重要的函数或类，说明各自的作用
+- **数据流**：输入是什么，输出是什么，中间经过哪些步骤
+- **边界情况**：有哪些特殊情况需要处理，代码里怎么处理的
+- **设计意图**：为什么这样设计，有没有明显的取舍
+- **源码锚点**：关键行号或函数名，方便写作侧引用
+
+---
+
+## AI 写作侧的工作方式
+
+收到协同方的笔记后，写作侧按以下步骤完成章节：
+
+1. 读 `requirements.md` 确认写作标准
+2. 读对应的 `architecture-notes/` 笔记
+3. 读 `book-outline-v1.md` 确认章节定位
+4. 写章节，控制在 600–900 字，散文风格，不用大量列表
+5. 写完后更新 `chapter-evidence-map.md`
+6. 提交推送，通知协同方可以开始下一章的源码分析
 
 ---
 
 ## 冲突预防规则
 
-1. **每人只写自己负责的章节文件**，不要跨范围修改对方的章节。
-2. **`chapter-evidence-map.md` 是共享文件**，修改前先 pull，写完立即 push，不要长时间持有。
-3. **`book-outline-v1.md` 和 `requirements.md` 是只读参考**，如需修改请先在此文件里说明，双方确认后再改。
-4. **architecture-notes/ 目录**：本机 AI 可能会新增文件，但不会修改已有文件。协同方如需修改已有笔记，请先在此文件里标注。
-5. **每次推送前先 `git pull`**，确认没有远程新提交再推。
-6. **提交信息格式**：`docs(book): <简短说明>`，方便双方看 log 时快速识别对方做了什么。
+1. 协同方只写 `architecture-notes/` 笔记，不直接写章节文件。
+2. AI 写作侧只写章节文件，不修改已有的 `architecture-notes/` 笔记。
+3. `chapter-evidence-map.md` 由 AI 写作侧维护，协同方如有补充请在笔记里注明，写作侧整合。
+4. 每次推送前先 `git pull`，确认没有远程新提交再推。
+5. 提交信息格式：`docs(book): <简短说明>`。
 
 ---
 
-## 接口约定
-
-章节写作时遵守以下约定，避免后期整合时风格不一致：
+## 接口约定（写作风格）
 
 - 每章开头用一句话给出结论，不用"本章将……"这类预告式开头
 - 正文用散文，不用大量粗体 + 冒号的列表结构
 - 源码引用格式：`` `src/xxx.ts` ``，不要只写文件名
 - 推断性结论要标注"可以做一个保守推断"，不要写成已证实事实
-- 章节长度控制在 600–900 字，超出说明信息密度可能不够
+- 章节长度控制在 600–900 字
 
 ---
 
-## 待双方确认的问题
+## 待确认问题
 
-1. Part V（ch19–ch22）由谁负责？建议协同方接手，本机 AI 专注 Part III。
-2. `example-business-agent.md` 是否需要配套代码示例？如果需要，放在哪个目录？
-3. 是否需要一个 `SUMMARY.md` 或 `README.md` 作为全书导航入口？
+1. Part V（ch19–ch22）的源码分析由谁负责？Part V 偏实战，可能不需要深入源码，更多是设计层面的讨论。
+2. `example-business-agent.md` 是否需要配套可运行代码？如果需要，放在 `src/examples/` 还是 `docs/book/examples/`？
 
 ---
 
-*本文件由本机 AI 创建，协同方可直接在此文件末尾追加回复或修改分工表。*
+*协同方可直接在此文件末尾追加回复，或修改上方的分工表。*
