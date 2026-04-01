@@ -205,3 +205,89 @@
   - 锚点：`src/services/QueryEngine/queryEngine.ts`
   - 锚点：`src/utils/conversationRecovery.ts`
   - 状态：inference
+
+## Chapter 13 最小可用 Agent 骨架
+
+- 结论：最小骨架需要三层：入口分流、能力装配、执行循环
+  - 锚点：`src/entrypoints/cli.tsx`（入口分流）
+  - 锚点：`src/commands.ts`、`src/tools.ts`、`src/Tool.ts`（能力装配）
+  - 锚点：`src/QueryEngine.ts`、`src/query.ts`（执行循环）
+  - 状态：verified
+- 结论：入口层先判断模式再按需加载，轻操作不需要拉起完整系统
+  - 锚点：`src/entrypoints/cli.tsx` `main()` 动态 `import(...)`
+  - 状态：verified
+- 结论：在进入循环前先落盘用户输入，保证中途崩溃后可恢复
+  - 锚点：`src/QueryEngine.ts` `recordTranscript`
+  - 状态：verified
+
+## Chapter 14 工具作为手脚
+
+- 结论：工具有统一接口，约束位（只读、并发、权限）是系统决策依据
+  - 锚点：`src/Tool.ts` `TOOL_DEFAULTS`、`buildTool()`
+  - 状态：verified
+- 结论：工具池采用"先全集、后过滤"，权限规则集中管理
+  - 锚点：`src/tools.ts` `getAllBaseTools()`、`filterToolsByDenyRules()`、`assembleToolPool()`
+  - 状态：verified
+- 结论：默认值保守（不可并发、非只读），防止遗漏安全判断
+  - 锚点：`src/Tool.ts` `TOOL_DEFAULTS`
+  - 状态：verified
+
+## Chapter 15 提示词与任务指令
+
+- 结论：系统提示词动态生成，与当前工具列表和运行模式保持一致
+  - 锚点：`src/services/SystemPrompt/`
+  - 状态：verified
+- 结论：命令系统管理斜杠命令，用户直接触发，不经过模型
+  - 锚点：`src/commands.ts` `getCommands()`、`meetsAvailabilityRequirement()`
+  - 状态：verified
+- 结论：系统提示词和任务指令作用层次不同，不应混用
+  - 锚点：`docs/book/architecture-notes/system-overview.md`
+  - 状态：inference
+
+## Chapter 16 状态与上下文
+
+- 结论：会话状态用显式状态机管理，状态转换有明确路径
+  - 锚点：`src/services/SessionManager/sessionManager.ts`
+  - 状态：verified
+- 结论：上下文窗口主动监控，接近上限前触发压缩
+  - 锚点：`src/services/QueryEngine/queryEngine.ts`
+  - 状态：verified
+- 结论：长期记忆用受限子代理更新，与主对话隔离
+  - 锚点：`src/services/SessionMemory/sessionMemory.ts`
+  - 状态：verified
+- 结论：状态持久化要在执行开始前落盘，不是执行完成后
+  - 锚点：`src/QueryEngine.ts` `recordTranscript`（先写再执行）
+  - 状态：verified
+
+## Chapter 17 任务推进与运行时结构
+
+- 结论：任务状态持久化在文件系统，进程重启后不丢失
+  - 锚点：`src/utils/tasks.ts`（任务目录 + JSON 文件）
+  - 状态：verified
+- 结论：任务认领原子化，check-then-act 在同一把锁内完成
+  - 锚点：`src/utils/tasks.ts` `claimTaskWithBusyCheck()`
+  - 状态：verified
+- 结论：主循环继续条件基于工具调用事实，不依赖模型文字输出
+  - 锚点：`src/query.ts` `needsFollowUp`、`toolUseBlocks`
+  - 状态：verified
+- 结论：任务系统和主循环有明确接缝，执行进度对外可见
+  - 锚点：`src/query.ts` `task-notification`、`BG_SESSIONS`
+  - 状态：verified
+
+## Chapter 18 恢复是玩具和真实系统的分水岭
+
+- 结论：恢复是四层流水线：事实恢复、语义修复、压缩后连续性、长期记忆
+  - 锚点：`src/utils/conversationRecovery.ts` `loadConversationForResume`
+  - 锚点：`src/utils/conversationRecovery.ts` `deserializeMessagesWithInterruptDetection`
+  - 锚点：`src/services/compact/compact.ts` `compactMetadata.preservedSegment`
+  - 锚点：`src/services/SessionMemory/sessionMemory.ts`
+  - 状态：verified
+- 结论：语义修复包含迁移旧类型、清理非法字段、补齐 sentinel 消息
+  - 锚点：`src/utils/conversationRecovery.ts` `migrateLegacyAttachmentTypes`
+  - 状态：verified
+- 结论：主循环内联恢复分支处理实时异常（上下文过长、输出截断、工具结果缺失）
+  - 锚点：`src/query.ts` `tryReactiveCompact`、`MAX_OUTPUT_TOKENS_RECOVERY_LIMIT`、`yieldMissingToolResultBlocks`
+  - 状态：verified
+- 结论：最小恢复实现：任务状态落盘 + 上下文超限时摘要压缩
+  - 锚点：`docs/book/architecture-notes/recovery-and-continuity.md`
+  - 状态：inference
