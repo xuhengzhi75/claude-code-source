@@ -65,6 +65,60 @@
 
 ---
 
+## 架构图（先看这个）
+
+如果你想先快速建立整体感觉，可以先看这张“最小主干架构图”：
+
+```text
+用户请求 / CLI 参数
+        |
+        v
+src/entrypoints/cli.tsx
+  - fast-path 分流
+  - mode 判断
+  - dynamic import
+        |
+        v
+src/main.tsx
+  - 完整初始化
+  - 命令/工具装配
+  - 进入交互或非交互路径
+        |
+        v
+src/commands.ts + src/tools.ts + src/Tool.ts
+  - 形成当前会话可见能力池
+  - 做 feature / permission / mode 过滤
+        |
+        v
+src/QueryEngine.ts
+  - submitMessage()
+  - 会话编排
+  - transcript / usage / result 收口
+        |
+        v
+src/query.ts
+  - 单轮状态机
+  - tool_use -> tool_result -> next turn
+  - compact / recovery / budget / terminal reason
+        |
+        +----------------------+
+        |                      |
+        v                      v
+src/tasks/*              sessionStorage / compact / memory
+  - 长任务对象化          - 连续性与恢复链
+```
+
+### 怎么理解这张图
+
+- `cli.tsx` 决定“请求先走哪条路”
+- `main.tsx` 决定“这次会话带哪些能力上路”
+- `QueryEngine.ts` 决定“这次请求如何被组织成一个会话过程”
+- `query.ts` 决定“这一轮怎么继续、怎么结束、怎么恢复”
+- `tasks/*` 与 `sessionStorage/compact/memory` 决定“长任务和连续性如何成立”
+
+一句话：
+**这是一个“入口分流 → 能力装配 → 会话编排 → 运行时循环 → 任务与恢复”的系统，而不是一个单文件聊天程序。**
+
 ## 这个仓库怎么食用
 
 推荐按两条线使用：
