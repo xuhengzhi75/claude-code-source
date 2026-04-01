@@ -121,6 +121,17 @@ src/tasks/*              sessionStorage / compact / memory
 
 ## 这个仓库怎么食用
 
+### 快速导航（先看这 3 个入口）
+
+- `README.md`（你正在读）
+  - 先建立全局认知：仓库定位、主干架构、推荐阅读顺序
+- `docs/book/project-status.md`
+  - 再看当前进度：做到哪、缺什么、下一步优先级
+- `docs/book/WORKING-METHOD.md`
+  - 最后看协作与方法：阅读铁律、写作规则、交接与验收标准
+
+> 想快速进入状态：按上面顺序读一遍，再进入 `docs/book/chapters/` 或 `docs/book/architecture-notes/`。
+
 推荐按两条线使用：
 
 ### 线 A：源码阅读线
