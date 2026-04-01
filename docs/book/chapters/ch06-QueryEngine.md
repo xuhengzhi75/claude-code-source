@@ -1,90 +1,107 @@
-# 第6章 QueryEngine：用户消息在进入模型之前发生了什么
+# 第6章 QueryEngine：一条注释里藏着的 bug 修复历史
 
-> **核心主张：`QueryEngine` 解决的第一性问题是"会话持久性"——它保证了即使进程在 API 请求中途被杀死，`--resume` 也能正常工作。这个保证来自一个具体的设计决策：用户消息在 API 调用之前写入磁盘，而不是之后。**
+> **核心主张：`QueryEngine` 存在的理由是一个具体的 bug——进程在 API 响应之前被杀死，`--resume` 失败。修复这个 bug 的方式，揭示了整个会话持久化的设计逻辑。**
 
-## 6.1 第一性问题：为什么需要 QueryEngine 这一层
+## 6.1 一个让 `--resume` 失效的场景
 
-如果 `query.ts` 已经能处理单轮对话，为什么还需要 `QueryEngine`？
+用户发出一条消息，然后在 API 响应到来之前点击了 Stop。进程被杀死。
 
-`query.ts` 是无状态的——它接受消息列表，返回响应，不维护任何跨轮状态。这对单轮对话足够，但对多轮会话不够：消息历史需要跨轮保留，token 用量需要累计，权限拒绝需要记录，`--resume` 需要在进程重启后能找到之前的对话。
+用户重新打开，运行 `claude --resume`，系统提示："No conversation found"。
 
-`QueryEngine` 是这些跨轮状态的容器。它的存在让 `query.ts` 保持无状态，同时让会话级的持久性需求有一个明确的归属。
+这不是用户操作错误，这是一个 bug。[`QueryEngine.ts#L443`](https://github.com/xuhengzhi75/claude-code-source/blob/c68ee10/src/QueryEngine.ts#L443) 的注释完整记录了这个 bug 的原因和修复：
 
-**隐含假设：** 这个设计假设会话状态可以完整地保存在单个进程的内存里（加上磁盘上的 transcript）。如果需要多进程共享会话状态，`QueryEngine` 的设计需要根本性的改变。
-
-## 6.2 用户消息在 API 调用之前写入磁盘
-
-[`QueryEngine.ts#L443-L468`](https://github.com/xuhengzhi75/claude-code-source/blob/9e4d0c6d68748da4cc9623a89752ed2cf60af4ea/src/QueryEngine.ts#L443-L468) 有一段注释，记录了一个真实的故障场景：
-
-```
+```typescript
 // Persist the user's message(s) to transcript BEFORE entering the query
 // loop. The for-await below only calls recordTranscript when ask() yields
 // an assistant/user/compact_boundary message — which doesn't happen until
 // the API responds. If the process is killed before that (e.g. user clicks
 // Stop in cowork seconds after send), the transcript is left with only
 // queue-operation entries; getLastSessionLog filters those out, returns
-// null, and --resume fails with "No conversation found".
+// null, and --resume fails with "No conversation found". Writing now makes
+// the transcript resumable from the point the user message was accepted,
+// even if no API response ever arrives.
 ```
 
-这段注释记录了一个真实的 bug：如果在 API 响应到来之前进程被杀死，`--resume` 会失败，因为 transcript 里没有用户消息。修复方案是在进入 `query()` 循环之前，先调用 `recordTranscript(messages)`。
+原来的逻辑是：transcript 在 API 响应到来后才写入。这在正常情况下没问题，但在"发送后、响应前"被杀死时，transcript 里只有 queue-operation 条目，没有用户消息，`--resume` 找不到对话。
 
-**这个设计的代价：** 每次 `submitMessage()` 都会有一次磁盘写入，发生在 API 调用之前。在 bare 模式下（[`L459`](https://github.com/xuhengzhi75/claude-code-source/blob/9e4d0c6d68748da4cc9623a89752ed2cf60af4ea/src/QueryEngine.ts#L459)），这个写入是 fire-and-forget 的，不阻塞主流程。在交互模式下，这个写入是 `await` 的，增加了约 4-30ms 的延迟（注释里的数字）。
+修复方案是把 transcript 写入移到 API 调用之前。一行代码的位置变化，解决了一个真实的用户体验问题。
 
-**替代方案：** 另一种做法是在 API 响应到来后再写入 transcript，但这正是导致 bug 的原因。还有一种做法是用数据库事务保证原子性，但这会引入数据库依赖，增加部署复杂度。文件系统写入是最简单的持久化方案，代价是需要处理写入时序。
+## 6.2 这次写入有多贵
+
+注释里还有一个细节：
+
+```typescript
+// --bare / SIMPLE: fire-and-forget. Scripted calls don't --resume after
+// kill-mid-request. The await is ~4ms on SSD, ~30ms under disk contention
+// — the single largest controllable critical-path cost after module eval.
+```
+
+这次 transcript 写入是整个启动路径上**最大的可控延迟**——SSD 上约 4ms，磁盘竞争时约 30ms。
+
+所以在 bare 模式（脚本调用）下，这次写入是 fire-and-forget 的，不阻塞主流程：
+
+```typescript
+if (isBareMode()) {
+  void transcriptPromise  // 不等待
+} else {
+  await transcriptPromise  // 交互模式等待完成
+}
+```
+
+脚本调用不需要 `--resume`，所以可以接受写入失败的风险。交互模式需要 `--resume`，所以必须等写入完成再继续。同一个操作，根据使用场景选择不同的等待策略。
 
 ## 6.3 两次 `processUserInputContext`：同一接口，两种语义
 
-`submitMessage()` 在 [`QueryEngine.ts#L342`](https://github.com/xuhengzhi75/claude-code-source/blob/9e4d0c6d68748da4cc9623a89752ed2cf60af4ea/src/QueryEngine.ts#L342) 创建了第一个 `processUserInputContext`，在 [`L499`](https://github.com/xuhengzhi75/claude-code-source/blob/9e4d0c6d68748da4cc9623a89752ed2cf60af4ea/src/QueryEngine.ts#L499) 创建了第二个。这不是重复代码，而是一个刻意的设计。
-
-第一个对象（[`L342-L402`](https://github.com/xuhengzhi75/claude-code-source/blob/9e4d0c6d68748da4cc9623a89752ed2cf60af4ea/src/QueryEngine.ts#L342-L402)）带有可变的 `setMessages` 回调：
+[`QueryEngine.ts#L342`](https://github.com/xuhengzhi75/claude-code-source/blob/c68ee10/src/QueryEngine.ts#L342) 创建了第一个 `processUserInputContext`，注释解释了为什么要创建两次：
 
 ```typescript
+// Slash commands that mutate the message array (e.g. /force-snip)
+// call setMessages(fn). In interactive mode this writes back to
+// AppState; in print mode we write back to mutableMessages so the
+// rest of the query loop sees the result. The second
+// processUserInputContext below (after slash-command processing)
+// keeps the no-op — nothing else calls setMessages past that point.
 setMessages: fn => {
   this.mutableMessages = fn(this.mutableMessages)
 },
 ```
 
-这允许斜杠命令（如 `/force-snip`）在处理阶段修改消息历史。`/force-snip` 需要截断历史，这个回调让它能做到。
+第一个对象允许斜杠命令修改消息历史。`/force-snip` 需要截断历史，这个回调让它能做到。
 
-第二个对象（[`L499-L534`](https://github.com/xuhengzhi75/claude-code-source/blob/9e4d0c6d68748da4cc9623a89752ed2cf60af4ea/src/QueryEngine.ts#L499-L534)）把 `setMessages` 替换成空操作：
+斜杠命令处理完成后，第二个对象把 `setMessages` 替换成空操作：
 
 ```typescript
-setMessages: () => {},
+setMessages: () => {},  // 锁定，不再允许修改
 ```
 
-为什么？因为斜杠命令处理完成后，消息历史已经确定，不应该再被修改。第二个对象锁定了历史，防止后续代码意外改写。
+这是一种"阶段锁定"：斜杠命令处理阶段允许修改历史，查询执行阶段锁定历史。不需要引入新的类型或状态机，只需要替换回调实现。如果后续代码意外调用了 `setMessages`，什么都不会发生，不会有 bug，也不会有报错。
 
-**可迁移原则：** 同一个接口在不同阶段可以有不同的语义。用空操作替换可变回调，是一种轻量的"阶段锁定"机制——不需要引入新的类型或状态机，只需要替换回调实现。
+## 6.4 QueryEngine 管什么，query.ts 管什么
 
-## 6.4 会话边界 vs. Turn 边界
+`QueryEngine` 是会话级容器，`query.ts` 是单轮执行引擎。两者的职责边界很清晰：
 
-`discoveredSkillNames`（[`QueryEngine.ts#L201`](https://github.com/xuhengzhi75/claude-code-source/blob/9e4d0c6d68748da4cc9623a89752ed2cf60af4ea/src/QueryEngine.ts#L201)）在每次 `submitMessage()` 开始时清空（[`L245`](https://github.com/xuhengzhi75/claude-code-source/blob/9e4d0c6d68748da4cc9623a89752ed2cf60af4ea/src/QueryEngine.ts#L245)）。
+`QueryEngine` 管跨 turn 的东西：消息历史（`mutableMessages`，[`L190`](https://github.com/xuhengzhi75/claude-code-source/blob/c68ee10/src/QueryEngine.ts#L190)）、token 用量累计（`totalUsage`，[`L193`](https://github.com/xuhengzhi75/claude-code-source/blob/c68ee10/src/QueryEngine.ts#L193)）、权限拒绝记录（`permissionDenials`，[`L192`](https://github.com/xuhengzhi75/claude-code-source/blob/c68ee10/src/QueryEngine.ts#L192)）、transcript 持久化。
 
-这个细节揭示了 `QueryEngine` 的状态分层：
+`query.ts` 管单轮内的东西：当前轮的 `State`（消息演化、压缩状态）、是否继续下一轮（基于 `tool_use` 是否出现）、上下文过长的处理。
 
-- **会话级状态**（跨 turn 保留）：`mutableMessages`（[`L190`](https://github.com/xuhengzhi75/claude-code-source/blob/9e4d0c6d68748da4cc9623a89752ed2cf60af4ea/src/QueryEngine.ts#L190)）、`totalUsage`（[`L193`](https://github.com/xuhengzhi75/claude-code-source/blob/9e4d0c6d68748da4cc9623a89752ed2cf60af4ea/src/QueryEngine.ts#L193)）、`permissionDenials`（[`L192`](https://github.com/xuhengzhi75/claude-code-source/blob/9e4d0c6d68748da4cc9623a89752ed2cf60af4ea/src/QueryEngine.ts#L192)）
-- **Turn 级状态**（每次 `submitMessage()` 重置）：`discoveredSkillNames`
+这条边界的价值是：新增接入层（SDK、REPL、远程）时，只需要在 `QueryEngine` 层做协议适配，`query.ts` 的状态机逻辑不需要改动。
 
-`submitMessage()` 是 turn 边界，不是会话边界。会话在 `QueryEngine` 实例的生命周期内持续，turn 在每次 `submitMessage()` 调用内持续。
+## 6.5 turn 级状态 vs. 会话级状态
 
-**技术债：** 状态分层目前是隐式的——哪些字段是会话级的，哪些是 turn 级的，需要读代码才能知道。如果未来需要更多 turn 级状态，开发者需要记得在 `submitMessage()` 开始时清空它们。一个更显式的做法是把 turn 级状态封装成一个对象，在每次 `submitMessage()` 开始时整体重置。
+`discoveredSkillNames`（[`QueryEngine.ts#L201`](https://github.com/xuhengzhi75/claude-code-source/blob/c68ee10/src/QueryEngine.ts#L201)）在每次 `submitMessage()` 开始时清空。这说明它是 turn 级状态，不是会话级状态。
 
-## 6.5 QueryEngine 和 query.ts 的职责边界
+`mutableMessages` 跨 turn 保留，`discoveredSkillNames` 每 turn 重置。这个区分目前是隐式的——哪些字段是会话级的，哪些是 turn 级的，需要读代码才能知道。如果未来需要更多 turn 级状态，开发者需要记得在 `submitMessage()` 开始时清空它们，否则上一轮的状态会污染下一轮。
 
-`QueryEngine` 做的事情，`query.ts` 不做：维护 `mutableMessages`（消息历史是会话级资产，跨 turn 保留）、在 API 调用前写 transcript（保证 `--resume` 可用）、累计 `totalUsage`（跨 turn 的 token 用量统计）、收集 `permissionDenials`（向 SDK 报告哪些工具调用被拒绝）。
+## 6.6 验证题
 
-`query.ts` 做的事情，`QueryEngine` 不做：维护单轮的 `State`（消息演化、压缩状态、恢复计数）、判断是否继续下一轮（基于 `tool_use` 是否出现）、处理上下文过长、输出截断等运行时异常。
+如果把 transcript 写入从 API 调用前移到 API 调用后，会发生什么？
 
-**这条边界的价值：** 新增接入层（SDK、REPL、远程）时，只需要在 `QueryEngine` 层做协议适配，`query.ts` 的状态机逻辑不需要改动。
-
-## 6.6 心智模型验证题
-
-如果把"在 API 调用前写 transcript"改成"在 API 响应后写 transcript"，会发生什么？
-
-答案：如果用户在发送消息后、API 响应到来前点击 Stop，进程被杀死，transcript 里只有 queue-operation 条目，没有用户消息。`getLastSessionLog` 过滤掉 queue-operation 条目后返回 null，`--resume` 失败，提示"No conversation found"。这正是这个 bug 被修复之前的行为。
+答案：用户发送消息后、API 响应到来前点击 Stop，进程被杀死。transcript 里只有 queue-operation 条目，没有用户消息。`getLastSessionLog` 过滤掉 queue-operation 后返回 null，`--resume` 失败，提示"No conversation found"。这正是这个 bug 被修复之前的行为。
 
 ## 6.7 本章小结
 
-`QueryEngine` 的核心价值是两件事：在 API 调用前持久化用户消息（保证 `--resume` 可用），以及维护跨 turn 的会话状态（消息历史、用量统计、权限记录）。
+`QueryEngine` 的核心设计来自一个真实 bug 的修复：transcript 必须在 API 调用前写入（[`QueryEngine.ts#L443`](https://github.com/xuhengzhi75/claude-code-source/blob/c68ee10/src/QueryEngine.ts#L443)），否则 `--resume` 在进程被杀死时会失效。这次写入是整个启动路径上最大的可控延迟（4-30ms），所以 bare 模式下改为 fire-and-forget。
 
-两次 `processUserInputContext` 的设计揭示了"阶段锁定"模式：斜杠命令处理阶段允许修改历史，查询执行阶段锁定历史。这种区分不是偶然的，而是防止意外修改的设计。
+两次 `processUserInputContext` 的设计揭示了"阶段锁定"模式：斜杠命令处理阶段允许修改历史，查询执行阶段用空操作锁定历史。
+
+需要记住的核心概念：**持久化的时序决定了恢复能力的边界——写入发生在哪一步，恢复就能从哪一步开始。**
