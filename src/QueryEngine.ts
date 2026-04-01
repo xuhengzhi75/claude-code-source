@@ -173,13 +173,17 @@ export type QueryEngineConfig = {
 }
 
 /**
- * QueryEngine owns the query lifecycle and session state for a conversation.
- * It extracts the core logic from ask() into a standalone class that can be
- * used by both the headless/SDK path and (in a future phase) the REPL.
+ * QueryEngine owns conversation-scoped orchestration.
  *
- * One QueryEngine per conversation. Each submitMessage() call starts a new
- * turn within the same conversation. State (messages, file cache, usage, etc.)
- * persists across turns.
+ * Keep the boundary sharp:
+ * - QueryEngine manages session state, transcript durability, usage/cost
+ *   accumulation, and SDK-facing event shaping across turns.
+ * - query.ts owns the per-turn runtime loop and its continue/stop/recovery
+ *   transitions.
+ *
+ * One QueryEngine instance maps to one conversation. Each submitMessage()
+ * starts a new turn on the same session timeline, so message history,
+ * file-state cache, and accounting persist across turns.
  */
 export class QueryEngine {
   private config: QueryEngineConfig

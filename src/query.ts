@@ -200,7 +200,9 @@ export type QueryParams = {
 
 // -- query loop state
 
-// Mutable state carried between loop iterations
+// Mutable state carried between loop iterations. Keep this shape focused on
+// runtime continuity concerns only: message evolution, compaction/recovery
+// bookkeeping, tool-result summarization, and turn-to-turn transition cause.
 type State = {
   messages: Message[]
   toolUseContext: ToolUseContext
