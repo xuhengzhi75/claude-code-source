@@ -560,6 +560,8 @@ export class QueryEngine {
     // Record when system message is yielded for headless latency tracking
     headlessProfilerCheckpoint('system_message_yielded')
 
+    // 中文注：shouldQuery=false 表示本轮在输入预处理阶段已闭环（如本地 slash 命令），
+    // 直接走结果返回路径，不进入 query 主循环。
     if (!shouldQuery) {
       // Return the results of local slash commands.
       // Use messagesFromUserInput (not replayableMessages) for command output
@@ -681,6 +683,8 @@ export class QueryEngine {
 
     // QueryEngine 负责“编排与持久化”，query() 负责“推理-工具循环”本体。
     // 二者分层后，SDK/REPL 可共享核心循环，同时保留各自输出协议与状态管理。
+    // 中文注：进入 query() 后，QueryEngine 只消费事件流并做持久化/SDK 映射；
+    // 真正的继续/结束判定由 query.ts 的状态机负责。
     for await (const message of query({
       messages,
       systemPrompt,
@@ -1088,6 +1092,8 @@ export class QueryEngine {
       }
     }
 
+    // 中文注：统一出口判定：即使循环已结束，也必须通过结果形态校验，
+    // 防止把中间态（非 assistant/user 终态）误报为 success。
     if (!isResultSuccessful(result, lastStopReason)) {
       yield {
         type: 'result',

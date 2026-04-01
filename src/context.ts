@@ -112,6 +112,8 @@ export const getGitStatus = memoize(async (): Promise<string | null> => {
 
 /**
  * This context is prepended to each conversation, and cached for the duration of the conversation.
+ * 中文注：system/user context 的装配发生在这里，职责仅是“收集与缓存前缀上下文”，
+ * 不承担 query 循环内的状态推进；这样可将 I/O 成本前置并稳定 prompt cache key。
  */
 export const getSystemContext = memoize(
   async (): Promise<{
@@ -159,6 +161,8 @@ export const getUserContext = memoize(
     const startTime = Date.now()
     logForDiagnosticsNoPII('info', 'user_context_started')
 
+    // 中文注：用户上下文边界：仅负责把可注入的用户侧静态信息（CLAUDE.md、日期）
+    // 组织成字典，不在这里做策略决策或消息循环控制。
     // CLAUDE_CODE_DISABLE_CLAUDE_MDS: hard off, always.
     // --bare: skip auto-discovery (cwd walk), BUT honor explicit --add-dir.
     // --bare means "skip what I didn't ask for", not "ignore what I asked for".

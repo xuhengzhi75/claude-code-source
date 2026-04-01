@@ -311,6 +311,9 @@ async function* queryLoop(
   )
 
   // eslint-disable-next-line no-constant-condition
+  // 中文注：主循环采用显式 continue/return 驱动的状态机风格：
+  // - continue：进入下一次模型调用（如工具回填、压缩恢复、token 预算续跑）
+  // - return：到达终态（完成、被中断、达到上限或错误不可恢复）
   while (true) {
     // Destructure state at the top of each iteration. toolUseContext alone
     // is reassigned within an iteration (queryTracking, messages updates);
@@ -1068,6 +1071,8 @@ async function* queryLoop(
 
     // 终止判定关键点：当本轮 assistant 未产生 tool_use，就进入收尾分支。
     // 这将“继续调用模型”与“结束当前 turn”的判断从 stop_reason 解耦出来。
+    // 中文注：needsFollowUp=false 即“本迭代没有 tool_use 待执行”，
+    // 可尝试收束本轮；若命中可恢复错误，再通过 continue 回到循环顶部重试。
     if (!needsFollowUp) {
       const lastMessage = assistantMessages.at(-1)
 
@@ -1711,6 +1716,7 @@ async function* queryLoop(
     }
 
     // Check if we've reached the max turns limit
+    // 中文注：硬终止条件：超出 maxTurns 立即结束，避免无限 agentic 循环。
     if (maxTurns && nextTurnCount > maxTurns) {
       yield createAttachmentMessage({
         type: 'max_turns_reached',

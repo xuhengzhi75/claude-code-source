@@ -29,6 +29,8 @@ import {
 
 /**
  * Fetch the three context pieces that form the API cache-key prefix:
+ * 中文注：这里定义了 query 前缀上下文的装配边界（systemPrompt/user/systemContext）。
+ * 下游只消费结果，不反向拼装，确保 cache key 组成在一个地方可审计。
  * systemPrompt parts, userContext, systemContext.
  *
  * When customSystemPrompt is set, the default getSystemPrompt build and
@@ -85,6 +87,8 @@ export async function fetchSystemPromptParts({
  * know about (coordinator mode, memory-mechanics prompt). That's acceptable —
  * the alternative is returning null and failing the side question entirely.
  */
+// 中文注：该 fallback 仅在主循环尚未产出 cache-safe 快照时兜底构建参数，
+// 目标是“尽量命中缓存并可继续”，而不是复制全部主循环增强逻辑。
 export async function buildSideQuestionFallbackParams({
   tools,
   commands,

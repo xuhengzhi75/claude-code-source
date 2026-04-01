@@ -29,6 +29,8 @@ type RegisteredHookMatcher = HookCallbackMatcher | PluginHookMatcher
 import type { SessionId } from 'src/types/ids.js'
 
 // DO NOT ADD MORE STATE HERE - BE JUDICIOUS WITH GLOBAL STATE
+// 中文注：该模块是进程级单例状态边界。放进来的字段默认都会跨 turn/命令共享，
+// 会直接影响恢复、并发会话与测试隔离成本；因此新增字段前必须先确认是否真的需要全局可见。
 
 // dev: true on entries that came via --dangerously-load-development-channels.
 // The allowlist gate checks this per-entry (not the session-wide
@@ -258,6 +260,8 @@ type State = {
 
 // ALSO HERE - THINK THRICE BEFORE MODIFYING
 function getInitialState(): State {
+  // 中文注：初始态只在进程启动（或测试重置）时生成一次。后续运行期变更应通过
+  // 明确 setter 进入，避免外部直接改写导致“状态来源不可追踪”。
   // Resolve symlinks in cwd to match behavior of shell.ts setCwd
   // This ensures consistency with how paths are sanitized for session storage
   let resolvedCwd = ''
@@ -465,6 +469,8 @@ export function getParentSessionId(): SessionId | undefined {
  *   cross-project resume). Every call resets the project dir; it never
  *   carries over from the previous session.
  */
+// 中文注：switchSession 是会话切换的唯一入口，负责保证 sessionId 与
+// transcript 所在目录这两个关键锚点同步更新，避免恢复链路出现跨项目串线。
 export function switchSession(
   sessionId: SessionId,
   projectDir: string | null = null,
