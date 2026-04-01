@@ -33,6 +33,11 @@ import {
   CRON_LIST_TOOL_NAME,
 } from '../tools/ScheduleCronTool/prompt.js'
 
+// Agent/subagent tool allowlists are security boundaries, not convenience
+// filters. When a tool is missing here, ask "what invariant would break if an
+// async/coordinator agent could call it?" before adding it. Common answers:
+// recursive agent spawning, main-thread-only state, singleton terminal access,
+// or output channels that assume a top-level conversation.
 export const ALL_AGENT_DISALLOWED_TOOLS = new Set([
   TASK_OUTPUT_TOOL_NAME,
   EXIT_PLAN_MODE_V2_TOOL_NAME,

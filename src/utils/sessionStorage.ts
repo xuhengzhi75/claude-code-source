@@ -205,18 +205,16 @@ export function getTranscriptPath(): string {
 }
 
 export function getTranscriptPathForSession(sessionId: string): string {
-  // When asking for the CURRENT session's transcript, honor sessionProjectDir
-  // the same way getTranscriptPath() does. Without this, hooks get a
-  // transcript_path computed from originalCwd while the actual file was
-  // written to sessionProjectDir (set by switchActiveSession on resume/branch)
-  // — different directories, so the hook sees MISSING (gh-30217). CC-34
-  // made sessionId + sessionProjectDir atomic precisely to prevent this
-  // kind of drift; this function just wasn't updated to read both.
+  // CURRENT-session lookup and historical-session lookup do not have the same
+  // information available. For the active session we must honor the atomic
+  // pair {sessionId, sessionProjectDir}; otherwise resume/branch/worktree
+  // flows drift into "right id, wrong directory" bugs. For non-current ids we
+  // do not maintain a global sessionId -> projectDir index, so this helper can
+  // only make a best-effort guess from originalCwd. Callers that need a stable
+  // path for another session must pass fullPath explicitly.
   //
-  // For OTHER session IDs we can only guess via originalCwd — we don't
-  // track a sessionId→projectDir map. Callers wanting a specific other
-  // session's path should pass fullPath explicitly (most save* functions
-  // already accept this).
+  // In short: current session path is authoritative, other session paths are
+  // heuristic.
   if (sessionId === getSessionId()) {
     return getTranscriptPath()
   }

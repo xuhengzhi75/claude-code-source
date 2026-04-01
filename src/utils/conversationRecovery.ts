@@ -204,8 +204,11 @@ export function deserializeMessagesWithInterruptDetection(
     const internalState = detectTurnInterruption(filteredMessages)
 
     // Transform mid-turn interruptions into interrupted_prompt by appending
-    // a synthetic continuation message. This unifies both interruption kinds
-    // so the consumer only needs to handle interrupted_prompt.
+    // a synthetic continuation message. This is a semantic repair step, not a
+    // transcript replay step: recovery first restores facts from disk, then
+    // rewrites the tail into an API-valid, resumable conversation shape.
+    // Unifying both interruption kinds here keeps SDK/REPL resume behavior on
+    // the same path instead of making each consumer special-case half-broken tails.
     let turnInterruptionState: TurnInterruptionState
     if (internalState.kind === 'interrupted_turn') {
       const [continuationMessage] = normalizeMessages([

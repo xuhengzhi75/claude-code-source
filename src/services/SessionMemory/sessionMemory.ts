@@ -162,9 +162,13 @@ export function shouldExtractMemory(messages: Message[]): boolean {
   // 2. No tool calls in last turn AND token threshold is met
   //    (to ensure we extract at natural conversation breaks)
   //
-  // IMPORTANT: The token threshold (minimumTokensBetweenUpdate) is ALWAYS required.
-  // Even if the tool call threshold is met, extraction won't happen until the
-  // token threshold is also satisfied. This prevents excessive extractions.
+  // IMPORTANT: The token threshold is the hard gate. Tool-call count alone can
+  // never advance the session-memory cursor. That keeps extraction aligned with
+  // meaningful context growth instead of firing on every tool-heavy burst.
+  //
+  // This also means lastMemoryMessageUuid only advances when we have both a
+  // safe boundary and enough new context to summarize. It is a continuity
+  // cursor, not just a "latest message seen" marker.
   const shouldExtract =
     (hasMetTokenThreshold && hasMetToolCallThreshold) ||
     (hasMetTokenThreshold && !hasToolCallsInLastTurn)

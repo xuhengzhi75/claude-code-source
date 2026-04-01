@@ -8,6 +8,10 @@
 #   bash scripts/check-anchors.sh --verbose    # 输出所有 PASS 详情
 #
 # 退出码：0=全部通过，1=有失败
+#
+# 设计意图：把“书稿里的代码锚点仍指向真实源码位置”变成可自动验证的
+# 发布前门槛。对这类持续重写章节、频繁移动行号的仓库，锚点漂移不是
+# 小问题——一旦章节结论指到错误行号，整套 evidence discipline 就会失真。
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 CHAPTERS_DIR="$REPO_ROOT/docs/book/chapters"
