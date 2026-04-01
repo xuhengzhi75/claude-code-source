@@ -64,7 +64,30 @@
 
 **技术债：** 四条恢复路径的触发条件有重叠（上下文过长可以触发折叠排空，也可以触发反应式压缩），路径之间的优先级由代码顺序决定，而不是显式的优先级声明。如果未来需要调整优先级，需要修改代码顺序，而不是修改配置。
 
-## 7.5 `yieldMissingToolResultBlocks()`：针对 Capybara v8 的专项修复
+## 7.5 压缩系统的阈值从哪来：一次 25 万次 API 调用的浪费
+
+压缩系统里有几个看起来像"拍脑袋"的数字，但每个都有数据来源。
+
+**`MAX_CONSECUTIVE_AUTOCOMPACT_FAILURES = 3` 的来历。** 源码注释里有一段真实的生产事故记录，带时间戳：
+
+```
+// BQ 2026-03-10: 1,279 sessions had 50+ consecutive failures (up to 3,272)
+// in a single session, wasting ~250K API calls/day globally.
+```
+
+在这个常量加入之前，自动压缩失败后会无限重试。2026 年 3 月 10 日的数据显示：有 1,279 个会话在单次会话内出现了 50 次以上的连续失败，最极端的一个会话失败了 3,272 次，全球每天因此浪费约 25 万次 API 调用。`MAX_CONSECUTIVE_AUTOCOMPACT_FAILURES = 3` 就是这次事故的直接产物——连续失败 3 次后停止重试，让错误 surface 出来。
+
+**三个触发阈值的数据来源。** 压缩系统有三个关键阈值，都不是随意选的：
+
+- **摘要预留 20,000 tokens**：基于历史观测中摘要长度的 p99.99，约为 17,387 tokens。预留 20,000 是在 p99.99 基础上加了约 15% 的安全边距。
+- **自动压缩触发点**：`context_window - max_output_tokens - 13,000 buffer`。13,000 的 buffer 是为了在触发压缩时，还有足够的空间完成当前轮次的输出，不至于在压缩过程中再次触发上下文过长错误。
+- **强制压缩触发点**（阻塞用户）：`context_window - max_output_tokens - 3,000 buffer`。3,000 是最后的安全线，到这里必须压缩，否则下一次 API 调用大概率失败。
+
+这三个数字的关系是：自动压缩（13,000 buffer）是预防性的，给系统留出处理时间；强制压缩（3,000 buffer）是兜底的，到这里已经没有退路。两者之间的 10,000 token 窗口，是系统尝试自动压缩的空间。
+
+**可迁移原则：** 熔断阈值应该来自真实的生产数据，而不是经验估算。`MAX_CONSECUTIVE_AUTOCOMPACT_FAILURES = 3` 来自"1,279 个会话、25 万次浪费"的实测，`20,000 token` 预留来自 p99.99 的历史观测。用数据定阈值，比用直觉定阈值更难被质疑，也更容易在数据变化时调整。
+
+## 7.7 `yieldMissingToolResultBlocks()`：针对 Capybara v8 的专项修复
 
 在四条恢复路径之外，主循环还有一个更低调的防护机制：`yieldMissingToolResultBlocks()`。
 
@@ -78,7 +101,7 @@
 
 **可迁移原则：** 在跨模型版本的系统里，针对特定版本行为的补丁是不可避免的。把这类补丁集中在消息构建层（而不是散落在业务逻辑里），可以让版本升级时的清理工作更容易定位。
 
-## 7.6 `State` 的形状：为可测试性而设计的字段
+## 7.8 `State` 的形状：为可测试性而设计的字段
 
 [`query.ts#L206-L219`](https://github.com/xuhengzhi75/claude-code-source/blob/9e4d0c6d68748da4cc9623a89752ed2cf60af4ea/src/query.ts#L206-L219) 定义了 `State`，注释说明了设计意图：
 
@@ -101,7 +124,7 @@
 
 **可迁移原则：** 在状态机里加入"上一次转换原因"字段，可以让测试直接断言状态机走了哪条路径，而不需要通过副作用（消息内容、日志）来推断。这是一种为可测试性而设计的模式。
 
-## 7.7 输出截断时注入的元消息
+## 7.9 输出截断时注入的元消息
 
 [`L1233-L1238`](https://github.com/xuhengzhi75/claude-code-source/blob/9e4d0c6d68748da4cc9623a89752ed2cf60af4ea/src/query.ts#L1233-L1238) 里，当输出被截断时，系统注入这条消息：
 
@@ -118,13 +141,13 @@ const recoveryMessage = createUserMessage({
 
 `isMeta: true` 标记这条消息是系统注入的，不是用户输入的，不会显示在 UI 里。
 
-## 7.8 心智模型验证题
+## 7.10 心智模型验证题
 
 如果去掉 `hasAttemptedReactiveCompact` 这个 flag，在什么情况下会出现无限循环？
 
 答案：当压缩后的历史本身就超过上下文窗口时。比如，用户的对话包含大量代码，压缩后的摘要仍然很长，超过上下文窗口。没有这个 flag，系统会再次触发压缩，压缩后仍然过长，再次触发，形成无限循环，直到 API 调用次数耗尽或进程被杀死。
 
-## 7.9 本章小结
+## 7.11 本章小结
 
 `query.ts` 的主循环是一个防止无限循环的状态机。`hasAttemptedReactiveCompact` 防止压缩触发无限循环，`needsFollowUp` 基于 `tool_use` 事实而非 `stop_reason` 判断是否继续，`transition` 字段为测试提供可断言的路径记录。
 
