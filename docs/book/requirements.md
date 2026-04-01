@@ -74,3 +74,14 @@ Requirements:
 2. Prefer shorter, information-bearing sentences when they improve clarity.
 3. Remove repeated points, padded transitions, and empty emphasis.
 4. A chapter that is readable but verbose does not pass review.
+
+## Information density requirement
+Every chapter must pass an information-density review, not just a readability review.
+
+Requirements:
+1. Chapter length must not be inflated by repeating the same judgment in slightly different wording.
+2. Every section should add at least one new mechanism, boundary, example, or evidence point.
+3. Boilerplate teaching phrases should be minimized unless they carry real information.
+4. Prefer facts, mechanisms, boundary conditions, and evidence over evaluative filler.
+5. If 20% to 30% of a chapter can be deleted without harming the reader's understanding, the chapter is not ready.
+6. "Readable but low-density" does not pass review.

@@ -30,10 +30,18 @@
   - 状态：verified
 - 结论：Claude Code 在入口层就区分 fast-path、daemon、bridge、bg session、template job 等模式
   - 锚点：`src/entrypoints/cli.tsx`
+  - 锚点：`--version`
+  - 锚点：`remote-control / bridge`
+  - 锚点：`daemon`
+  - 锚点：`ps / logs / attach / kill / --bg`
+  - 锚点：`new / list / reply`
   - 状态：verified
-- 结论：动态 `import(...)` 用于按需加载，降低冷启动成本
+- 结论：入口层使用动态 `import(...)` 做按需加载
   - 锚点：`src/entrypoints/cli.tsx`
   - 状态：verified
+- 结论：这种按需加载有助于降低冷启动成本和无关模块初始化
+  - 锚点：`src/entrypoints/cli.tsx`
+  - 状态：inference
 - 结论：入口层还承担少量必须前置的环境准备
   - 锚点：`src/entrypoints/cli.tsx`
   - 状态：verified
@@ -52,6 +60,7 @@
   - 锚点：`src/commands.ts`
   - 锚点：`src/tools.ts`
   - 状态：verified
+- 说明：本章证据主仓位不在 `cli.tsx / QueryEngine.ts / query.ts`，而在 `commands.ts / tools.ts / Tool.ts`
 
 ## Chapter 6 QueryEngine：为什么它是会话编排核心
 - 结论：`submitMessage()` 是会话进入主执行链的关键入口
@@ -59,6 +68,19 @@
   - 状态：verified
 - 结论：`QueryEngine` 负责消息状态、上下文、持久化与结果整理
   - 锚点：`src/QueryEngine.ts`
+  - 锚点：`mutableMessages`
+  - 锚点：`recordTranscript`
+  - 锚点：`flushSessionStorage`
+  - 状态：verified
+- 结论：`submitMessage()` 在进入 query loop 前先写 transcript，提升中断后的恢复友好性
+  - 锚点：`src/QueryEngine.ts`
+  - 锚点：`recordTranscript`
+  - 状态：verified
+- 结论：`QueryEngine` 负责把内部消息归一成 SDK 事件流
+  - 锚点：`src/QueryEngine.ts`
+  - 锚点：`buildSystemInitMessage`
+  - 锚点：`permission_denials`
+  - 锚点：`usage`
   - 状态：verified
 - 结论：`QueryEngine` 承上启下，负责把执行内核接成产品级会话
   - 锚点：`src/QueryEngine.ts`
@@ -67,12 +89,26 @@
 ## Chapter 7 Query Loop：真正让系统跑起来的运行时引擎
 - 结论：`query.ts` 是高密度状态机控制层
   - 锚点：`src/query.ts`
+  - 锚点：`type State`
+  - 锚点：`while (true)`
+  - 状态：verified
+- 结论：循环显式记录 transition reason，而不是只依赖隐式控制流
+  - 锚点：`src/query.ts`
+  - 锚点：`transition`
   - 状态：verified
 - 结论：继续条件更看真实 `tool_use`，而不只看 `stop_reason`
   - 锚点：`src/query.ts`
   - 状态：verified
 - 结论：compact、recovery、budget control 被直接纳入主循环
   - 锚点：`src/query.ts`
+  - 锚点：`auto compact`
+  - 锚点：`reactive compact`
+  - 锚点：`context collapse`
+  - 锚点：`task budget / token budget`
+  - 状态：verified
+- 结论：主循环存在多种终态，而不是单一成功/失败
+  - 锚点：`src/query.ts`
+  - 锚点：`return { reason: ... }`
   - 状态：verified
 - 结论：Claude Code 的长流程稳定性很大程度来自运行时循环设计
   - 锚点：`src/query.ts`
@@ -83,6 +119,12 @@
   - 锚点：`src/Task.ts`
   - 锚点：`src/tasks.ts`
   - 锚点：`src/tasks/`
+  - 状态：verified
+- 结论：任务系统与主循环并不是分离的，`query.ts` 中也存在任务接缝
+  - 锚点：`src/query.ts`
+  - 锚点：`task-notification`
+  - 锚点：`BG_SESSIONS`
+  - 锚点：`task summary`
   - 状态：verified
 - 结论：任务系统的价值在于状态、认领、输出与一致性治理
   - 锚点：`src/Task.ts`
