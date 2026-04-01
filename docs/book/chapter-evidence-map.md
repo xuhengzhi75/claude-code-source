@@ -134,3 +134,74 @@
   - 锚点：`docs/book/architecture-notes/task-recovery-map.md`
   - 锚点：`docs/book/architecture-notes/recovery-and-continuity.md`
   - 状态：inference
+
+## Chapter 9 护城河不只是模型：Claude Code 真正难以复制的是什么
+
+- 结论：护城河来自三个来源：运行时工程积累、真实场景打磨的边界处理、系统各层的协议一致性
+  - 锚点：`src/utils/conversationRecovery.ts`
+  - 锚点：`src/services/compact/compact.ts`
+  - 锚点：`src/utils/tasks.ts`
+  - 状态：inference
+- 结论：护城河不是单一技术点，而是多个系统层协同的结果
+  - 锚点：`docs/book/architecture-notes/moat-and-barriers.md`
+  - 状态：inference
+
+## Chapter 10 难以复制的运行时壁垒
+
+- 结论：中断恢复需要区分真正中断和看起来像中断的完成状态
+  - 锚点：`src/utils/conversationRecovery.ts`
+  - 锚点：`deserializeMessagesWithInterruptDetection`
+  - 状态：verified
+- 结论：压缩后语义不丢失依赖固定协议重建最小上下文
+  - 锚点：`src/services/compact/compact.ts`
+  - 锚点：`compactMetadata.preservedSegment`
+  - 状态：verified
+- 结论：并发下的原子认领通过 list-level lock 防止 TOCTOU 竞态
+  - 锚点：`src/utils/tasks.ts`
+  - 锚点：`claimTaskWithBusyCheck`
+  - 状态：verified
+- 结论：记忆更新用受限子代理执行，只允许访问 memoryPath
+  - 锚点：`src/services/SessionMemory/sessionMemory.ts`
+  - 状态：verified
+- 结论：跨版本数据兼容需要显式迁移函数
+  - 锚点：`src/utils/conversationRecovery.ts`
+  - 锚点：`migrateLegacyAttachmentTypes`
+  - 状态：verified
+
+## Chapter 11 为什么很多 Agent 看起来像但干不了真活
+
+- 结论：分层错误处理是真实场景稳定性的基础
+  - 锚点：`src/utils/errors.ts`
+  - 锚点：`AbortError`、`InterruptedError`、`ContextWindowExceededError`
+  - 状态：verified
+- 结论：显式状态机比隐式状态更可观察、可测试
+  - 锚点：`src/services/SessionManager/sessionManager.ts`
+  - 状态：verified
+- 结论：上下文窗口主动管理优于被动等待 API 报错
+  - 锚点：`src/services/QueryEngine/queryEngine.ts`
+  - 状态：verified
+- 结论：细粒度权限管理兼顾安全性和用户体验
+  - 锚点：`src/services/PermissionManager/permissionManager.ts`
+  - 状态：verified
+- 结论：任务进度可见性对真实使用体验影响显著
+  - 锚点：`src/services/TaskManager/taskManager.ts`
+  - 状态：verified
+
+## Chapter 12 该学什么、先别急着抄什么
+
+- 结论：文件系统任务队列是场景特定方案，不适合多机部署
+  - 锚点：`src/utils/tasks.ts`
+  - 状态：inference
+- 结论：压缩阈值是模型特定参数，换模型需重新校准
+  - 锚点：`src/services/compact/compact.ts`
+  - 状态：inference
+- 结论：Claude API 消息格式约定不可直接迁移到其他模型 API
+  - 锚点：`src/utils/conversationRecovery.ts`
+  - 状态：inference
+- 结论：分层错误处理、显式状态机、最小权限隔离、主动资源管理、正确性优先是可迁移的设计原则
+  - 锚点：`src/utils/errors.ts`
+  - 锚点：`src/services/SessionManager/sessionManager.ts`
+  - 锚点：`src/services/SessionMemory/sessionMemory.ts`
+  - 锚点：`src/services/QueryEngine/queryEngine.ts`
+  - 锚点：`src/utils/conversationRecovery.ts`
+  - 状态：inference
