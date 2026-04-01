@@ -383,6 +383,8 @@ function isTerminalToolResult(
  * @internal Exported for testing - use loadConversationForResume instead
  */
 export function restoreSkillStateFromMessages(messages: Message[]): void {
+  // 恢复阶段必须先回放 attachment 里的技能状态，再做后续反序列化/继续对话。
+  // 否则 invokedSkills 仅存在于进程内存，resume 后下一次 compact 会把技能上下文“遗忘”。
   for (const message of messages) {
     if (message.type !== 'attachment') {
       continue
@@ -562,14 +564,16 @@ export async function loadConversationForResume(
     // This ensures skills survive multiple compaction cycles after resume.
     restoreSkillStateFromMessages(messages!)
 
-    // Deserialize messages to handle unresolved tool uses and ensure proper format
+    // 恢复连续性的关键步骤：把“磁盘事实”转成“可继续推理的对话形状”。
+    // 这里会统一处理 unresolved tool_use、中断补偿、assistant 哨兵，避免各调用方分叉实现。
     const deserialized = deserializeMessagesWithInterruptDetection(messages!)
     messages = deserialized.messages
 
     // Process session start hooks for resume
     const hookMessages = await processSessionStartHooks('resume', { sessionId })
 
-    // Append hook messages to the conversation
+    // 注意顺序：hooks 在恢复后的消息尾部追加，保证它们只影响“继续运行”的上下文，
+    // 不会改变历史消息链的 parent/turn 语义。
     messages.push(...hookMessages)
 
     return {

@@ -353,6 +353,8 @@ export function annotateBoundaryWithPreservedSegment(
   anchorUuid: UUID,
   messagesToKeep: readonly Message[] | undefined,
 ): SystemCompactBoundaryMessage {
+  // 这是 compact↔resume 的契约字段：记录保留段 head/anchor/tail，
+  // 让 loadTranscriptFile 能在恢复期做 parent 重连，避免“保留了消息但链断了”。
   const keep = messagesToKeep ?? []
   if (keep.length === 0) return boundary
   return {
@@ -1077,6 +1079,8 @@ export async function partialCompactConversation(
     )
 
     // 'from': prefix-preserving → boundary; 'up_to': suffix → last summary
+    // up_to（保留后缀）时，保留段应挂在“新 summary”之后；
+    // from（保留前缀）时，保留段直接挂 boundary。这个锚点选择决定了 resume 链的方向正确性。
     const anchorUuid =
       direction === 'up_to'
         ? (summaryMessages.at(-1)?.uuid ?? boundaryMarker.uuid)

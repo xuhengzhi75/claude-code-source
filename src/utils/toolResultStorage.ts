@@ -771,6 +771,8 @@ export async function enforceToolResultBudget(
   state: ContentReplacementState,
   skipToolNames: ReadonlySet<string> = new Set(),
 ): Promise<{
+  // 预算策略的关键是“同一 tool_use_id 决策不可反复横跳”：
+  // 一旦某结果被看过（无论替换与否）就冻结，后续只重放既有决定，维持缓存前缀稳定。
   messages: Message[]
   newlyReplaced: ToolResultReplacementRecord[]
 }> {
@@ -962,6 +964,8 @@ export function reconstructContentReplacementState(
   records: ContentReplacementRecord[],
   inheritedReplacements?: ReadonlyMap<string, string>,
 ): ContentReplacementState {
+  // resume 连续性关键：把“当时给模型看的替换文本”原样还原到内存状态，
+  // 避免因模板或格式迭代导致同一消息在恢复后变字节，触发不必要的 cache miss。
   const state = createContentReplacementState()
   const candidateIds = new Set(
     collectCandidatesByMessage(messages)

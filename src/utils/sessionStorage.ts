@@ -1837,6 +1837,8 @@ export function removeExtraFields(
 function applyPreservedSegmentRelinks(
   messages: Map<UUID, TranscriptMessage>,
 ): void {
+  // continuity 修复核心：compact 后被“保留”的消息在磁盘上仍指向旧 parentUuid，
+  // 这里按 preservedSegment 元数据把链头/链尾重新接回当前主链，保证 resume 不丢上下文。
   type Seg = NonNullable<
     SystemCompactBoundaryMessage['compactMetadata']['preservedSegment']
   >
@@ -1978,6 +1980,8 @@ function applyPreservedSegmentRelinks(
  * Mutates the Map in place.
  */
 function applySnipRemovals(messages: Map<UUID, TranscriptMessage>): void {
+  // 与 compact 不同，snip 是“中段挖空”：必须同时做删除 + parent 重连。
+  // 只删不连会让 buildConversationChain 在断点处提前终止，恢复时出现历史被截断。
   // Structural check — snipMetadata only exists on the boundary subtype.
   // Avoids the subtype literal which is in excluded-strings.txt
   // (HISTORY_SNIP is ant-only; the literal must not leak into external builds).
@@ -3581,6 +3585,8 @@ export async function loadTranscriptFile(
     // etc.) for entries written before the compact boundary. Any overlap with
     // the post-boundary buffer is harmless — later values overwrite earlier ones.
     if (metadataLines && metadataLines.length > 0) {
+      // pre-boundary 元数据补扫：即使旧消息正文被边界裁掉，也要把 title/tag/mode 等
+      // session 级状态恢复回来；否则 --resume 会出现“会话存在但身份/标题丢失”。
       const metaEntries = parseJSONL<Entry>(
         Buffer.from(metadataLines.join('\n')),
       )

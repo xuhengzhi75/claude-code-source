@@ -132,6 +132,8 @@ function countToolCallsSince(
 }
 
 export function shouldExtractMemory(messages: Message[]): boolean {
+  // 这里本质是“连续性节流阀”：只在上下文增长到足够规模且落在安全边界时更新记忆，
+  // 防止每轮抖动写入导致记忆文件噪声化，或在 tool 调用未闭合时截断上下文。
   // Check if we've met the initialization threshold
   // Uses total context window tokens (same as autocompact) for consistent behavior
   const currentTokenCount = tokenCountWithEstimation(messages)
@@ -319,6 +321,8 @@ const extractSessionMemory = sequential(async function (
   // Run session memory extraction using runForkedAgent for prompt caching
   // runForkedAgent creates an isolated context to prevent mutation of parent state
   // Pass setupContext.readFileState so the forked agent can edit the memory file
+  // 通过 forked agent 执行提取，隔离主线程对话状态：
+  // 主会话继续响应用户，记忆更新在旁路完成并回写同一 memoryPath。
   await runForkedAgent({
     promptMessages: [createUserMessage({ content: userPrompt })],
     cacheSafeParams: createCacheSafeParams(context),
