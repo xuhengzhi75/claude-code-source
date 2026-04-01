@@ -262,6 +262,9 @@ export function getAllBaseTools(): Tools {
  * server-prefix rules like `mcp__server` strip all tools from that server
  * before the model sees them — not just at call time.
  */
+// deny 规则在“暴露给模型之前”先执行一次，属于前置裁剪（pre-exposure gate）：
+// 目的不是减少报错，而是减少模型对受限能力的可见性，降低误调用与越权尝试。
+// 对 MCP 工具尤其关键：server 级 deny 可一次性隐藏整组远端能力。
 export function filterToolsByDenyRules<
   T extends {
     name: string
@@ -272,6 +275,11 @@ export function filterToolsByDenyRules<
 }
 
 export const getTools = (permissionContext: ToolPermissionContext): Tools => {
+  // getTools 是“运行态可见工具集”入口：
+  // 1) 先按模式（simple/repl/coordinator 等）做装配裁剪
+  // 2) 再按 deny 规则做安全裁剪
+  // 3) 最后执行每个工具自身 isEnabled
+  // 这三个阶段不可互换，否则会破坏 REPL 包装语义或权限前置语义。
   // Simple mode: only Bash, Read, and Edit tools
   if (isEnvTruthy(process.env.CLAUDE_CODE_SIMPLE)) {
     // --bare + REPL mode: REPL wraps Bash/Read/Edit/etc inside the VM, so
@@ -312,8 +320,9 @@ export const getTools = (permissionContext: ToolPermissionContext): Tools => {
   // Filter out tools that are denied by the deny rules
   let allowedTools = filterToolsByDenyRules(tools, permissionContext)
 
-  // When REPL mode is enabled, hide primitive tools from direct use.
-  // They're still accessible inside REPL via the VM context.
+  // REPL 启用时隐藏底层原语工具（Bash/Read/Edit 等）的直接入口，
+  // 形成“单入口封装”边界：模型只能通过 REPL 这个受控外壳访问它们，
+  // 避免绕过 REPL 的上下文隔离、交互协议与审计路径。
   if (isReplModeEnabled()) {
     const replEnabled = allowedTools.some(tool =>
       toolMatchesName(tool, REPL_TOOL_NAME),

@@ -50,6 +50,9 @@ export const ALL_AGENT_DISALLOWED_TOOLS = new Set([
   ...(feature('WORKFLOW_SCRIPTS') ? [WORKFLOW_TOOL_NAME] : []),
 ])
 
+// custom agent 继承全局禁用集：
+// 语义上表示“默认最小权限”——新增 agent 类型若未显式放权，
+// 不应自动获得比主策略更宽的工具能力。
 export const CUSTOM_AGENT_DISALLOWED_TOOLS = new Set([
   ...ALL_AGENT_DISALLOWED_TOOLS,
 ])
@@ -57,6 +60,11 @@ export const CUSTOM_AGENT_DISALLOWED_TOOLS = new Set([
 /*
  * Async Agent Tool Availability Status (Source of Truth)
  */
+// ASYNC_AGENT_ALLOWED_TOOLS 是异步 agent 的显式 allowlist。
+// 系统含义：
+// - 只有在该集合中的工具，才允许进入 async agent 执行面；
+// - “不在列表”即默认拒绝（deny by default），而非待定；
+// - 这是隔离主线程能力、抑制递归/越界副作用的第一道制度边界。
 export const ASYNC_AGENT_ALLOWED_TOOLS = new Set([
   FILE_READ_TOOL_NAME,
   WEB_SEARCH_TOOL_NAME,
@@ -109,6 +117,9 @@ export const IN_PROCESS_TEAMMATE_ALLOWED_TOOLS = new Set([
 /**
  * Tools allowed in coordinator mode - only output and agent management tools for the coordinator
  */
+// Coordinator allowlist 强调“调度者最小能力面”：
+// 只保留编排/通信/停止相关能力，不直接暴露通用读写执行工具，
+// 以保持 coordinator 与 worker 的职责分离和故障域隔离。
 export const COORDINATOR_MODE_ALLOWED_TOOLS = new Set([
   AGENT_TOOL_NAME,
   TASK_STOP_TOOL_NAME,

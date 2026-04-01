@@ -16,6 +16,11 @@ export type MessageUpdate = {
   newContext: ToolUseContext
 }
 
+// runTools 是工具编排主循环：
+// - 先按 isConcurrencySafe 分批，确保“可并发”与“需串行”严格隔离
+// - 并发批次只暂存 contextModifier，待批次结束后再按顺序回放
+//   （避免并发写 context 导致竞态）
+// - 串行批次则实时推进上下文，保证副作用顺序可预测
 export async function* runTools(
   toolUseMessages: ToolUseBlock[],
   assistantMessages: AssistantMessage[],
@@ -92,6 +97,8 @@ function partitionToolCalls(
   toolUseMessages: ToolUseBlock[],
   toolUseContext: ToolUseContext,
 ): Batch[] {
+  // 关键安全兜底：只要 input 解析失败或 isConcurrencySafe 抛错，就降级为串行。
+  // 这保证“并发”是显式声明能力，而不是默认假设，避免误判带来的跨工具状态污染。
   return toolUseMessages.reduce((acc: Batch[], toolUse) => {
     const tool = findToolByName(toolUseContext.options.tools, toolUse.name)
     const parsedInput = tool?.inputSchema.safeParse(toolUse.input)
@@ -155,6 +162,9 @@ async function* runToolsConcurrently(
   canUseTool: CanUseToolFn,
   toolUseContext: ToolUseContext,
 ): AsyncGenerator<MessageUpdateLazy, void> {
+  // 并发上限由环境变量控制（默认 10），属于资源与安全双重阀门：
+  // - 资源侧：避免过多并发导致 IO/CPU 抖动
+  // - 安全侧：限制同一时刻潜在高风险工具调用的爆发度
   yield* all(
     toolUseMessages.map(async function* (toolUse) {
       toolUseContext.setInProgressToolUseIDs(prev =>

@@ -120,6 +120,11 @@ import type { ToolPermissionRulesBySource } from './types/permissions.js'
 export type { ToolPermissionRulesBySource }
 
 // Apply DeepImmutable to the imported type
+// ToolPermissionContext 是“工具权限判定快照”：
+// - alwaysAllow/alwaysDeny/alwaysAsk 三组规则共同决定授权路径
+// - additionalWorkingDirectories 扩展了文件系统边界（需与权限规则联合理解）
+// - 该类型被 DeepImmutable 包裹，避免工具执行过程中被意外篡改
+//   （权限应由上游组装，工具侧只消费）
 export type ToolPermissionContext = DeepImmutable<{
   mode: PermissionMode
   additionalWorkingDirectories: Map<string, AdditionalWorkingDirectory>
@@ -363,6 +368,11 @@ export function findToolByName(tools: Tools, name: string): Tool | undefined {
   return tools.find(t => toolMatchesName(t, name))
 }
 
+// Tool 接口是工具系统的“能力契约”：
+// - 安全边界：checkPermissions / isReadOnly / isDestructive / toAutoClassifierInput
+// - 装配边界：name / aliases / shouldDefer / alwaysLoad 决定如何被装入 prompt
+// - 运行边界：isConcurrencySafe / interruptBehavior 决定编排器调度策略
+// 任何新增字段都应先评估是否影响权限模型或 tool orchestration 的既有不变量。
 export type Tool<
   Input extends AnyObject = AnyObject,
   Output = unknown,
@@ -761,6 +771,8 @@ type BuiltTool<D> = Omit<D, DefaultableToolKeys> & {
 // 默认值采用“安全兜底”思路：未知工具先按不可并发/非只读处理，
 // 由具体工具显式声明更宽松能力，避免遗漏实现时误放权。
 const TOOL_DEFAULTS = {
+  // 注意：isEnabled 默认 true 只表示“功能可见”，不等于“可执行”。
+  // 真正执行仍受 checkPermissions + 全局权限系统 + deny/allow 规则约束。
   isEnabled: () => true,
   isConcurrencySafe: (_input?: unknown) => false,
   isReadOnly: (_input?: unknown) => false,
