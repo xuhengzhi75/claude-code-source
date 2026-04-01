@@ -503,8 +503,12 @@ export function removeDangerousPermissions(
 }
 
 /**
- * Prepares a ToolPermissionContext for auto mode by stripping
- * dangerous permissions that would bypass the classifier.
+ * 进入 auto mode 前的“安全整形”步骤：剥离可绕过分类器的 allow 规则。
+ *
+ * 治理边界：保留用户规则资产（通过 strippedDangerousRules 暂存），
+ * 但在 auto 运行期强制以 classifier 为最终仲裁，避免 Bash/PowerShell/Agent
+ * 的宽泛 allow 在分类器前短路。
+ *
  * Returns the cleaned context (with mode unchanged — caller sets the mode).
  */
 export function stripDangerousPermissionsForAutoMode(
@@ -553,9 +557,11 @@ export function stripDangerousPermissionsForAutoMode(
 }
 
 /**
- * Restores dangerous allow rules previously stashed by
- * stripDangerousPermissionsForAutoMode. Called when leaving auto mode so that
- * the user's Bash(python:*), Agent(*), etc. rules work again in default mode.
+ * 退出 auto mode 时恢复先前被剥离的危险 allow 规则（从暂存区回放）。
+ *
+ * 这里体现“运行期收紧、退出后回归”的治理策略：
+ * - auto 期间：优先系统安全边界（classifier 不可被绕过）；
+ * - 离开 auto：恢复用户原始权限配置，避免永久篡改策略。
  * Clears the stash so a second exit is a no-op.
  */
 export function restoreDangerousPermissions(
@@ -594,6 +600,9 @@ export function restoreDangerousPermissions(
  * @param toMode The target permission mode
  * @param context The current tool permission context
  */
+// 权限模式切换的统一编排点：把 plan/auto/bypass 的副作用集中到一个函数，
+// 避免不同入口（CLI、SDK、控制消息）出现不一致行为。
+// 重点：auto 相关的 strip/restore 在这里成对管理，确保权限边界可追踪。
 export function transitionPermissionMode(
   fromMode: string,
   toMode: string,

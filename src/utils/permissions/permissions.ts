@@ -470,6 +470,10 @@ async function runPermissionRequestHooksForHeadlessAgent(
   return null
 }
 
+// 权限决策总入口（运行时治理层）：
+// 1) 先执行 hasPermissionsToUseToolInner 的“硬边界”判定（deny/ask/safety/rule）；
+// 2) 再按 mode 做二次转换（dontAsk / auto / headless）；
+// 3) auto 模式下引入分类器与 denial tracking，降低误放行与循环重试风险。
 export const hasPermissionsToUseTool: CanUseToolFn = async (
   tool,
   input,
@@ -685,7 +689,9 @@ export const hasPermissionsToUseTool: CanUseToolFn = async (
         }
       }
 
-      // Run the auto mode classifier
+      // auto mode 的核心防线：将工具动作映射为分类器可判定的 action。
+      // 上游 fast-path（acceptEdits/safe allowlist）仅用于“明确低风险”降本；
+      // 其余 ask 场景必须进入分类器，确保自动化执行可审计、可收敛。
       const action = formatActionForClassifier(tool.name, input)
       setClassifierChecking(toolUseID)
       let classifierResult
@@ -1058,8 +1064,10 @@ function handleDenialLimitExceeded(
 }
 
 /**
- * Check only the rule-based steps of the permission pipeline — the subset
- * that bypassPermissions mode respects (everything that fires before step 2a).
+ * 仅执行“规则硬边界”子流水线（bypassPermissions 也必须遵守的那部分）。
+ *
+ * 设计意图：把“可绕过的便捷策略”与“不可绕过的安全底线”拆开，
+ * 让上层在不同 mode 下仍可复用一致的安全前置判断。
  *
  * Returns a deny/ask decision if a rule blocks the tool, or null if no rule
  * objects. Unlike hasPermissionsToUseTool, this does NOT run the auto mode classifier,
@@ -1259,7 +1267,8 @@ async function hasPermissionsToUseToolInner(
     return toolPermissionResult
   }
 
-  // 2a. Check if mode allows the tool to run
+  // 2a. mode 级治理边界：仅在通过前置硬边界后，才允许 bypass 生效。
+  // 关键含义：bypassPermissions 不是“无条件放行”，前面的 deny/ask/safety 仍可拦截。
   // IMPORTANT: Call getAppState() to get the latest value
   appState = context.getAppState()
   // Check if permissions should be bypassed:

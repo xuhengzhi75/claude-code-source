@@ -16,6 +16,8 @@ import {
 
 let bypassPermissionsCheckRan = false
 
+// bypass permissions killswitch：组织级紧急刹车。
+// 目标不是“替代本地配置”，而是在高风险窗口由远端策略强制收敛权限面。
 export async function checkAndDisableBypassPermissionsIfNeeded(
   toolPermissionContext: ToolPermissionContext,
   setAppState: (f: (prev: AppState) => AppState) => void,
@@ -71,6 +73,10 @@ export function useKickOffCheckAndDisableBypassPermissionsIfNeeded(): void {
 
 let autoModeCheckRan = false
 
+// auto mode gate/killswitch：与 bypass 不同，auto 需要同时满足
+// 配置开关、模型能力、运行态约束（如 fastMode breaker）。
+// 这里通过 verifyAutoModeGateAccess 做异步校验，再以 updateContext
+// 作用到“最新”状态，避免异步竞态回滚用户刚切换的 mode。
 export async function checkAndDisableAutoModeIfNeeded(
   toolPermissionContext: ToolPermissionContext,
   setAppState: (f: (prev: AppState) => AppState) => void,
