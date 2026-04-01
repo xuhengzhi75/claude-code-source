@@ -112,6 +112,10 @@ export function createV1ReplTransport(
  * The JWT is refreshed when the poll loop re-dispatches work — the caller
  * invokes createV2ReplTransport again with the fresh token.
  *
+ * 中文说明：该工厂是 bridge runtime 的“传输重建边界”。
+ * 上层只需决定何时重建（401、epoch 变更、work 重新派发），本层负责把
+ * 凭证/epoch/read-write 管道装配成可替换单元，从而让恢复逻辑保持可组合。
+ *
  * Registration happens here (not in the caller) so the entire v2 handshake
  * is one async step. registerWorker failure propagates — replBridge will
  * catch it and stay on the poll loop.

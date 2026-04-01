@@ -128,6 +128,10 @@ export function extractTitleText(m: Message): string | undefined {
  * Ignores messages whose UUID is in recentPostedUUIDs (echoes of what we sent)
  * or in recentInboundUUIDs (re-deliveries we've already forwarded — e.g.
  * server replayed history after a transport swap lost the seq-num cursor).
+ *
+ * 中文说明：这里的双层 UUID 去重，是 transport rebuild / poll recovery
+ * 的下游保险丝。上游即使因重连导致消息重放，本层也保证 REPL 侧“至多一次可见”，
+ * 避免重复 prompt 触发重复执行。
  */
 export function handleIngressMessage(
   data: string,

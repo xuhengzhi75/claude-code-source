@@ -547,6 +547,9 @@ export async function initBridgeCore(
   // SECOND is the correct one — but the transport !== null check gets this
   // backwards (first-to-resolve installs, second discards). The generation
   // counter catches it independent of transport state.
+  // 中文说明：这里的 generation 本质是“传输层重建(rebuild)代际锁”。
+  // Remote Control 的恢复链路允许并发触发重连，如果没有代际判定，旧握手
+  // 可能在新握手之后落地，导致把会话回退到过期 epoch/token 上，形成隐蔽抖动。
   let v2Generation = 0
   // SSE sequence-number high-water mark carried across transport swaps.
   // Without this, each new SSETransport starts at 0, sends no
@@ -571,6 +574,9 @@ export async function initBridgeCore(
   const capacitySignal = capacityWake.signal
   // Gates message writes during the initial flush to prevent ordering
   // races where new messages arrive at the server interleaved with history.
+  // 中文说明：flush gate 是“历史回放与实时写入”的顺序闸门。
+  // 它的系统意义不是节流，而是保证因果顺序：先让远端补齐上下文，再放行新消息，
+  // 否则会出现 UI/服务端看到的会话时间线错位，继而影响权限交互与状态判断。
   const flushGate = new FlushGate<Message>()
 
   // Latch for onUserMessage — flips true when the callback returns true
@@ -1847,6 +1853,11 @@ export async function initBridgeCore(
  * WebSocket). Then continues polling — the server will dispatch a new
  * work item if the ingress WebSocket drops, allowing automatic
  * reconnection without tearing down the bridge.
+ *
+ * 中文说明：这个 work poll loop 是 bridge 的“生命维持层”。
+ * 业务会话是否还能被服务器派单，不由本地 socket 是否曾连通过决定，
+ * 而由轮询 + 心跳是否持续证明“我还活着且可接单”决定。
+ * 因此它既负责接新工单，也负责在 token/连接失效时触发恢复闭环。
  */
 async function startWorkPollLoop({
   api,

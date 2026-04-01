@@ -470,6 +470,9 @@ export async function initEnvLessBridgeCore(
   // rebuild the transport with the new epoch — a JWT-only swap leaves the
   // old CCRClient heartbeating stale epoch → 409. SSE resumes from the old
   // transport's high-water-mark seq-num so no server-side replay.
+  // 中文说明：rebuild 不是“重连一下”那么简单，而是把 read/write/epoch
+  // 三件事做成一次原子替换：旧 transport 退出、新 epoch 生效、seq 游标续接。
+  // 只有这样才能同时避免 409（epoch 过期）和历史重放（seq 丢失）。
   // Caller MUST set authRecoveryInFlight = true before calling (synchronously,
   // before any await) and clear it in a finally. This function doesn't manage
   // the flag — moving it here would be too late to prevent a double /bridge
@@ -527,6 +530,10 @@ export async function initEnvLessBridgeCore(
   }
 
   // ── 8. 401 recovery (OAuth refresh + rebuild) ───────────────────────────
+  // 中文说明：auth recovery 的系统意义是“把身份恢复与传输恢复绑定为同一事务”。
+  // 仅刷新 OAuth/JWT 但不重建 transport，会留下旧 epoch/旧连接状态；
+  // 仅重连 transport 但不刷新凭证，则会在下一次写入或心跳再次 401。
+  // 这里通过统一路径把凭证、epoch、连接游标一起收敛到一致状态。
   async function recoverFromAuthFailure(): Promise<void> {
     // setOnClose already guards `!authRecoveryInFlight` but that check and
     // this set must be atomic against onRefresh — claim synchronously before
