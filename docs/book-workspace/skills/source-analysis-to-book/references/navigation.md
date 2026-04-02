@@ -6,6 +6,7 @@
 - 需要看更展开的 skill 设计草案：读 `../source-analysis-to-book-skill-draft.md`
 - 需要理解当前工作区的目录职责：读 `../../README.md`
 - 需要按具体任务落地执行：读 `task-recipes.md`
+- 需要查看仍待补强的 meta 级建议：读 `../../meta-supplement-suggestions.md`
 
 ## 推荐读取顺序
 
