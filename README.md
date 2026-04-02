@@ -1,6 +1,8 @@
 # Claude Code Recovered Source Study Repo
 
 > 一个面向学习、评论与架构拆解的非官方整理仓库。
+>
+> 在线 Blog：<https://xuhengzhi75.github.io/claude-code-source/>
 
 ## Warning
 
