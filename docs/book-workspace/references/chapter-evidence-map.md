@@ -266,7 +266,7 @@
   - 锚点：`src/utils/tasks.ts`（任务目录 + JSON 文件）
   - 状态：verified
 - 结论：任务认领原子化，check-then-act 在同一把锁内完成
-  - 锚点：`src/utils/tasks.ts` `claimTaskWithBusyCheck()`
+  - 锚点：`src/utils/tasks.ts` `claimTaskWithBusyCheck()`（信号34）
   - 状态：verified
 - 结论：主循环继续条件基于工具调用事实，不依赖模型文字输出
   - 锚点：`src/query.ts` `needsFollowUp`、`toolUseBlocks`
@@ -274,6 +274,18 @@
 - 结论：任务系统和主循环有明确接缝，执行进度对外可见
   - 锚点：`src/query.ts` `task-notification`、`BG_SESSIONS`
   - 状态：verified
+- 结论：两级锁粒度——task-level lock 用于单任务更新，list-level lock 用于跨任务原子操作
+  - 锚点：`src/utils/tasks.ts` `updateTask`（task-level）vs `claimTaskWithBusyCheck`（list-level）（信号33）
+  - 状态：verified（第3轮抽样新增）
+- 结论：高水位标记防止任务 ID 在重置/删除后被复用，保证依赖关系图不静默损坏
+  - 锚点：`src/utils/tasks.ts` `HIGH_WATER_MARK_FILE`、`resetTaskList`、`deleteTask`（信号35）
+  - 状态：verified（第3轮抽样新增）
+- 结论：`updateTaskUnsafe` 是内部无锁变体，供已持锁调用方使用，避免 proper-lockfile 不可重入死锁
+  - 锚点：`src/utils/tasks.ts` L355-L371（信号36）
+  - 状态：verified（第3轮抽样新增）
+- 结论：teammate 崩溃或退出后，其持有的任务自动归还为 pending，防止任务永久卡死
+  - 锚点：`src/utils/tasks.ts` `unassignTeammateTasks`（信号37）
+  - 状态：verified（第3轮抽样新增）
 
 ## Chapter 18 恢复是玩具和真实系统的分水岭
 

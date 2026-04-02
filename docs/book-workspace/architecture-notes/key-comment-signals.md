@@ -291,3 +291,54 @@
 可用于书中的事实表述：
 - 记忆更新是异步旁路操作，不阻塞主对话。这是"后台整理"模式的具体实现。
 - 最小权限不只是安全设计，也是隔离副作用的工程手段：forked agent 只能改记忆文件，不能意外影响主会话状态。
+
+---
+
+## 第 3 轮抽样（2026-04-02，信号 33-37）
+
+抽样范围：`src/utils/tasks.ts`（任务并发控制全链路）
+
+### 33) 两级锁粒度：task-level lock 用于单任务更新，list-level lock 用于需要跨任务原子性的操作
+- 位置：`src/utils/tasks.ts:355-394`（`updateTaskUnsafe` + `updateTask` 注释），`src/utils/tasks.ts:544-615`（`claimTask` 注释）
+- 注释明确说：`updateTask` 对单个任务文件加锁（task-level），`claimTask` 默认也用 task-level lock；但当需要检查 agent 是否繁忙时（`checkAgentBusy: true`），必须升级到 list-level lock，因为 busy check 需要读取所有任务的状态，task-level lock 无法保证跨任务的一致性视图。
+- 关键注释原文（L355-L356）："Internal: no lock. Callers already holding a lock on taskPath must use this to avoid deadlock (claimTask, deleteTask cascade, etc.)."
+
+可用于书中的事实表述：
+- 锁粒度不是越细越好——当操作需要跨多个文件的原子性时，细粒度锁反而会引入 TOCTOU 竞争。
+- 这个系统用两级锁粒度来平衡并发性能（大多数操作用 task-level）和一致性保证（需要时升级到 list-level）。
+
+### 34) TOCTOU 防护：`claimTaskWithBusyCheck` 把"检查 agent 是否繁忙"与"认领任务"放进同一把 list-level 锁
+- 位置：`src/utils/tasks.ts:621-697`（`claimTaskWithBusyCheck` 函数注释）
+- 注释明确说（L626-L627）："关键一致性点：把'检查 agent 是否繁忙'与'抢占任务'放进同一把 list-level 锁。这是典型的 check-then-act 场景，分离会导致 TOCTOU 竞争（两个 agent 同时看到空闲并同时认领）。"
+- 函数签名注释（L528-L534）也明确说：`checkAgentBusy` 选项"is performed atomically with the claim using a task-list-level lock to prevent TOCTOU race conditions"。
+
+可用于书中的事实表述：
+- 多 Agent 并发认领任务时，"先检查再认领"如果不在同一把锁里，就是经典的 TOCTOU（Time-of-Check-Time-of-Use）竞争条件。
+- 这个系统通过显式的 list-level 锁把 check 和 act 合并为原子操作，是教科书级别的并发安全设计。
+
+### 35) 高水位标记（high water mark）防止任务 ID 在重置后被复用，避免历史引用混淆
+- 位置：`src/utils/tasks.ts:91-131`（`HIGH_WATER_MARK_FILE` 常量 + `readHighWaterMark`/`writeHighWaterMark` 函数），`src/utils/tasks.ts:141-188`（`resetTaskList` 注释）
+- 注释明确说（L141-L145）：`resetTaskList` 在清空任务文件前，先把当前最高 ID 写入 `.highwatermark` 文件，"to prevent ID reuse after reset"。`findHighestTaskId` 同时考虑现有文件和高水位标记，取两者最大值。
+- `deleteTask` 也在删除文件前更新高水位标记（L403-L409）。
+
+可用于书中的事实表述：
+- 任务 ID 是跨进程、跨会话的引用键。如果 ID 被复用，旧的 `blocks`/`blockedBy` 引用会指向错误的新任务，导致依赖关系图静默损坏。
+- 高水位标记是一个极简的单调递增保证：只需要一个数字文件，就能防止 ID 复用。
+
+### 36) `updateTaskUnsafe` 是内部无锁变体，专门供"已持锁调用方"使用，避免 proper-lockfile 的不可重入死锁
+- 位置：`src/utils/tasks.ts:355-371`（`updateTaskUnsafe` 函数注释）
+- 注释明确说（L355-L356）："Internal: no lock. Callers already holding a lock on taskPath must use this to avoid deadlock (claimTask, deleteTask cascade, etc.)."
+- `claimTask` 在持有 taskPath 锁后调用 `updateTaskUnsafe`（L599-L602），`claimTaskWithBusyCheck` 在持有 list-level 锁后调用 `updateTask`（L682）——后者是因为 list-level 锁和 task-level 锁是不同的锁文件，不会死锁。
+
+可用于书中的事实表述：
+- `proper-lockfile` 是不可重入的（同一进程对同一文件加锁两次会死锁）。这迫使系统设计出"有锁/无锁"两个变体，并在注释里明确标注调用约束。
+- 这类"内部 unsafe 变体"是并发系统中常见的设计模式，代价是调用方必须理解并遵守锁的持有约定。
+
+### 37) teammate 崩溃或退出后，其持有的任务自动归还为 pending，防止任务永久卡死
+- 位置：`src/utils/tasks.ts:823-865`（`unassignTeammateTasks` 函数注释）
+- 注释明确说：当 teammate 被终止（`terminated`）或正常关闭（`shutdown`）时，调用此函数把该 teammate 持有的所有未完成任务重置为 `pending`（`owner: undefined, status: 'pending'`），并生成通知消息，提示 leader 用 `TaskList` 检查可用性并用 `TaskUpdate` 重新分配。
+- 通知消息模板（L855）明确包含任务 ID 和标题，以及"Use TaskList to check availability and TaskUpdate with owner to reassign them to idle teammates."
+
+可用于书中的事实表述：
+- 分布式任务系统的核心问题之一是"持有者消失后任务如何处理"。这里的解法是：崩溃即归还，不依赖超时或心跳，而是在进程退出时主动清理。
+- 这个设计把"任务归还"变成了进程生命周期管理的一部分，而不是一个独立的故障恢复机制。

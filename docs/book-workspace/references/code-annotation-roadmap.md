@@ -1,6 +1,6 @@
 # Code Annotation Roadmap（源码注释补齐路线图）
 
-更新时间：2026-04-02
+更新时间：2026-04-02（第3轮抽样后）
 
 ## 0. 目标与口径
 
@@ -76,6 +76,16 @@
 31. session memory 双重阈值：token 增量是硬门槛，tool call 次数是软门槛（`sessionMemory.ts:134-187`）
 32. session memory 用 forked agent 执行，主会话不阻塞，最小权限只允许编辑 memoryPath（`sessionMemory.ts:321-333`）
 
+### B3. 第 3 轮抽样（2026-04-02，信号 33-37）
+
+来源：`src/utils/tasks.ts`（任务并发控制全链路）
+
+33. 两级锁粒度：task-level lock 用于单任务更新，list-level lock 用于需要跨任务原子性的操作（`tasks.ts:355-394, 544-615`）
+34. TOCTOU 防护：`claimTaskWithBusyCheck` 把 check-then-act 放进同一把 list-level 锁（`tasks.ts:621-697`）
+35. 高水位标记（high water mark）防止任务 ID 在重置/删除后被复用（`tasks.ts:91-131, 141-188, 403-409`）
+36. `updateTaskUnsafe` 是内部无锁变体，供已持锁调用方使用，避免 proper-lockfile 不可重入死锁（`tasks.ts:355-371`）
+37. teammate 崩溃或退出后，其持有的任务自动归还为 pending，防止任务永久卡死（`tasks.ts:823-865`）
+
 ---
 
 ## 2. 待补注释位点（按优先级）
@@ -87,7 +97,7 @@
 | ✅ P0 已完成 | `src/utils/conversationRecovery.ts`（中断判定、迁移、sentinel） | 恢复协议边界、字段合法化动机、异常分支先后顺序 | ch18 / ch10（信号22-26）|
 | ✅ P0 已完成 | `src/services/compact/compact.ts`（preserved segment、重建顺序） | 压缩后语义连续性约束、顺序不可变原因 | ch18 / ch10 / ch11（信号27-30）|
 | ✅ P0 已完成 | `src/services/SessionMemory/sessionMemory.ts`（阈值、受限工具执行） | 触发阈值设计动机、最小权限边界、失败回退策略 | ch18 / ch16 / ch10（信号31-32）|
-| P0 | `src/utils/tasks.ts`（claim/lock/busy check） | 并发竞态与 TOCTOU 防护意图、锁粒度取舍 | ch17 / ch08 / ch10 |
+| ✅ P0 已完成 | `src/utils/tasks.ts`（claim/lock/busy check） | 并发竞态与 TOCTOU 防护意图、锁粒度取舍 | ch17 / ch08 / ch10（信号33-37）|
 | P1 | `src/tools.ts` + `src/Tool.ts`（全集→过滤→排序） | 缓存断点耦合、默认保守策略、并发安全语义 | ch14 / ch05 |
 | P1 | `src/constants/prompts.ts` + prompt 组装路径 | 缓存边界、动态段落拆分、模型专项补丁的治理注释 | ch15 / ch19 |
 | P1 | `src/entrypoints/cli.tsx`（路由分流 + 动态 import） | fast-path 与完整主链边界、分支不可合并原因 | ch03 / ch04 / ch13 |
