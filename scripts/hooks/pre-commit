@@ -1,0 +1,305 @@
+#!/usr/bin/env bash
+# =============================================================================
+# pre-commit security hook — claude-code-source
+# 覆盖所有可能的敏感信息泄露场景，阻止危险提交推入公开仓库
+# =============================================================================
+
+set -euo pipefail
+
+RED='\033[0;31m'
+YELLOW='\033[0;33m'
+GREEN='\033[0;32m'
+NC='\033[0m'
+
+FAIL=0
+WARNINGS=()
+ERRORS=()
+
+# 获取待提交的 diff（staged）
+# 豁免 scripts/hooks/ 目录（hook 源文件规则字符串会触发自检）
+_RAW_DIFF=$(git diff --cached --unified=0 2>/dev/null || true)
+# 过滤掉 scripts/hooks/ 目录下所有文件的 diff hunk
+STAGED_DIFF=$(echo "$_RAW_DIFF" | awk '
+  /scripts\/hooks\// && /^diff --git/ { skip=1; next }
+  /^diff --git/ && !/scripts\/hooks\// { skip=0 }
+  skip { next }
+  { print }
+')
+STAGED_FILES=$(git diff --cached --name-only 2>/dev/null | grep -v '^scripts/hooks/' || true)
+
+# 如果没有 staged 内容，直接通过
+if [ -z "$STAGED_DIFF" ] && [ -z "$STAGED_FILES" ]; then
+  echo -e "${GREEN}✅ 安全检查通过（无待扫描内容）${NC}"
+  exit 0
+fi
+
+# =============================================================================
+# 检测函数
+# =============================================================================
+
+check_pattern() {
+  local category="$1"
+  local pattern="$2"
+  local description="$3"
+  local severity="${4:-ERROR}"  # ERROR | WARN
+
+  if echo "$STAGED_DIFF" | grep -qP "$pattern" 2>/dev/null; then
+    if [ "$severity" = "WARN" ]; then
+      WARNINGS+=("[$category] $description")
+    else
+      ERRORS+=("[$category] $description")
+      FAIL=1
+    fi
+  fi
+}
+
+# =============================================================================
+# 1. API Keys / Tokens / Secrets
+# =============================================================================
+
+# Generic high-entropy secrets
+check_pattern "SECRET" \
+  '(?i)(api[_-]?key|apikey|api[_-]?secret)\s*[:=]\s*["\x27]?[A-Za-z0-9_\-]{16,}' \
+  "疑似 API Key 赋值"
+
+check_pattern "SECRET" \
+  '(?i)(secret[_-]?key|secret[_-]?token|app[_-]?secret)\s*[:=]\s*["\x27]?[A-Za-z0-9_\-]{16,}' \
+  "疑似 Secret Key/Token 赋值"
+
+# GitHub tokens
+check_pattern "GITHUB" \
+  'ghp_[A-Za-z0-9]{36}' \
+  "GitHub Personal Access Token (ghp_...)"
+
+check_pattern "GITHUB" \
+  'ghs_[A-Za-z0-9]{36}' \
+  "GitHub Service Account Token (ghs_...)"
+
+check_pattern "GITHUB" \
+  'gho_[A-Za-z0-9]{36}' \
+  "GitHub OAuth Token (gho_...)"
+
+check_pattern "GITHUB" \
+  'github_pat_[A-Za-z0-9_]{82}' \
+  "GitHub Fine-grained PAT"
+
+# OpenAI
+check_pattern "OPENAI" \
+  'sk-[A-Za-z0-9]{20,}' \
+  "疑似 OpenAI / OpenAI-compatible API Key (sk-...)"
+
+# AWS
+check_pattern "AWS" \
+  'AKIA[0-9A-Z]{16}' \
+  "AWS Access Key ID"
+
+check_pattern "AWS" \
+  '(?i)aws[_-]?secret[_-]?access[_-]?key\s*[:=]\s*[A-Za-z0-9/+=]{40}' \
+  "AWS Secret Access Key"
+
+# Generic Bearer tokens
+check_pattern "TOKEN" \
+  '(?i)bearer\s+[A-Za-z0-9\-._~+/]+=*' \
+  "Bearer Token 明文"
+
+check_pattern "TOKEN" \
+  '(?i)(access[_-]?token|auth[_-]?token|oauth[_-]?token)\s*[:=]\s*["\x27]?[A-Za-z0-9_\-\.]{16,}' \
+  "疑似 Access/Auth Token 赋值"
+
+# JWT
+check_pattern "JWT" \
+  'eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}' \
+  "JWT Token 明文"
+
+# Private keys
+check_pattern "PRIVKEY" \
+  '-----BEGIN (RSA |EC |DSA |OPENSSH |PGP )?PRIVATE KEY( BLOCK)?-----' \
+  "PEM 私钥"
+
+check_pattern "PRIVKEY" \
+  '-----BEGIN CERTIFICATE-----' \
+  "PEM 证书（可能含私钥链）" "WARN"
+
+# Password patterns
+check_pattern "PASSWORD" \
+  '(?i)(password|passwd|pwd)\s*[:=]\s*["\x27][^"\x27\s]{6,}["\x27]' \
+  "疑似明文密码赋值"
+
+# Generic high-entropy base64 string (>40 chars, not common prose)
+check_pattern "ENTROPY" \
+  '"[A-Za-z0-9+/]{40,}={0,2}"' \
+  "疑似高熵 Base64 字符串（可能是 token/key）" "WARN"
+
+# =============================================================================
+# 2. 内部人员信息
+# =============================================================================
+
+# 真实中文姓名（已知）—— 通过检测特定姓名组合
+check_pattern "PII" \
+  '许国栋' \
+  "真实姓名「许国栋」出现在提交内容中"
+
+# misId pattern (美团内部 misId 通常是字母数字组合)
+check_pattern "INTERNAL" \
+  '(?i)(misid|mis_id|mis-id)\s*[:=]\s*["\x27]?[a-z0-9]{6,}' \
+  "疑似美团 misId 赋值"
+
+# 员工 UID（大数字 UID，常见 10 位）
+check_pattern "INTERNAL" \
+  '(?i)(uid|user[_-]?id|employee[_-]?id)\s*[:=]\s*["\x27]?[0-9]{8,12}["\x27]?' \
+  "疑似员工 UID 赋值" "WARN"
+
+# 手机号（中国大陆 11 位）
+check_pattern "PII" \
+  '(?<!\d)1[3-9][0-9]{9}(?!\d)' \
+  "疑似中国大陆手机号"
+
+# 邮箱（内部域名更敏感）
+check_pattern "PII" \
+  '[a-zA-Z0-9._%+\-]+@(meituan|sankuai|dianping)\.com' \
+  "美团/美团点评内部邮箱"
+
+# 身份证号
+check_pattern "PII" \
+  '(?<!\d)[1-9][0-9]{16}[0-9Xx](?!\d)' \
+  "疑似中国居民身份证号" "WARN"
+
+# =============================================================================
+# 3. 内部 URL / 系统地址
+# =============================================================================
+
+check_pattern "INTERNAL_URL" \
+  'https?://[a-zA-Z0-9\-\.]*\.sankuai\.com' \
+  "美团内网 sankuai.com 域名链接"
+
+check_pattern "INTERNAL_URL" \
+  'https?://[a-zA-Z0-9\-\.]*\.meituan\.(com|net)/[a-zA-Z0-9/\-_?=&]+' \
+  "疑似美团内部 meituan.com 路径链接" "WARN"
+
+check_pattern "INTERNAL_URL" \
+  'https?://km\.sankuai\.com' \
+  "学城 km.sankuai.com 链接"
+
+check_pattern "INTERNAL_URL" \
+  'https?://ones\.sankuai\.com' \
+  "ONES 内部链接"
+
+check_pattern "INTERNAL_URL" \
+  'https?://bi\.sankuai\.com' \
+  "魔数 BI 内部链接"
+
+check_pattern "INTERNAL_URL" \
+  'localhost:[0-9]{4,5}' \
+  "localhost 端口引用（可能是内部服务）" "WARN"
+
+check_pattern "INTERNAL_URL" \
+  '192\.168\.[0-9]{1,3}\.[0-9]{1,3}' \
+  "内网 IP 地址 (192.168.x.x)" "WARN"
+
+check_pattern "INTERNAL_URL" \
+  '10\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' \
+  "内网 IP 地址 (10.x.x.x)" "WARN"
+
+check_pattern "INTERNAL_URL" \
+  '172\.(1[6-9]|2[0-9]|3[01])\.[0-9]{1,3}\.[0-9]{1,3}' \
+  "内网 IP 地址 (172.16-31.x.x)" "WARN"
+
+# =============================================================================
+# 4. 沙箱 / OpenClaw 配置
+# =============================================================================
+
+check_pattern "OPENCLAW" \
+  '(?i)(sandboxid|sandbox[_-]?id)\s*[:=]\s*["\x27]?[a-zA-Z0-9\-]{8,}' \
+  "沙箱 sandboxId 泄露"
+
+check_pattern "OPENCLAW" \
+  'openclaw\.json' \
+  "openclaw.json 配置文件引用（内容可能含 token）" "WARN"
+
+check_pattern "OPENCLAW" \
+  'device-auth\.json' \
+  "device-auth.json 设备认证文件引用" "WARN"
+
+check_pattern "OPENCLAW" \
+  '(?i)botmisid\s*[:=]\s*["\x27]?[a-z0-9]{10,}' \
+  "botMisId 泄露"
+
+# =============================================================================
+# 5. 文件类型检查（staged 文件本身）
+# =============================================================================
+
+for f in $STAGED_FILES; do
+  # 私钥文件
+  if echo "$f" | grep -qP '\.(pem|key|p12|pfx|ppk|asc)$'; then
+    ERRORS+=("[PRIVKEY] 私钥/证书文件被提交: $f")
+    FAIL=1
+  fi
+
+  # 配置文件中的敏感文件
+  if echo "$f" | grep -qP '(\.env$|\.env\..+|\.secret$|credentials|id_rsa|id_ecdsa|id_ed25519)'; then
+    ERRORS+=("[CONFIG] 疑似敏感配置/凭证文件被提交: $f")
+    FAIL=1
+  fi
+
+  # OpenClaw 沙箱配置
+  if echo "$f" | grep -qP '(openclaw\.json|device-auth\.json|paired\.json|device\.json)'; then
+    ERRORS+=("[OPENCLAW] OpenClaw 敏感配置文件被提交: $f")
+    FAIL=1
+  fi
+
+  # 数据库文件
+  if echo "$f" | grep -qP '\.(sqlite|sqlite3|db)$'; then
+    WARNINGS+=("[DB] 数据库文件被提交: $f（可能含用户数据）")
+  fi
+
+  # 日志文件（可能含敏感信息）
+  if echo "$f" | grep -qP '\.(log)$'; then
+    WARNINGS+=("[LOG] 日志文件被提交: $f（可能含敏感信息）")
+  fi
+done
+
+# =============================================================================
+# 6. 结果输出
+# =============================================================================
+
+echo ""
+echo "================================================"
+echo "  🔒 Security Pre-commit Check"
+echo "================================================"
+
+if [ ${#ERRORS[@]} -gt 0 ]; then
+  echo -e "${RED}❌ 发现以下安全问题（BLOCK — 提交被阻止）：${NC}"
+  for err in "${ERRORS[@]}"; do
+    echo -e "  ${RED}✗ $err${NC}"
+  done
+  echo ""
+fi
+
+if [ ${#WARNINGS[@]} -gt 0 ]; then
+  echo -e "${YELLOW}⚠️  发现以下警告（请人工确认，本次不阻止提交）：${NC}"
+  for warn in "${WARNINGS[@]}"; do
+    echo -e "  ${YELLOW}! $warn${NC}"
+  done
+  echo ""
+fi
+
+if [ $FAIL -eq 0 ] && [ ${#WARNINGS[@]} -eq 0 ]; then
+  echo -e "${GREEN}✅ 安全检查通过${NC}"
+fi
+
+if [ ${#ERRORS[@]} -gt 0 ] || [ ${#WARNINGS[@]} -gt 0 ]; then
+  echo "------------------------------------------------"
+fi
+
+if [ $FAIL -eq 1 ]; then
+  echo -e "${RED}提交已阻止。请清理敏感内容后重新提交。${NC}"
+  echo ""
+  echo "跳过此检查（慎用）: git commit --no-verify"
+  echo "================================================"
+  echo ""
+  exit 1
+fi
+
+echo "================================================"
+echo ""
+exit 0
