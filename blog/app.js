@@ -105,7 +105,7 @@ async function loadChapter(idx) {
   const ch = CHAPTERS[idx];
   currentChapterIndex = idx;
 
-  // Update active state in TOC — smooth indicator slide
+  // Update active state in TOC
   document.querySelectorAll('.toc-item').forEach((el, i) => {
     el.classList.toggle('active', i === idx);
   });
@@ -125,10 +125,20 @@ async function loadChapter(idx) {
 
   const contentInner = document.getElementById('content-inner');
 
-  // Fade out current content
+  // 1. Fade out
   contentInner.classList.add('content-leaving');
+  await new Promise(r => setTimeout(r, 140));
 
-  // Fetch in parallel with fade-out
+  // 2. Show loading skeleton immediately
+  window.scrollTo({ top: 0, behavior: 'instant' });
+  showLoadingSkeleton(contentInner, ch);
+  contentInner.classList.remove('content-leaving');
+  contentInner.classList.add('content-entering');
+  contentInner.addEventListener('animationend', () => {
+    contentInner.classList.remove('content-entering');
+  }, { once: true });
+
+  // 3. Fetch markdown
   let md = null, fetchErr = null;
   try {
     const resp = await fetch(MD_BASE + ch.file);
@@ -138,10 +148,14 @@ async function loadChapter(idx) {
     fetchErr = err;
   }
 
-  // Wait for fade-out to finish (150ms), then swap content
-  await new Promise(r => setTimeout(r, 150));
+  // 4. Skeleton 至少展示 300ms，避免闪烁
+  const skeletonShown = Date.now();
+  const elapsed = Date.now() - skeletonShown;
+  if (elapsed < 300) await new Promise(r => setTimeout(r, 300 - elapsed));
 
-  window.scrollTo({ top: 0, behavior: 'instant' });
+  // 5. Fade out skeleton, fade in real content
+  contentInner.classList.add('content-leaving');
+  await new Promise(r => setTimeout(r, 120));
 
   if (fetchErr) {
     contentInner.innerHTML = `
@@ -154,13 +168,51 @@ async function loadChapter(idx) {
     renderMarkdown(md, contentInner);
   }
 
-  // Fade in new content
   contentInner.classList.remove('content-leaving');
   contentInner.classList.add('content-entering');
-  // Remove entering class after animation completes
   contentInner.addEventListener('animationend', () => {
     contentInner.classList.remove('content-entering');
   }, { once: true });
+}
+
+// ===== Loading Skeleton =====
+function showLoadingSkeleton(container, ch) {
+  container.innerHTML = `
+    <div class="chapter-skeleton">
+      <div class="sk-chapter-label">${escapeHtml(ch.num)}</div>
+      <div class="sk-title">
+        <span class="sk-title-text">${escapeHtml(ch.title)}</span><span class="sk-cursor"></span>
+      </div>
+      <div class="sk-divider"></div>
+      <div class="sk-lines">
+        <div class="sk-line" style="width:92%"></div>
+        <div class="sk-line" style="width:87%"></div>
+        <div class="sk-line" style="width:95%"></div>
+        <div class="sk-line" style="width:60%"></div>
+        <div class="sk-line sk-line-gap" style="width:88%"></div>
+        <div class="sk-line" style="width:91%"></div>
+        <div class="sk-line" style="width:78%"></div>
+        <div class="sk-line" style="width:94%"></div>
+        <div class="sk-line" style="width:55%"></div>
+        <div class="sk-line sk-line-gap" style="width:89%"></div>
+        <div class="sk-line" style="width:82%"></div>
+        <div class="sk-line" style="width:96%"></div>
+        <div class="sk-line" style="width:70%"></div>
+      </div>
+      <div class="sk-code-block">
+        <div class="sk-code-line" style="width:45%"></div>
+        <div class="sk-code-line" style="width:68%"></div>
+        <div class="sk-code-line" style="width:55%"></div>
+        <div class="sk-code-line" style="width:72%"></div>
+        <div class="sk-code-line" style="width:40%"></div>
+      </div>
+      <div class="sk-lines" style="margin-top:24px">
+        <div class="sk-line" style="width:90%"></div>
+        <div class="sk-line" style="width:85%"></div>
+        <div class="sk-line" style="width:50%"></div>
+      </div>
+    </div>
+  `;
 }
 
 // ===== Render Markdown =====

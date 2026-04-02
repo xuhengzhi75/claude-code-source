@@ -560,6 +560,152 @@ body {
   .md-body h2 { font-size: 18px; }
 }
 
+/* ===== Chapter Loading Skeleton ===== */
+@keyframes sk-shimmer {
+  0%   { background-position: -600px 0; }
+  100% { background-position: 600px 0; }
+}
+
+@keyframes sk-cursor-blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+
+@keyframes sk-fade-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.chapter-skeleton {
+  padding: 48px 0 80px;
+  max-width: 680px;
+  animation: sk-fade-in 0.2s ease both;
+}
+
+/* 章节编号 */
+.sk-chapter-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+  opacity: 0.7;
+}
+
+/* 标题 + 光标 */
+.sk-title {
+  display: flex;
+  align-items: baseline;
+  gap: 3px;
+  margin-bottom: 28px;
+}
+
+.sk-title-text {
+  font-family: 'Lora', 'Noto Serif SC', serif;
+  font-size: 32px;
+  font-weight: 600;
+  color: var(--heading-color);
+  opacity: 0.18;
+  letter-spacing: -0.02em;
+}
+
+.sk-cursor {
+  display: inline-block;
+  width: 2px;
+  height: 34px;
+  background: var(--accent);
+  border-radius: 1px;
+  animation: sk-cursor-blink 0.9s ease-in-out infinite;
+  flex-shrink: 0;
+  margin-bottom: -4px;
+}
+
+/* 分割线 */
+.sk-divider {
+  height: 1px;
+  background: var(--border);
+  margin-bottom: 28px;
+  opacity: 0.6;
+}
+
+/* 骨架行公共 shimmer */
+.sk-line,
+.sk-code-line {
+  border-radius: 4px;
+  background: linear-gradient(
+    90deg,
+    var(--bg-secondary) 0%,
+    var(--border) 40%,
+    var(--bg-secondary) 80%
+  );
+  background-size: 600px 100%;
+  animation: sk-shimmer 1.6s ease-in-out infinite;
+}
+
+/* 正文骨架行 */
+.sk-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sk-line {
+  height: 14px;
+}
+
+.sk-line-gap {
+  margin-bottom: 8px;
+}
+
+/* 代码块骨架 */
+.sk-code-block {
+  margin: 24px 0;
+  background: var(--code-bg);
+  border: 1px solid var(--code-border);
+  border-radius: 8px;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.sk-code-line {
+  height: 12px;
+  border-radius: 3px;
+  /* 代码块内用稍深的 shimmer */
+  background: linear-gradient(
+    90deg,
+    var(--code-border) 0%,
+    var(--border-strong) 40%,
+    var(--code-border) 80%
+  );
+  background-size: 600px 100%;
+  animation: sk-shimmer 1.6s ease-in-out infinite;
+}
+
+/* 各行错开动画相位，更自然 */
+.sk-line:nth-child(1)  { animation-delay: 0s; }
+.sk-line:nth-child(2)  { animation-delay: 0.08s; }
+.sk-line:nth-child(3)  { animation-delay: 0.16s; }
+.sk-line:nth-child(4)  { animation-delay: 0.24s; }
+.sk-line:nth-child(5)  { animation-delay: 0.32s; }
+.sk-line:nth-child(6)  { animation-delay: 0.40s; }
+.sk-line:nth-child(7)  { animation-delay: 0.48s; }
+.sk-line:nth-child(8)  { animation-delay: 0.56s; }
+.sk-line:nth-child(9)  { animation-delay: 0.64s; }
+.sk-line:nth-child(10) { animation-delay: 0.72s; }
+.sk-line:nth-child(11) { animation-delay: 0.80s; }
+.sk-line:nth-child(12) { animation-delay: 0.88s; }
+.sk-line:nth-child(13) { animation-delay: 0.96s; }
+
+.sk-code-line:nth-child(1) { animation-delay: 0.1s; }
+.sk-code-line:nth-child(2) { animation-delay: 0.2s; }
+.sk-code-line:nth-child(3) { animation-delay: 0.3s; }
+.sk-code-line:nth-child(4) { animation-delay: 0.4s; }
+.sk-code-line:nth-child(5) { animation-delay: 0.5s; }
+
 @media print {
   .sidebar, .topbar, .footer { display: none; }
   .main-wrapper { margin-left: 0; }
