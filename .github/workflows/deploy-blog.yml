@@ -1,9 +1,7 @@
 name: Deploy Blog to GitHub Pages
 
 on:
-  push:
-    branches: [main]
-  workflow_dispatch:  # 支持手动触发
+  workflow_dispatch:  # 仅手动触发：gh workflow run deploy-blog.yml
 
 permissions:
   contents: read
