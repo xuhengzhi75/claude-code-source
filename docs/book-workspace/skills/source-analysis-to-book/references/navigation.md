@@ -15,4 +15,5 @@
 4. `writing-rules.md`
 5. `output-model.md`
 6. `task-recipes.md`
-7. 需要时再按任务打开方法论或草案
+7. `quality-gates.md`
+8. 需要时再按任务打开方法论或草案

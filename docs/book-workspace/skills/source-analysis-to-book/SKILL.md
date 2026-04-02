@@ -34,3 +34,5 @@ Read in this order when needed:
 2. `references/workflow.md`
 3. `references/writing-rules.md`
 4. `references/output-model.md`
+5. `references/task-recipes.md`
+6. `references/quality-gates.md`
