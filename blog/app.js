@@ -760,10 +760,9 @@ function appendPanelLines(panel, anchorEl, file, allLines, fromLine, toLine, mod
 
   if (mode === 'prepend') {
     newSpans.reverse().forEach(n => code.insertBefore(n, code.firstChild));
-    // 滚动到新增的第一行（最顶部新内容）
+    // 直接滚到顶部（新内容在最顶，scrollIntoView 对已在顶部的元素无效）
     setTimeout(() => {
-      const first = code.querySelector('.ap-line:first-child');
-      if (first) first.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      body.scrollTo({ top: 0, behavior: 'smooth' });
     }, 30);
   } else {
     newSpans.forEach(n => code.appendChild(n));
