@@ -1,0 +1,11 @@
+# GitHub Pages configuration
+# This is a plain static site — no Jekyll processing needed.
+# The _config.yml tells GitHub Pages to serve the blog/ directory as-is.
+
+title: 深入 Claude Code：架构解析
+description: 从源码视角理解 Claude Code 的设计哲学与工程实现
+
+# Exclude source files from Jekyll processing
+exclude:
+  - "*.md"
+  - node_modules/
