@@ -1,6 +1,6 @@
 # Code Annotation Roadmap（源码注释补齐路线图）
 
-更新时间：2026-04-01
+更新时间：2026-04-02
 
 ## 0. 目标与口径
 
@@ -56,8 +56,25 @@
   - `ch14` 工具（部分）
   - `ch16` 状态与上下文（部分）
   - `ch17` 任务推进（部分）
-  - `ch18` 恢复机制（部分）
+  - `ch18` 恢复机制（第2轮补充后已达强支撑）
+  - `ch10` 运行时壁垒（第2轮补充后已达强支撑）
 - 依据：`planning/planning/completed-coverage-and-writing-queue.md` 的优先级 A 清单 + `references/references/chapter-evidence-map.md` verified 项。
+
+### B2. 第 2 轮抽样（2026-04-02，信号 22-32）
+
+来源：`conversationRecovery.ts` / `compact.ts` / `sessionMemory.ts`
+
+22. 恢复反序列化"先取事实、再语义修复"两步设计（`conversationRecovery.ts:461-468`）
+23. 中断检测统一 interrupted_turn → interrupted_prompt，SDK/REPL 走同一路径（`conversationRecovery.ts:207-227`）
+24. assistant sentinel 插入位置约束，与 removeInterruptedMessage splice 精确配合（`conversationRecovery.ts:229-248`）
+25. Brief 模式 tool_result 结尾是合法 turn 终态，需 isTerminalToolResult 特殊识别（`conversationRecovery.ts:338-376`）
+26. 技能状态必须在反序列化前从 attachment 回放，否则下次 compact 遗忘技能（`conversationRecovery.ts:385-408`）
+27. compact 后重建顺序是协议：boundary→summary→kept→attachments→hooks（`compact.ts:330-339`）
+28. preservedSegment 是 compact↔resume 契约字段，记录 head/anchor/tail（`compact.ts:351-371`）
+29. compact 请求本身也可能 prompt-too-long，有截断重试逻辑（`compact.ts:466-495`）
+30. compact 后重新注入 delta attachments，post-compact 第一轮有完整工具上下文（`compact.ts:567-589`）
+31. session memory 双重阈值：token 增量是硬门槛，tool call 次数是软门槛（`sessionMemory.ts:134-187`）
+32. session memory 用 forked agent 执行，主会话不阻塞，最小权限只允许编辑 memoryPath（`sessionMemory.ts:321-333`）
 
 ---
 
@@ -67,9 +84,9 @@
 
 | 优先级 | 待补位点（建议源码范围） | 需要补出的注释类型 | 直接支撑章节 |
 |---|---|---|---|
-| P0 | `src/utils/conversationRecovery.ts`（中断判定、迁移、sentinel） | 恢复协议边界、字段合法化动机、异常分支先后顺序 | ch18 / ch10 |
-| P0 | `src/services/compact/compact.ts`（preserved segment、重建顺序） | 压缩后语义连续性约束、顺序不可变原因 | ch18 / ch10 / ch11 |
-| P0 | `src/services/SessionMemory/sessionMemory.ts`（阈值、受限工具执行） | 触发阈值设计动机、最小权限边界、失败回退策略 | ch18 / ch16 / ch10 |
+| ✅ P0 已完成 | `src/utils/conversationRecovery.ts`（中断判定、迁移、sentinel） | 恢复协议边界、字段合法化动机、异常分支先后顺序 | ch18 / ch10（信号22-26）|
+| ✅ P0 已完成 | `src/services/compact/compact.ts`（preserved segment、重建顺序） | 压缩后语义连续性约束、顺序不可变原因 | ch18 / ch10 / ch11（信号27-30）|
+| ✅ P0 已完成 | `src/services/SessionMemory/sessionMemory.ts`（阈值、受限工具执行） | 触发阈值设计动机、最小权限边界、失败回退策略 | ch18 / ch16 / ch10（信号31-32）|
 | P0 | `src/utils/tasks.ts`（claim/lock/busy check） | 并发竞态与 TOCTOU 防护意图、锁粒度取舍 | ch17 / ch08 / ch10 |
 | P1 | `src/tools.ts` + `src/Tool.ts`（全集→过滤→排序） | 缓存断点耦合、默认保守策略、并发安全语义 | ch14 / ch05 |
 | P1 | `src/constants/prompts.ts` + prompt 组装路径 | 缓存边界、动态段落拆分、模型专项补丁的治理注释 | ch15 / ch19 |

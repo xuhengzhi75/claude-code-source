@@ -189,11 +189,105 @@
 - Claude Code 在终端能力识别上，优先用“协议顺序屏障”判定支持性，而不是靠短超时拍脑袋。
 - 这让结果更稳定：慢终端不会被轻易误判成不支持，并发探测也能保持边界清晰。
 
-### 21) 一进程就先固定 PATH 安全基线，防止后续命令被“同名假程序”劫持
+### 21) 一进程就先固定 PATH 安全基线，防止后续命令被"同名假程序"劫持
 - 位置：`src/main.tsx:589`
 - 注释明确说：这个设置必须在任何命令执行前完成，用来避免 PATH 劫持（`prevent PATH hijacking attacks`）。
 - 这条约束放在主入口很早的位置，不依赖后续功能分支。
 
 可用于书中的事实表述：
-- Claude Code 启动后第一批动作里，就先把“去哪找可执行文件”这件事锁住，避免被当前目录或异常环境变量带偏。
-- 这属于“先防错、再做事”的基础安全策略：即使功能没开始跑，也先把执行环境收紧。
+- Claude Code 启动后第一批动作里，就先把"去哪找可执行文件"这件事锁住，避免被当前目录或异常环境变量带偏。
+- 这属于"先防错、再做事"的基础安全策略：即使功能没开始跑，也先把执行环境收紧。
+
+---
+
+## 第 2 轮抽样（conversationRecovery.ts / compact.ts / sessionMemory.ts）
+
+更新时间：2026-04-02
+
+### 22) 恢复反序列化是"先取事实、再语义修复"的两步设计
+- 位置：`src/utils/conversationRecovery.ts:461-468`（`loadConversationForResume` 函数注释）
+- 注释明确说：先尽量"取回事实"（日志链、快照、metadata），再统一做"语义修复"（反序列化/去脏/补哨兵）。这样加载路径可扩展（sessionId、latest、jsonl）而恢复规则保持单点维护。
+
+可用于书中的事实表述：
+- Claude Code 的恢复不是"加载后直接用"，而是把"取数据"和"修复数据"分成两个明确阶段。
+- 这让不同的加载来源（最近会话、指定 ID、jsonl 文件）可以共用同一套修复逻辑，不需要每条路径各自处理脏数据。
+
+### 23) 中断检测把"interrupted_turn"统一转换成"interrupted_prompt"，让 SDK/REPL 走同一条恢复路径
+- 位置：`src/utils/conversationRecovery.ts:207-227`（`deserializeMessagesWithInterruptDetection` 内部注释）
+- 注释明确说：把 mid-turn 中断转换成 interrupted_prompt 是语义修复步骤，不是 transcript 回放步骤。恢复先从磁盘还原事实，再把尾部改写成 API 合法、可恢复的对话形态。统一两种中断类型，让 SDK/REPL resume 走同一条路径，而不是各自特殊处理半损坏的尾部。
+
+可用于书中的事实表述：
+- 中断检测的目标不只是"发现中断"，而是把不同形态的中断统一成一种可恢复的标准形态。
+- 这个统一发生在反序列化层，调用方不需要知道原始中断是哪种类型。
+
+### 24) assistant sentinel 的插入位置有精确约束，为了让 removeInterruptedMessage 的 splice 找到正确配对
+- 位置：`src/utils/conversationRecovery.ts:229-248`（sentinel 插入注释）
+- 注释明确说：在最后一条 user 消息后插入合成 assistant sentinel，让对话在没有 resume 动作时也是 API 合法的。跳过尾部的 system/progress 消息，插在 user 消息正后方，这样 `removeInterruptedMessage` 的 `splice(idx, 2)` 能移除正确的配对。
+
+可用于书中的事实表述：
+- sentinel 的插入位置不是随意的，它需要和后续的"移除中断消息"逻辑精确配合。
+- 这类"两处代码互相依赖位置"的约束，是系统在真实场景中积累出来的，不是设计文档里能预先写全的。
+
+### 25) Brief 模式的 tool_result 结尾是"正常完成"，不是中断——需要特殊识别
+- 位置：`src/utils/conversationRecovery.ts:338-376`（`isTerminalToolResult` 函数注释）
+- 注释明确说：Brief 模式（#20467）去掉了 assistant 的尾部文本块，所以一个正常完成的 brief-mode turn 合法地以 SendUserMessage 的 tool_result 结尾。没有这个检查，resume 会把每个 brief-mode 会话都误判为 mid-turn 中断，并注入一条幽灵的"Continue from where you left off."。
+
+可用于书中的事实表述：
+- 中断检测不能只看消息类型，还要看工具语义：某些工具的 tool_result 是合法的 turn 终态。
+- 这类"模型版本行为变化导致的检测逻辑补丁"，在长期运行的系统里会积累，每一个都对应一段真实的故障历史。
+
+### 26) 技能状态必须在反序列化前从 attachment 回放，否则下次 compact 会"遗忘"技能
+- 位置：`src/utils/conversationRecovery.ts:385-408`（`restoreSkillStateFromMessages` 函数注释）
+- 注释明确说：恢复阶段必须先回放 attachment 里的技能状态，再做后续反序列化/继续对话。否则 invokedSkills 仅存在于进程内存，resume 后下一次 compact 会把技能上下文"遗忘"。另外，先前进程已经注入过 skills-available 提醒（约 600 tokens），不需要再次注入，通过 `suppressNextSkillListing()` 避免重复。
+
+可用于书中的事实表述：
+- 恢复不只是"把消息加载回来"，还包括把进程内存里的状态（技能列表）从持久化数据里重建。
+- 这类"进程内存状态需要从磁盘重建"的设计，是跨进程恢复的核心挑战之一。
+
+### 27) compact 后重建上下文的顺序是协议，不是偏好——改顺序会引发级联兼容问题
+- 位置：`src/services/compact/compact.ts:330-339`（`buildPostCompactMessages` 函数注释）
+- 注释明确说：顺序即协议：boundary → summary → kept → attachments → hooks。下游恢复/渲染/差分逻辑都默认这条"压缩后最小可恢复链路"，改顺序会引发级联兼容问题。
+
+可用于书中的事实表述：
+- 压缩后的消息顺序不是实现细节，而是系统各层之间的接口协议。
+- 任何修改这个顺序的"优化"，都会在恢复、渲染、差分等下游环节引发难以追踪的兼容问题。
+
+### 28) preservedSegment 是 compact↔resume 的契约字段，记录保留段的 head/anchor/tail 供恢复期重连
+- 位置：`src/services/compact/compact.ts:351-371`（`annotateBoundaryWithPreservedSegment` 函数注释）
+- 注释明确说：这是 compact↔resume 的契约字段：记录保留段 head/anchor/tail，让 `loadTranscriptFile` 能在恢复期做 parent 重连，避免"保留了消息但链断了"。suffix-preserving（反应式压缩，保留最后一段）和 prefix-preserving（部分压缩，保留开头）两种模式的 anchorUuid 含义不同。
+
+可用于书中的事实表述：
+- 压缩不只是"生成摘要"，还要在 boundary 消息上记录足够的元数据，让恢复时能重建消息链。
+- 这个元数据字段是 compact 和 resume 两个系统之间的显式接口，不是隐式约定。
+
+### 29) compact 请求本身也可能 prompt-too-long，有专门的截断重试逻辑
+- 位置：`src/services/compact/compact.ts:466-495`（PTL retry 注释）
+- 注释明确说：CC-1180：compact 请求本身命中 prompt-too-long 时，截断最旧的 API round groups 并重试，而不是让用户卡住。截断后同时更新 `forkContextMessages`，因为 forked-agent 路径从这里读取，不从 messages 参数读取。
+
+可用于书中的事实表述：
+- 压缩系统本身也需要处理"压缩请求太长"的情况，这是一个递归问题：用来缩短上下文的操作，本身也可能因为上下文太长而失败。
+- 解法是截断最旧的内容后重试，而不是直接报错——这体现了"尽量恢复，最后才报错"的设计倾向。
+
+### 30) compact 后重新注入 delta attachments，让模型在第一个 post-compact turn 就有完整工具上下文
+- 位置：`src/services/compact/compact.ts:567-589`（delta attachment 重注入注释）
+- 注释明确说：压缩吃掉了之前的 delta attachments。重新从当前状态 announce，让模型在 post-compact 第一轮就有工具/指令上下文。空消息历史 → diff against nothing → 宣告完整集合。
+
+可用于书中的事实表述：
+- 压缩不只是截断历史，还要重建模型需要的"当前状态快照"——工具列表、MCP 指令、Agent 列表都需要重新注入。
+- 这说明压缩后的第一轮对话，系统需要做比普通轮次更多的准备工作。
+
+### 31) session memory 的触发是双重阈值：token 增量是硬门槛，tool call 次数是软门槛
+- 位置：`src/services/SessionMemory/sessionMemory.ts:134-187`（`shouldExtractMemory` 函数注释）
+- 注释明确说：token 阈值是硬门槛（hard gate）。tool-call 次数单独满足不能触发提取，必须等 token 阈值也满足。这让提取与有意义的上下文增长对齐，而不是在每次 tool-heavy burst 时触发。`lastMemoryMessageUuid` 是连续性游标，不只是"最近看到的消息"标记。
+
+可用于书中的事实表述：
+- 记忆更新的触发不是"有变化就更新"，而是"变化足够大才更新"——token 增量是主要判断依据。
+- 这防止了在短对话或密集工具调用时频繁触发，避免记忆文件被噪声化。
+
+### 32) session memory 用 forked agent 执行，主会话继续响应用户，记忆更新在旁路完成
+- 位置：`src/services/SessionMemory/sessionMemory.ts:321-333`（`runForkedAgent` 调用注释）
+- 注释明确说：通过 forked agent 执行提取，隔离主线程对话状态：主会话继续响应用户，记忆更新在旁路完成并回写同一 memoryPath。`createMemoryFileCanUseTool` 只允许对指定 memoryPath 做 FileEdit，任何其他工具调用都被拒绝。
+
+可用于书中的事实表述：
+- 记忆更新是异步旁路操作，不阻塞主对话。这是"后台整理"模式的具体实现。
+- 最小权限不只是安全设计，也是隔离副作用的工程手段：forked agent 只能改记忆文件，不能意外影响主会话状态。

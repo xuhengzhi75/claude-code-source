@@ -154,8 +154,9 @@
   - 状态：verified
 - 结论：压缩后语义不丢失依赖固定协议重建最小上下文
   - 锚点：`src/services/compact/compact.ts`
-  - 锚点：`compactMetadata.preservedSegment`
-  - 状态：verified
+  - 锚点：`buildPostCompactMessages`（顺序即协议：boundary→summary→kept→attachments→hooks）
+  - 锚点：`annotateBoundaryWithPreservedSegment`（compact↔resume 契约字段，记录 head/anchor/tail）
+  - 状态：verified（第2轮抽样补充，信号27/28）
 - 结论：并发下的原子认领通过 list-level lock 防止 TOCTOU 竞态
   - 锚点：`src/utils/tasks.ts`
   - 锚点：`claimTaskWithBusyCheck`
@@ -277,14 +278,31 @@
 ## Chapter 18 恢复是玩具和真实系统的分水岭
 
 - 结论：恢复是四层流水线：事实恢复、语义修复、压缩后连续性、长期记忆
-  - 锚点：`src/utils/conversationRecovery.ts` `loadConversationForResume`
-  - 锚点：`src/utils/conversationRecovery.ts` `deserializeMessagesWithInterruptDetection`
-  - 锚点：`src/services/compact/compact.ts` `compactMetadata.preservedSegment`
-  - 锚点：`src/services/SessionMemory/sessionMemory.ts`
-  - 状态：verified
+  - 锚点：`src/utils/conversationRecovery.ts` `loadConversationForResume`（先取事实再语义修复的两步设计，信号22）
+  - 锚点：`src/utils/conversationRecovery.ts` `deserializeMessagesWithInterruptDetection`（统一中断类型，信号23）
+  - 锚点：`src/services/compact/compact.ts` `buildPostCompactMessages`（顺序即协议，信号27）
+  - 锚点：`src/services/compact/compact.ts` `annotateBoundaryWithPreservedSegment`（compact↔resume 契约字段，信号28）
+  - 锚点：`src/services/SessionMemory/sessionMemory.ts` `shouldExtractMemory`（双重阈值，信号31）
+  - 状态：verified（第2轮抽样补充）
 - 结论：语义修复包含迁移旧类型、清理非法字段、补齐 sentinel 消息
   - 锚点：`src/utils/conversationRecovery.ts` `migrateLegacyAttachmentTypes`
+  - 锚点：`src/utils/conversationRecovery.ts` sentinel 插入位置约束（信号24）
   - 状态：verified
+- 结论：Brief 模式的 tool_result 结尾是合法 turn 终态，中断检测需要特殊识别
+  - 锚点：`src/utils/conversationRecovery.ts` `isTerminalToolResult`（信号25）
+  - 状态：verified（第2轮抽样新增）
+- 结论：技能状态必须在反序列化前从 attachment 回放，否则下次 compact 会遗忘技能
+  - 锚点：`src/utils/conversationRecovery.ts` `restoreSkillStateFromMessages`（信号26）
+  - 状态：verified（第2轮抽样新增）
+- 结论：compact 请求本身也可能 prompt-too-long，有截断重试逻辑
+  - 锚点：`src/services/compact/compact.ts` PTL retry（信号29）
+  - 状态：verified（第2轮抽样新增）
+- 结论：compact 后重新注入 delta attachments，让模型在 post-compact 第一轮有完整工具上下文
+  - 锚点：`src/services/compact/compact.ts` delta attachment 重注入（信号30）
+  - 状态：verified（第2轮抽样新增）
+- 结论：session memory 用 forked agent 执行，主会话不阻塞，最小权限只允许编辑 memoryPath
+  - 锚点：`src/services/SessionMemory/sessionMemory.ts` `runForkedAgent` + `createMemoryFileCanUseTool`（信号32）
+  - 状态：verified（第2轮抽样新增）
 - 结论：主循环内联恢复分支处理实时异常（上下文过长、输出截断、工具结果缺失）
   - 锚点：`src/query.ts` `tryReactiveCompact`、`MAX_OUTPUT_TOKENS_RECOVERY_LIMIT`、`yieldMissingToolResultBlocks`
   - 状态：verified
