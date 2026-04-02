@@ -17,6 +17,11 @@
 1. `WORKING-METHOD.md`
 2. `collaboration-guide.md`
 
+### 4) 需要评估 blog 发布链或前端依赖安全
+1. `blog-dependency-security.md`
+2. `../../COMMIT-CONVENTIONS.md`
+3. 再看 `.github/workflows/deploy-blog.yml` 与 `blog/` 相关文件
+
 ## 文件职责
 - `WORKING-METHOD.md`：当前项目工作法
 - `analysis-handoff-template.md`：分析交接模板

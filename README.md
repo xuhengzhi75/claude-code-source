@@ -134,6 +134,8 @@ src/tasks/*              sessionStorage / compact / memory
   - 先建立全局认知：仓库定位、主干架构、推荐阅读顺序
 - `COMMIT-CONVENTIONS.md`
   - 再看整个仓库的统一提交规范：适用于 docs、源码注释、脚本、配置、结构整理等所有改动
+- `docs/book-workspace/workflow/blog-dependency-security.md`
+  - 如果你要改 blog 发布链或前端依赖，先看这份安全边界说明
 - `docs/book-workspace/planning/project-status.md`
   - 再看当前进度：做到哪、缺什么、下一步优先级
 - `docs/book-workspace/workflow/WORKING-METHOD.md`
