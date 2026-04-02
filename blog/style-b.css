@@ -79,6 +79,7 @@ body {
   line-height: 1.8;
   transition: background 0.2s, color 0.2s;
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden; /* 防止代码块负边距产生页面级横向滚动条 */
 }
 
 .layout { display: flex; min-height: 100vh; }
@@ -324,6 +325,8 @@ body {
   padding-bottom: 14px;
   border-bottom: 1px solid var(--border);
   line-height: 1.3;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .md-body h2 {
@@ -333,6 +336,8 @@ body {
   color: var(--heading-color);
   margin: 48px 0 16px;
   line-height: 1.35;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .md-body h3 {
@@ -349,7 +354,7 @@ body {
   margin: 22px 0 8px;
 }
 
-.md-body p { margin: 0 0 18px; }
+.md-body p { margin: 0 0 18px; overflow-wrap: break-word; word-break: break-word; }
 
 .md-body a {
   color: var(--link-color);
@@ -755,7 +760,7 @@ body {
   .topbar { padding: 0 16px; gap: 8px; }
   .topbar-home { display: none; } /* 手机上隐藏首页文字按钮，节省空间 */
   .topbar-title { font-size: 12.5px; padding-left: 10px; }
-  .star-btn { display: none; } /* 手机隐藏 Star 按钮 */
+  .star-btn { display: none !important; } /* 手机隐藏 Star 按钮 */
 
   /* 内容区 */
   .content-inner { padding: 28px 18px 72px; }
@@ -767,19 +772,21 @@ body {
   .md-body h3 { font-size: 15.5px; }
   .md-body { font-size: 15px; }
 
-  /* 代码块：手机上横向滚动，字号略小 */
+  /* 代码块：手机上去掉圆角和左右边框，内部横向滚动 */
   .md-body pre {
-    padding: 14px 0;
-    border-radius: 8px;
-    margin: 16px -18px; /* 撑满屏幕宽度 */
+    border-radius: 0;
     border-left: none;
     border-right: none;
-    border-radius: 0;
+    padding: 14px 0;
+    margin: 16px -18px;
+    max-width: 100vw;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
   .md-body pre code { font-size: 12px; }
   .line-num { width: 34px; padding: 0 8px 0 12px; font-size: 11px; }
   .line-content { padding-right: 14px; }
-  .code-lang-label { top: 8px; right: 10px; }
+  .code-lang-label { display: none; } /* 手机上隐藏语言标签，避免被截断 */
 
   /* 表格：横向滚动容器 */
   .md-body table {
