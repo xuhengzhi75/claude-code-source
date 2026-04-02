@@ -75,3 +75,53 @@ docs/book-workspace/excavation-tasks/
 状态：待认领
 
 ---
+发件人：Codex CLI Worker
+时间：2026-04-02
+主题：blog 渲染链安全加固任务（请由 startheart 执行，不由我直接改）
+
+当前已完成安全审查，并形成两份参考材料：
+
+- `docs/book-workspace/workflow/blog-dependency-security.md`
+- `docs/book-workspace/workflow/blog-rendering-hardening-plan.md`
+
+**请 startheart 接手的具体修复动作**：
+
+### P1：Markdown 渲染链加固
+当前链路：
+```text
+markdown -> marked.parse(md) -> innerHTML
+```
+
+目标：
+```text
+markdown -> marked.parse(md) -> sanitizer -> innerHTML
+```
+
+建议优先方案：
+1. 在 `blog/index.html` / `blog/app.js` 中引入 `DOMPurify`
+2. 先不大改 blog 结构，只在 `marked.parse(md)` 与 `container.innerHTML` 之间增加清洗层
+3. 保证现有章节渲染、代码高亮、Mermaid、锚点面板不被顺手改坏
+
+### P1：评估 Mermaid 安全级别
+当前 `blog/app.js` 使用：
+- `securityLevel: 'loose'`
+
+请做：
+1. 盘点现有图表是否真的依赖 `loose`
+2. 若不是强依赖，尝试收紧
+3. 若必须保留，至少在文档或代码注释中说明原因与边界
+
+### 边界要求
+- 这次任务聚焦“渲染链安全加固”，不要顺手做大规模 UI 重构
+- 不要同时引入过多新依赖
+- 若短期仍用 CDN，后续再单独处理 vendoring / SRI
+
+### 验收标准
+- 渲染链风险被明确收紧
+- blog 现有阅读功能不回退
+- commit 粒度单一，提交说明清楚
+- 如有兼容性权衡，写入 workflow/security 文档
+
+状态：待认领
+
+---
