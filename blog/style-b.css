@@ -565,3 +565,280 @@ body {
   .main-wrapper { margin-left: 0; }
   .content-inner { padding: 0; max-width: 100%; }
 }
+
+/* ===== Welcome Page ===== */
+.welcome {
+  padding: 60px 0 80px;
+  max-width: 680px;
+}
+
+.welcome-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: var(--active-bg);
+  border: 1px solid rgba(192,98,42,0.2);
+  padding: 3px 10px;
+  border-radius: 20px;
+  margin-bottom: 20px;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.welcome h1 {
+  font-family: 'Lora', 'Noto Serif SC', serif;
+  font-size: 38px;
+  font-weight: 600;
+  color: var(--heading-color);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  margin-bottom: 6px;
+}
+
+.welcome-subtitle {
+  font-family: 'Lora', serif;
+  font-size: 20px;
+  font-weight: 400;
+  color: var(--text-muted);
+  margin-bottom: 20px;
+  font-style: italic;
+}
+
+.welcome-desc {
+  font-size: 15.5px;
+  color: var(--text-secondary);
+  line-height: 1.8;
+  margin-bottom: 16px;
+}
+
+.welcome-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 36px;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.welcome-chapters {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 6px;
+  margin-bottom: 36px;
+}
+
+.welcome-ch {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  text-decoration: none;
+  transition: background 0.15s;
+  border: 1px solid transparent;
+}
+
+.welcome-ch:hover {
+  background: var(--hover-bg);
+  border-color: var(--border);
+}
+
+.welcome-ch-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.welcome-ch-title {
+  font-size: 13.5px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.welcome-ch:hover .welcome-ch-title {
+  color: var(--text);
+}
+
+.welcome-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.welcome-start {
+  display: inline-block;
+  background: var(--accent);
+  color: #fff;
+  text-decoration: none;
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.welcome-start:hover {
+  background: var(--accent-hover);
+  transform: translateY(-1px);
+}
+
+.welcome-github {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  border: 1px solid var(--border);
+  transition: all 0.15s;
+}
+
+.welcome-github:hover {
+  color: var(--text);
+  border-color: var(--border-strong);
+  background: var(--hover-bg);
+}
+
+/* ===== GitHub Star Button (topbar) ===== */
+.star-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12.5px;
+  border: 1px solid var(--border);
+  transition: all 0.15s;
+  font-weight: 500;
+}
+
+.star-btn:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--active-bg);
+}
+
+/* ===== Code Block Line Numbers ===== */
+.code-block {
+  counter-reset: line;
+  padding: 20px 0 !important;
+}
+
+.code-block .code-lang-label {
+  right: 14px;
+  top: 10px;
+}
+
+.code-block code {
+  display: block;
+  padding: 0 !important;
+}
+
+.code-line {
+  display: flex;
+  line-height: 1.65;
+  min-height: 1.65em;
+}
+
+.code-line:hover {
+  background: rgba(192, 98, 42, 0.06);
+}
+
+[data-theme="dark"] .code-line:hover {
+  background: rgba(224, 120, 64, 0.08);
+}
+
+.line-num {
+  flex-shrink: 0;
+  width: 44px;
+  padding: 0 16px 0 20px;
+  text-align: right;
+  color: var(--text-muted);
+  font-size: 12px;
+  user-select: none;
+  border-right: 1px solid var(--code-border);
+  margin-right: 16px;
+  opacity: 0.5;
+}
+
+.line-content {
+  flex: 1;
+  padding-right: 20px;
+  white-space: pre;
+}
+
+/* ===== Source Anchor Inline Code ===== */
+.md-body code.code-anchor {
+  cursor: pointer;
+  background: var(--inline-ref-bg);
+  color: var(--inline-ref-color);
+  border-color: rgba(42, 100, 150, 0.2);
+  border-bottom: 1px dashed var(--inline-ref-color);
+  transition: background 0.15s;
+}
+
+.md-body code.code-anchor:hover {
+  background: #c8e4f8;
+}
+
+[data-theme="dark"] .md-body code.code-anchor:hover {
+  background: #1e3a50;
+}
+
+/* ===== Anchor Tooltip ===== */
+.anchor-tooltip {
+  position: absolute;
+  z-index: 1000;
+  background: var(--bg);
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  padding: 12px 14px;
+  box-shadow: var(--shadow-md);
+  font-size: 13px;
+  min-width: 200px;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.anchor-tooltip.visible {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.tooltip-file {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: var(--text);
+  font-weight: 500;
+  margin-bottom: 3px;
+}
+
+.tooltip-line {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.tooltip-link {
+  display: inline-block;
+  font-size: 12px;
+  color: var(--accent);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(192,98,42,0.3);
+}
+
+.tooltip-link:hover {
+  border-bottom-color: var(--accent);
+}

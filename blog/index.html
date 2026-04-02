@@ -4,6 +4,19 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>深入 Claude Code：架构解析</title>
+  <!-- 阅读进度条 -->
+  <style>
+    #read-progress {
+      position: fixed; top: 0; left: 0; z-index: 9999;
+      height: 3px; width: 0%;
+      background: linear-gradient(90deg, #c0622a, #e07840);
+      transition: width 0.1s linear;
+      pointer-events: none;
+    }
+    [data-theme="dark"] #read-progress {
+      background: linear-gradient(90deg, #e07840, #f0a060);
+    }
+  </style>
   <link rel="stylesheet" href="style-b.css" />
   <!-- marked.js for Markdown parsing -->
   <script src="https://cdn.jsdelivr.net/npm/marked@9.1.6/marked.min.js"></script>
@@ -15,6 +28,7 @@
   <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
 </head>
 <body>
+  <div id="read-progress"></div>
   <div class="layout">
     <!-- Sidebar -->
     <aside class="sidebar" id="sidebar">
@@ -38,6 +52,10 @@
         </button>
         <span class="topbar-title" id="topbar-title">深入 Claude Code</span>
         <div class="topbar-actions">
+          <a class="star-btn" href="https://github.com/xuhengzhi75/claude-code-source" target="_blank" rel="noopener" title="在 GitHub 上 Star">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.751.751 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Z"/></svg>
+            Star
+          </a>
           <button class="theme-btn" onclick="toggleTheme()" title="切换主题">☀</button>
         </div>
       </header>

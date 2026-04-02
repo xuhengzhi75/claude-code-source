@@ -41,6 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setupMermaid();
   handleRoute();
   window.addEventListener('hashchange', handleRoute);
+  initReadProgress();
 });
 
 // ===== Theme =====
@@ -164,12 +165,17 @@ async function loadChapter(idx) {
 
 // ===== Render Markdown =====
 function setupMarked() {
-  // Custom renderer
   const renderer = new marked.Renderer();
 
-  // Code blocks with language label + highlight.js
+  // Code blocks: 行号 + 语言标签 + highlight.js
   renderer.code = function(code, lang) {
     const language = lang || 'plaintext';
+
+    // Mermaid 单独处理
+    if (language === 'mermaid') {
+      return `<div class="mermaid">${escapeHtml(code)}</div>`;
+    }
+
     let highlighted;
     try {
       if (language !== 'plaintext' && hljs.getLanguage(language)) {
@@ -181,27 +187,33 @@ function setupMarked() {
       highlighted = escapeHtml(code);
     }
 
-    // Handle mermaid separately
-    if (language === 'mermaid') {
-      return `<div class="mermaid">${escapeHtml(code)}</div>`;
-    }
+    // 生成行号
+    const lines = highlighted.split('\n');
+    // 最后一行如果是空行（代码末尾换行）则去掉
+    if (lines[lines.length - 1] === '') lines.pop();
+    const numbered = lines.map((line, i) =>
+      `<span class="code-line"><span class="line-num">${i + 1}</span><span class="line-content">${line || ' '}</span></span>`
+    ).join('\n');
 
     const langLabel = language !== 'plaintext'
       ? `<span class="code-lang-label">${escapeHtml(language)}</span>`
       : '';
-    return `<pre>${langLabel}<code class="hljs language-${escapeHtml(language)}">${highlighted}</code></pre>`;
+    return `<pre class="code-block">${langLabel}<code class="hljs language-${escapeHtml(language)}">${numbered}</code></pre>`;
   };
 
-  // Inline code — detect file references like `tasks.ts#L76`
+  // 行内代码：检测源码锚点格式 `file.ts#L76`
   renderer.codespan = function(code) {
+    // 匹配 filename.ext#L数字 格式
+    const anchorMatch = code.match(/^([\w./-]+\.(?:ts|js|tsx|jsx|py|go|rs|java|md))#(L\d+(?:-L\d+)?)$/);
+    if (anchorMatch) {
+      const [, file, lineRef] = anchorMatch;
+      const lineNum = parseInt(lineRef.replace('L', ''));
+      return `<code class="code-anchor" data-file="${escapeHtml(file)}" data-line="${lineNum}">${escapeHtml(code)}</code>`;
+    }
     return `<code>${code}</code>`;
   };
 
-  marked.setOptions({
-    renderer,
-    breaks: false,
-    gfm: true,
-  });
+  marked.setOptions({ renderer, breaks: false, gfm: true });
 }
 
 function setupMermaid() {
@@ -217,20 +229,16 @@ function renderMarkdown(md, container) {
   const html = marked.parse(md);
   container.innerHTML = `<div class="md-body">${html}</div>`;
 
-  // Re-init mermaid for any diagrams
+  // Mermaid
   const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-  mermaid.initialize({
-    startOnLoad: false,
-    theme: isDark ? 'dark' : 'default',
-    securityLevel: 'loose',
-  });
-
+  mermaid.initialize({ startOnLoad: false, theme: isDark ? 'dark' : 'default', securityLevel: 'loose' });
   const mermaidEls = container.querySelectorAll('.mermaid');
   if (mermaidEls.length > 0) {
-    mermaid.run({ nodes: mermaidEls }).catch(err => {
-      console.warn('Mermaid render error:', err);
-    });
+    mermaid.run({ nodes: mermaidEls }).catch(err => console.warn('Mermaid render error:', err));
   }
+
+  // 源码锚点 hover tooltip
+  setupAnchorTooltips(container);
 }
 
 // ===== Welcome =====
@@ -244,9 +252,32 @@ function showWelcome() {
   setTimeout(() => {
     contentInner.innerHTML = `
       <div class="welcome">
-        <h1>深入 Claude Code：架构解析</h1>
-        <p>从源码视角理解 Claude Code 的设计哲学与工程实现。</p>
-        <p>请从左侧目录选择章节开始阅读。</p>
+        <div class="welcome-badge">源码解析</div>
+        <h1>深入 Claude Code</h1>
+        <p class="welcome-subtitle">架构解析</p>
+        <p class="welcome-desc">从源码视角理解 Claude Code 的设计哲学与工程实现。<br>19 章，覆盖入口路由、QueryEngine、任务系统、工具链、提示词工程等核心模块。</p>
+        <div class="welcome-meta">
+          <span>作者：startheart &amp; Gordon</span>
+          <span>·</span>
+          <span>19 章节</span>
+          <span>·</span>
+          <span>持续更新中</span>
+        </div>
+        <div class="welcome-chapters">
+          ${CHAPTERS.map((ch, i) => `
+            <a class="welcome-ch" href="#${ch.id}">
+              <span class="welcome-ch-num">${ch.num}</span>
+              <span class="welcome-ch-title">${ch.title}</span>
+            </a>
+          `).join('')}
+        </div>
+        <div class="welcome-actions">
+          <a class="welcome-start" href="#ch01">开始阅读 →</a>
+          <a class="welcome-github" href="https://github.com/xuhengzhi75/claude-code-source" target="_blank" rel="noopener">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
+            GitHub
+          </a>
+        </div>
       </div>`;
     contentInner.classList.remove('content-leaving');
     contentInner.classList.add('content-entering');
@@ -301,6 +332,64 @@ function toggleSidebar() {
 function closeSidebar() {
   document.getElementById('sidebar').classList.remove('open');
   document.getElementById('overlay').classList.remove('show');
+}
+
+// ===== 阅读进度条 =====
+function initReadProgress() {
+  const bar = document.getElementById('read-progress');
+  if (!bar) return;
+  window.addEventListener('scroll', () => {
+    const scrollTop = window.scrollY;
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const pct = docHeight > 0 ? Math.min(100, (scrollTop / docHeight) * 100) : 0;
+    bar.style.width = pct + '%';
+  }, { passive: true });
+}
+
+// ===== 源码锚点 Tooltip =====
+function setupAnchorTooltips(container) {
+  const anchors = container.querySelectorAll('code.code-anchor');
+  if (!anchors.length) return;
+
+  // 创建全局 tooltip 元素（复用）
+  let tooltip = document.getElementById('anchor-tooltip');
+  if (!tooltip) {
+    tooltip = document.createElement('div');
+    tooltip.id = 'anchor-tooltip';
+    tooltip.className = 'anchor-tooltip';
+    document.body.appendChild(tooltip);
+  }
+
+  anchors.forEach(el => {
+    el.addEventListener('mouseenter', (e) => {
+      const file = el.dataset.file;
+      const line = parseInt(el.dataset.line);
+      showAnchorTooltip(tooltip, el, file, line);
+    });
+    el.addEventListener('mouseleave', () => {
+      tooltip.classList.remove('visible');
+    });
+  });
+}
+
+function showAnchorTooltip(tooltip, el, file, line) {
+  // 构造 GitHub 源码链接
+  const repoBase = 'https://github.com/xuhengzhi75/claude-code-source/blob/main/src';
+  // 文件路径推断：去掉可能的路径前缀，只保留文件名
+  const fileName = file.split('/').pop();
+  const githubUrl = `${repoBase}/${fileName}#L${line}`;
+
+  tooltip.innerHTML = `
+    <div class="tooltip-file">${file}</div>
+    <div class="tooltip-line">第 ${line} 行</div>
+    <a class="tooltip-link" href="${githubUrl}" target="_blank" rel="noopener">在 GitHub 查看源码 →</a>
+  `;
+
+  // 定位
+  const rect = el.getBoundingClientRect();
+  tooltip.style.left = rect.left + 'px';
+  tooltip.style.top  = (rect.bottom + window.scrollY + 8) + 'px';
+  tooltip.classList.add('visible');
 }
 
 // ===== Utility =====
