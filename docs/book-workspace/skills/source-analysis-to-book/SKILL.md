@@ -1,13 +1,13 @@
 ---
 name: source-analysis-to-book
-description: Analyze a complex code repository and turn the findings into reusable evidence notes, chapter plans, and long-form technical writing artifacts. Use when working on repo analysis, architecture deep dives, codebase-to-book/documentation projects, chapter planning, evidence mapping, or continuous writing workflows that need status, handoff, and continuation support.
+description: Analyze a complex code repository and turn the findings into reusable evidence notes, chapter plans, and long-form technical writing artifacts. Use when working on repository analysis, architecture deep dives, codebase-to-book projects, evidence mapping, chapter planning, or continuous writing workflows that need status, handoff, and continuation support.
 ---
 
 # source-analysis-to-book
 
-Use this skill to convert a codebase understanding task into a durable writing workflow.
+Use this skill to convert a codebase understanding task into a durable analysis-and-writing workflow.
 
-## Workflow
+## Core Workflow
 
 1. Scan the repository for entrypoints, execution paths, state carriers, recovery logic, tool boundaries, and major subsystems.
 2. Identify the system's core tensions: what complexity it is fighting, which constraints shape the design, and which components are non-removable.
@@ -22,16 +22,18 @@ Use this skill to convert a codebase understanding task into a durable writing w
 
 ## Default Output Set
 
-Prefer producing or maintaining these artifacts:
-- `planning/planning/project-status.md`
-- `status/status/status-index.md`
+Prefer producing or maintaining these artifacts inside the writing workspace:
+- `planning/project-status.md`
+- `planning/completed-coverage-and-writing-queue.md`
+- `status/status-index.md`
 - `status/status-*.md`
-- `references/references/chapter-evidence-map.md`
-- `workflow/workflow/analysis-handoff-template.md`
+- `references/chapter-evidence-map.md`
+- `references/code-annotation-roadmap.md`
+- `workflow/analysis-handoff-template.md`
+- `methodology/writing-guide.md`
+- `methodology/writing-principles.md`
 - `architecture-notes/*.md`
-- `chapters/*.md`
-- `methodology/methodology/writing-guide.md`
-- `methodology/methodology/writing-principles.md`
+- `chapters/*.md` when the manuscript directory exists separately
 
 ## Writing Rules
 
@@ -50,8 +52,6 @@ Avoid:
 - writing chapters before building an evidence base
 - losing continuity because status and handoff documents are missing
 
-## References
+## Additional References
 
-Read these only when needed:
-- `../source-analysis-to-book-skill-draft.md` for the expanded skill draft
-- `../../methodology/book-writing-playbook-2026-04-01_to_2026-04-02.md` for the distilled writing methodology
+Read `references/navigation.md` first when you need the expanded method materials.
