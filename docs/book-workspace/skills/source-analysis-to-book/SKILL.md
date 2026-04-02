@@ -9,40 +9,15 @@ Use this skill to convert a codebase understanding task into a durable analysis-
 
 ## Core Workflow
 
-1. Scan the repository for entrypoints, execution paths, state carriers, recovery logic, tool boundaries, and major subsystems.
-2. Identify the system's core tensions: what complexity it is fighting, which constraints shape the design, and which components are non-removable.
-3. Produce evidence notes that separate:
-   - verified facts
-   - inference
-   - edge cases
-   - design tradeoffs
-   - why-it-matters
-4. Design writing outputs around non-obvious questions, not directory walkthroughs.
-5. Maintain continuation artifacts so work can resume cleanly after interruption.
+Use the workflow in `references/workflow.md`.
 
 ## Default Output Set
 
-Prefer producing or maintaining these artifacts inside the writing workspace:
-- `planning/project-status.md`
-- `planning/completed-coverage-and-writing-queue.md`
-- `status/status-index.md`
-- `status/status-*.md`
-- `references/chapter-evidence-map.md`
-- `references/code-annotation-roadmap.md`
-- `workflow/analysis-handoff-template.md`
-- `methodology/writing-guide.md`
-- `methodology/writing-principles.md`
-- `architecture-notes/*.md`
-- `chapters/*.md` when the manuscript directory exists separately
+Use the output model in `references/output-model.md`.
 
 ## Writing Rules
 
-- Write by control-flow and state transitions, not by folder listing.
-- Make every chapter answer one non-obvious question.
-- Separate mechanism, value, constraints, and effects.
-- Prefer edge cases, failure paths, and recovery paths over happy-path summaries.
-- Do not present inference as verified fact.
-- Do not let analysis degrade into a README-style module catalog.
+Use the writing constraints in `references/writing-rules.md`.
 
 ## Anti-Patterns
 
@@ -54,4 +29,8 @@ Avoid:
 
 ## Additional References
 
-Read `references/navigation.md` first when you need the expanded method materials.
+Read in this order when needed:
+1. `references/navigation.md`
+2. `references/workflow.md`
+3. `references/writing-rules.md`
+4. `references/output-model.md`
