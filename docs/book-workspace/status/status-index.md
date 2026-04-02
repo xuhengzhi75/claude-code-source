@@ -25,9 +25,9 @@
 ## 2) 当前状态 vs 历史快照（如何区分）
 
 ### A. 当前状态（优先读取，作为“现在”）
-1. `docs/book/project-status.md`（当前阶段、完成面、风险、优先级）
-2. `docs/book/completed-coverage-and-writing-queue.md`（已覆盖与待写队列）
-3. `docs/book/code-annotation-roadmap.md`（源码注释与证据补充节奏）
+1. `docs/book-workspace/planning/project-status.md`（当前阶段、完成面、风险、优先级）
+2. `docs/book-workspace/planning/completed-coverage-and-writing-queue.md`（已覆盖与待写队列）
+3. `docs/book-workspace/references/code-annotation-roadmap.md`（源码注释与证据补充节奏）
 
 > 结论：**当前真实状态以以上“汇总型文档”为准**。
 
@@ -44,13 +44,13 @@
 按下面顺序读，避免一上来刷 25 份快照：
 
 ### Step 1（2 分钟）
-读：`docs/book/project-status.md`
+读：`docs/book-workspace/planning/project-status.md`
 - 拿到当前阶段、已完成范围、风险与优先级。
 
 ### Step 2（3 分钟）
 读：
-- `docs/book/completed-coverage-and-writing-queue.md`
-- `docs/book/code-annotation-roadmap.md`
+- `docs/book-workspace/planning/completed-coverage-and-writing-queue.md`
+- `docs/book-workspace/references/code-annotation-roadmap.md`
 
 - 确认“下一批可直接开工项”和证据/注释补位点。
 
@@ -70,7 +70,7 @@
 ## 4) 归档与维护建议（后续执行约定）
 
 1. 新增状态快照时，保持 `status-YYYY-MM-DD-HHMM.md` 命名。
-2. 每日（或每阶段）只维护一份“汇总当前状态”文档（`project-status.md`），避免“当前状态”分叉。
+2. 每日（或每阶段）只维护一份“汇总当前状态”文档（`planning/planning/project-status.md`），避免“当前状态”分叉。
 3. 当快照数量继续增长时，可把旧快照移入 `docs/book/status-archive/`（按日期分目录），本索引保留入口与分流规则。
 4. 新 Agent 接手时，默认先走本文件第 3 节最短路径，再决定是否深挖历史。
 
@@ -78,6 +78,6 @@
 
 ## 5) 一句话交接口径
 
-- `project-status.md` 回答“**现在到哪了**”；
+- `planning/planning/project-status.md` 回答“**现在到哪了**”；
 - `status-*.md` 回答“**怎么走到这儿的**”；
 - 先看“现在”，再按需回放“历史”。

@@ -15,7 +15,7 @@
 对应产物：
 - `architecture-notes/system-overview.md`
 - `architecture-notes/execution-flow-guide.md`
-- `chapter-evidence-map.md`
+- `references/references/chapter-evidence-map.md`
 - `ch03 / ch04 / ch06 / ch07`
 
 ### 2. 能力装配层

@@ -33,7 +33,7 @@
 负责：
 - 基于 analysis notes、源码注释、requirements 写章节正文。
 - 统一叙述风格与信息密度，提升可读性。
-- 维护 `chapter-evidence-map.md` 对证据链进行映射。
+- 维护 `references/references/chapter-evidence-map.md` 对证据链进行映射。
 
 不负责：
 - 不重复深挖已明确由分析侧覆盖的同一批源码。
@@ -67,7 +67,7 @@
 6. **写法约束**（哪些只能保守推断）
 
 建议直接使用模板文件：
-- `docs/book/analysis-handoff-template.md`
+- `docs/book-workspace/workflow/analysis-handoff-template.md`
 
 ---
 
@@ -95,7 +95,7 @@
 ## 6. 何时可以开写（写作侧准入条件）
 
 满足以下条件即可开写：
-1. 对应主题已在 `completed-coverage-and-writing-queue.md` 标记为可写（优先级 A/B/C）。
+1. 对应主题已在 `planning/planning/completed-coverage-and-writing-queue.md` 标记为可写（优先级 A/B/C）。
 2. 已收到分析侧交接卡（至少包含结论、锚点、边界）。
 3. 证据来源可追溯到 `architecture-notes` 或源码锚点。
 4. 章节依赖的前置内容已可引用（无需补新分析）。
@@ -137,8 +137,8 @@
 ## 9. 与现有文件的关系
 
 本文件是“协作规范总入口”，对应关系如下：
-- 分工与轮动细则：`docs/book/collab-split.md`
-- 交接卡模板：`docs/book/analysis-handoff-template.md`
-- 可写队列与禁写项：`docs/book/completed-coverage-and-writing-queue.md`
+- 分工与轮动细则：`docs/book-workspace/planning/collab-split.md`
+- 交接卡模板：`docs/book-workspace/workflow/analysis-handoff-template.md`
+- 可写队列与禁写项：`docs/book-workspace/planning/completed-coverage-and-writing-queue.md`
 
 如协作策略调整，先更新以上协作文档，再推进章节正文。

@@ -30,7 +30,7 @@
 - Part V 仍属后续待系统化展开部分
 
 ### 3. 架构笔记资产
-位于：`docs/book/architecture-notes/`
+位于：`docs/book-workspace/architecture-notes/`
 
 已形成：
 - 导读型笔记
@@ -40,10 +40,10 @@
 
 ### 4. 证据与协作资产
 已建立：
-- `chapter-evidence-map.md`
-- `analysis-handoff-template.md`
-- `collab-split.md`
-- `writing-principles.md`
+- `references/references/chapter-evidence-map.md`
+- `workflow/workflow/analysis-handoff-template.md`
+- `planning/planning/collab-split.md`
+- `methodology/methodology/writing-principles.md`
 
 ### 5. 工程辅助
 已建立：
@@ -71,7 +71,7 @@
 ## 明日优先级（摘要）
 - P0：`WORKING-METHOD.md`
 - P0：`architecture-notes/README.md`
-- P0：`completed-coverage-and-writing-queue.md`
-- P1：`figures-index.md`
-- P1：`code-annotation-roadmap.md`
+- P0：`planning/planning/completed-coverage-and-writing-queue.md`
+- P1：`references/references/figures-index.md`
+- P1：`references/references/code-annotation-roadmap.md`
 - P1：继续补核心源码中文注释

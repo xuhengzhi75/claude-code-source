@@ -2,7 +2,7 @@
 
 更新时间：2026-04-01
 
-本文件是书稿“写作规范层”的统一入口。目标是把分散在 `requirements.md`、`writing-principles.md`、`WORKING-METHOD.md` 的规则收敛成一套可执行、可验收、可协作的最小工作协议。
+本文件是书稿“写作规范层”的统一入口。目标是把分散在 `planning/planning/requirements.md`、`methodology/methodology/writing-principles.md`、`WORKING-METHOD.md` 的规则收敛成一套可执行、可验收、可协作的最小工作协议。
 
 ---
 
@@ -16,7 +16,7 @@
 - 证据导向：关键结论要能被源码复核。
 - 简洁导向：高信息密度，禁止同义反复凑篇幅。
 
-参考定位详见：`docs/book/requirements.md`
+参考定位详见：`docs/book-workspace/planning/requirements.md`
 
 ---
 
@@ -78,7 +78,7 @@
 - [ ] 指出边界条件或技术债
 - [ ] 读者读完后需记住的核心概念 ≤ 3
 
-详细高阶标准详见：`docs/book/writing-principles.md`
+详细高阶标准详见：`docs/book-workspace/methodology/writing-principles.md`
 
 ---
 
@@ -111,14 +111,14 @@
 
 ## 6. 文档关系图（如何使用）
 
-- `writing-guide.md`（本文件）：统一入口、最小可执行规则。
-- `requirements.md`：读者定位、全书目标、写作风格与密度底线。
-- `writing-principles.md`：完整方法论与高强度验收条款。
+- `methodology/methodology/writing-guide.md`（本文件）：统一入口、最小可执行规则。
+- `planning/planning/requirements.md`：读者定位、全书目标、写作风格与密度底线。
+- `methodology/methodology/writing-principles.md`：完整方法论与高强度验收条款。
 - `WORKING-METHOD.md`：源码阅读顺序、协作流程、交接格式。
 
 建议使用方式：
 - 日常写作：优先遵循本文件 + `WORKING-METHOD.md`
-- 章节终审：再对照 `writing-principles.md` 做强化验收
+- 章节终审：再对照 `methodology/methodology/writing-principles.md` 做强化验收
 
 ---
 

@@ -7,8 +7,8 @@
 本文件用于把“源码注释补充进度”与“book/notes 写作状态”对齐，给后续小步提交提供统一清单。
 
 口径：
-- **已补位点**：以 `docs/book/architecture-notes/key-comment-signals.md` 已登记、且可在源码定位的注释信号为准。
-- **待补位点**：优先覆盖当前书稿里 `inference` 占比高、或 `project-status.md` 标记为短板的主题。
+- **已补位点**：以 `docs/book-workspace/architecture-notes/key-comment-signals.md` 已登记、且可在源码定位的注释信号为准。
+- **待补位点**：优先覆盖当前书稿里 `inference` 占比高、或 `planning/planning/project-status.md` 标记为短板的主题。
 - **优先级**：P0（立即补）/ P1（本轮补）/ P2（排队补）。
 
 ---
@@ -57,7 +57,7 @@
   - `ch16` 状态与上下文（部分）
   - `ch17` 任务推进（部分）
   - `ch18` 恢复机制（部分）
-- 依据：`completed-coverage-and-writing-queue.md` 的优先级 A 清单 + `chapter-evidence-map.md` verified 项。
+- 依据：`planning/planning/completed-coverage-and-writing-queue.md` 的优先级 A 清单 + `references/references/chapter-evidence-map.md` verified 项。
 
 ---
 
@@ -84,8 +84,8 @@
 
 1. **每轮只补 1~2 个 P0 位点**：源码注释 + `key-comment-signals.md` 增量 + 一条 `status-*.md`。
 2. **章节联动最小闭环**：每补一条注释，明确写“可用于哪章哪个段落”。
-3. **证据状态同步**：补完后同步检查 `chapter-evidence-map.md`，能从 inference 升 verified 的立即升级。
-4. **协作约束保持不变**：继续遵循 `collab-split.md`（分析侧补证据，写作侧落正文）。
+3. **证据状态同步**：补完后同步检查 `references/references/chapter-evidence-map.md`，能从 inference 升 verified 的立即升级。
+4. **协作约束保持不变**：继续遵循 `planning/planning/collab-split.md`（分析侧补证据，写作侧落正文）。
 
 ---
 

@@ -8,14 +8,14 @@
 
 优先看这两个文件：
 
-1. `docs/book/project-status.md`
+1. `docs/book-workspace/planning/project-status.md`
    - 作用：项目“当前全局状态”的唯一总览。
    - 适合回答：
      - 现在处于哪个阶段？
      - 已完成了哪些块？
      - 当前协作模式、主要风险、明日优先级是什么？
 
-2. `docs/book/roadmap.md`
+2. `docs/book-workspace/planning/roadmap.md`
    - 作用：短周期（默认 24h）目标与执行节奏。
    - 适合回答：
      - 当前窗口期重点是什么？
@@ -23,8 +23,8 @@
      - 执行阶段和节奏规则是什么？
 
 > 结论：
-> - 想知道“现在项目在哪儿”→ 看 `project-status.md`
-> - 想知道“接下来 24h 怎么推进”→ 看 `roadmap.md`
+> - 想知道“现在项目在哪儿”→ 看 `planning/planning/project-status.md`
+> - 想知道“接下来 24h 怎么推进”→ 看 `planning/planning/roadmap.md`
 
 ### 1.2 历史快照（Timeline / Checkpoints）
 
@@ -38,7 +38,7 @@
   - 复盘节奏、定位偏航点
 
 > 规则：
-> - **当前判断**以 `project-status.md` + `roadmap.md` 为准；
+> - **当前判断**以 `planning/planning/project-status.md` + `planning/planning/roadmap.md` 为准；
 > - `status-*.md` 用于补充上下文证据，不直接替代当前状态文档。
 
 ---
@@ -57,8 +57,8 @@
 
 ## 2.2 更新职责分工
 
-- `project-status.md`：只保留“当前仍成立”的内容，持续覆盖更新。
-- `roadmap.md`：维护下一窗口期目标与执行相位，滚动更新。
+- `planning/planning/project-status.md`：只保留“当前仍成立”的内容，持续覆盖更新。
+- `planning/planning/roadmap.md`：维护下一窗口期目标与执行相位，滚动更新。
 - `status-*.md`：每次小步完成后按时间追加快照，不回写历史文件。
 
 ## 2.3 建议更新流程（最小闭环）
@@ -66,8 +66,8 @@
 1. 完成一个可验证小块（分析、注释、章节、索引、脚本等）
 2. 新增一条 `status-*.md`（记录“做了什么 + 最小增量 + 是否偏航”）
 3. 若影响当前真相，同步更新：
-   - `project-status.md`（全局状态）
-   - `roadmap.md`（短期计划）
+   - `planning/planning/project-status.md`（全局状态）
+   - `planning/planning/roadmap.md`（短期计划）
 4. `git add` / `commit` / `push`，保证远端可见
 
 ## 2.4 内容约束（写状态时必须包含）
@@ -87,10 +87,10 @@
 
 ## 3.1 五步读取顺序
 
-1. `docs/book/project-status.md`（现在在哪）
-2. `docs/book/roadmap.md`（下一步做什么）
+1. `docs/book-workspace/planning/project-status.md`（现在在哪）
+2. `docs/book-workspace/planning/roadmap.md`（下一步做什么）
 3. 最近 3~5 个 `docs/book/status-*.md`（近期轨迹与节奏）
-4. `docs/book/collab-split.md`（当前分工边界）
+4. `docs/book-workspace/planning/collab-split.md`（当前分工边界）
 5. 与任务直接相关的章节或 `architecture-notes/` 文件
 
 ## 3.2 快速判断模板（接手后立即给出）
@@ -110,7 +110,7 @@
 - 变更文件清单
 - 关键证据锚点（源码或文档位置）
 - 未完成但已识别的下一动作
-- 对 `project-status.md` / `roadmap.md` 是否需要同步更新的判断
+- 对 `planning/planning/project-status.md` / `planning/planning/roadmap.md` 是否需要同步更新的判断
 
 ---
 
@@ -118,7 +118,7 @@
 
 ## 4.1 必守约束
 
-1. 不用 `status-*.md` 代替 `project-status.md`
+1. 不用 `status-*.md` 代替 `planning/planning/project-status.md`
 2. 不在历史快照里回写“当前真相”
 3. 任何阶段/优先级变化必须落盘
 4. 小步提交，远端持续可见
@@ -138,8 +138,8 @@
 
 - [ ] 本轮是否形成可验证最小增量
 - [ ] 是否新增了对应 `status-*.md`
-- [ ] 当前真相是否需要更新 `project-status.md`
-- [ ] 24h 计划是否需要更新 `roadmap.md`
+- [ ] 当前真相是否需要更新 `planning/planning/project-status.md`
+- [ ] 24h 计划是否需要更新 `planning/planning/roadmap.md`
 - [ ] 是否明确写出下一步动作
 - [ ] 是否已 commit + push
 

@@ -15,9 +15,9 @@
    - **不直接写章节正文**
 
 2. **对方（写作侧）**
-   - 负责根据源码注释、`architecture-notes/` 笔记和 `requirements.md` 写章节正文
+   - 负责根据源码注释、`architecture-notes/` 笔记和 `planning/planning/requirements.md` 写章节正文
    - 负责统一风格、控制信息密度、处理读者可读性
-   - 负责维护 `chapter-evidence-map.md`
+   - 负责维护 `references/references/chapter-evidence-map.md`
    - **不重复做源码深挖，不与源码分析侧抢同一份工作**
 
 3. **轮动机制**
@@ -62,7 +62,7 @@
 | ch01–ch08（Part I + Part II） | 已完成两轮收口并推送 |
 | ch09–ch12（Part III） | 已有远端新稿 |
 | `architecture-notes/`（已有笔记） | 已形成基础资产 |
-| `chapter-evidence-map.md`（ch03–ch12） | 已建立并持续增强 |
+| `references/references/chapter-evidence-map.md`（ch03–ch12） | 已建立并持续增强 |
 | 配套模板（prompt/workflow/role/example） | 已完成 v0 |
 
 ---
@@ -73,7 +73,7 @@
 
 优先产出形式：
 - 源码内高价值注释
-- `docs/book/architecture-notes/*.md`
+- `docs/book-workspace/architecture-notes/*.md`
 - 必要的协作提示文档
 
 默认分析重点：
@@ -89,7 +89,7 @@
 默认工作：
 - 根据分析侧产出的注释与笔记写章节
 - 维护章节风格、信息密度、可读性
-- 维护 `chapter-evidence-map.md`
+- 维护 `references/references/chapter-evidence-map.md`
 - 把技术分析转换成适合读者的表达
 
 ---

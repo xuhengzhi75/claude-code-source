@@ -131,8 +131,8 @@
   - 锚点：`src/tasks.ts`
   - 状态：inference
 - 结论：长任务能力需要与恢复机制一起设计
-  - 锚点：`docs/book/architecture-notes/task-recovery-map.md`
-  - 锚点：`docs/book/architecture-notes/recovery-and-continuity.md`
+  - 锚点：`docs/book-workspace/architecture-notes/task-recovery-map.md`
+  - 锚点：`docs/book-workspace/architecture-notes/recovery-and-continuity.md`
   - 状态：inference
 
 ## Chapter 9 护城河不只是模型：Claude Code 真正难以复制的是什么
@@ -143,7 +143,7 @@
   - 锚点：`src/utils/tasks.ts`
   - 状态：inference
 - 结论：护城河不是单一技术点，而是多个系统层协同的结果
-  - 锚点：`docs/book/architecture-notes/moat-and-barriers.md`
+  - 锚点：`docs/book-workspace/architecture-notes/moat-and-barriers.md`
   - 状态：inference
 
 ## Chapter 10 难以复制的运行时壁垒
@@ -241,7 +241,7 @@
   - 锚点：`src/commands.ts` `getCommands()`、`meetsAvailabilityRequirement()`
   - 状态：verified
 - 结论：系统提示词和任务指令作用层次不同，不应混用
-  - 锚点：`docs/book/architecture-notes/system-overview.md`
+  - 锚点：`docs/book-workspace/architecture-notes/system-overview.md`
   - 状态：inference
 
 ## Chapter 16 状态与上下文
@@ -289,5 +289,5 @@
   - 锚点：`src/query.ts` `tryReactiveCompact`、`MAX_OUTPUT_TOKENS_RECOVERY_LIMIT`、`yieldMissingToolResultBlocks`
   - 状态：verified
 - 结论：最小恢复实现：任务状态落盘 + 上下文超限时摘要压缩
-  - 锚点：`docs/book/architecture-notes/recovery-and-continuity.md`
+  - 锚点：`docs/book-workspace/architecture-notes/recovery-and-continuity.md`
   - 状态：inference

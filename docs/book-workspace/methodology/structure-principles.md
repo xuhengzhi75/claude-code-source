@@ -13,7 +13,7 @@
 推荐阅读路径：
 
 1. `README.md` / 总导航（看全局地图）
-2. `project-status.md`（看当前进度与下一步）
+2. `planning/planning/project-status.md`（看当前进度与下一步）
 3. `book-outline-v1.md` + `chapters/`（看主线内容）
 4. `architecture-notes/`（看技术细节与证据）
 
@@ -23,9 +23,9 @@
 
 按使用场景组织入口，而不是按写作时间：
 
-- **写作推进**：`book-outline-v1.md`、`writing-principles.md`、`chapter-evidence-map.md`
-- **协作分工**：`collab-split.md`、`workflow-templates.md`、`analysis-handoff-template.md`
-- **状态同步**：`project-status.md`、`status-*.md`
+- **写作推进**：`book-outline-v1.md`、`methodology/methodology/writing-principles.md`、`references/references/chapter-evidence-map.md`
+- **协作分工**：`planning/planning/collab-split.md`、`workflow/workflow/workflow-templates.md`、`workflow/workflow/analysis-handoff-template.md`
+- **状态同步**：`planning/planning/project-status.md`、`status-*.md`
 - **架构溯源**：`architecture-notes/README.md`
 
 后续若新增入口页，优先围绕任务（写作/协作/审阅/发布）编排。
@@ -35,9 +35,9 @@
 顶层文档按职责理解为三层：
 
 - **规范层（How）**：方法、模板、原则、要求
-  - 如：`WORKING-METHOD.md`、`requirements.md`、`writing-principles.md`
+  - 如：`WORKING-METHOD.md`、`planning/planning/requirements.md`、`methodology/methodology/writing-principles.md`
 - **状态层（Now）**：当前进度、阶段结论、过程记录
-  - 如：`project-status.md`、`status-*.md`、`conversation-log.md`
+  - 如：`planning/planning/project-status.md`、`status-*.md`、`references/references/conversation-log.md`
 - **内容层（What）**：真正进入书稿与证据内容
   - 如：`chapters/`、`book-outline-v1.md`、`architecture-notes/`
 
