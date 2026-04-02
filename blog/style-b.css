@@ -63,6 +63,15 @@
 
 html { font-size: 16px; scroll-behavior: smooth; }
 
+/* ===== 文字选中色 ===== */
+::selection {
+  background-color: rgba(192, 98, 42, 0.18);
+  color: var(--heading-color);
+}
+[data-theme="dark"] ::selection {
+  background-color: rgba(224, 120, 64, 0.25);
+}
+
 body {
   font-family: 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif;
   background: var(--bg);
@@ -442,7 +451,8 @@ body {
 
 .md-body hr {
   border: none;
-  border-top: 1px solid var(--border);
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--border-strong), transparent);
   margin: 36px 0;
 }
 
@@ -1236,3 +1246,33 @@ body {
 }
 
 /* 面板 hljs 高亮主题由 index.html 的 #ap-hljs-theme <style> 标签统一管理 */
+
+/* ===== 纸质噪点纹理（预渲染 PNG，无运行时滤镜开销）===== */
+.texture-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  background-image: url('./noise.png');
+  background-repeat: repeat;
+  background-size: 128px 128px;
+  opacity: 0.06;
+  mix-blend-mode: multiply;
+  transform: translateZ(0);
+}
+[data-theme="dark"] .texture-overlay {
+  opacity: 0.08;
+  mix-blend-mode: screen;
+}
+
+/* ===== TOC 封面章节卡片图片 hover 缩放 ===== */
+.welcome-ch {
+  overflow: hidden;
+}
+.welcome-ch:hover .welcome-ch-title {
+  transform: translateX(3px);
+  transition: transform 0.2s ease;
+}
+.welcome-ch-title {
+  transition: transform 0.2s ease;
+}
