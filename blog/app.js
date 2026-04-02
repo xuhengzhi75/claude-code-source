@@ -555,15 +555,12 @@ function showAnchorPanel(anchorEl, file, line) {
   window.addEventListener('scroll', updatePos, { passive: true, capture: true });
   window.addEventListener('resize', updatePos, { passive: true });
 
-  // 绑定上下行按钮（每次移动 5 行）
+  // 绑定上下行按钮（每次追加 5 行，保留已有内容）
   panel.querySelector('.ap-up').addEventListener('click', () => {
-    const cur = parseInt(panel.dataset.line);
-    if (cur > 1) shiftPanelLine(panel, anchorEl, file, Math.max(1, cur - 5));
+    expandPanelUp(panel, anchorEl, file);
   });
   panel.querySelector('.ap-down').addEventListener('click', () => {
-    const cur = parseInt(panel.dataset.line);
-    const total = (_fileCache[resolveFilePath(file)] || []).length;
-    shiftPanelLine(panel, anchorEl, file, total ? Math.min(total, cur + 5) : cur + 5);
+    expandPanelDown(panel, anchorEl, file);
   });
 
   // 异步加载文件内容
@@ -581,8 +578,8 @@ function buildPanelHTML(file, line) {
       <span class="ap-filepath">${escapeHtml(file)}#L${line}</span>
       <div class="ap-actions">
         <span class="ap-lang">${escapeHtml(lang)}</span>
-        <button class="ap-btn ap-up" title="上移 5 行">↑</button>
-        <button class="ap-btn ap-down" title="下移 5 行">↓</button>
+        <button class="ap-btn ap-up" title="向上展开 5 行">↑</button>
+        <button class="ap-btn ap-down" title="向下展开 5 行">↓</button>
         <a class="ap-btn ap-github" href="${githubUrl}" target="_blank" rel="noopener" title="在 GitHub 查看源码">
           <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
         </a>
@@ -674,6 +671,10 @@ function renderPanelCode(panel, allLines, centerLine, file, anchorEl) {
     body.className = 'ap-body';
     body.innerHTML = `<code class="hljs ap-code">${rows}</code>`;
 
+    // 记录当前渲染范围，供 expandPanelUp/Down 使用
+    panel.dataset.start = String(start);
+    panel.dataset.end   = String(end);
+
     // 更新 header 行号
     const fp = panel.querySelector('.ap-filepath');
     if (fp) fp.textContent = `${file}#L${centerLine}`;
@@ -697,11 +698,88 @@ function renderPanelCode(panel, allLines, centerLine, file, anchorEl) {
   }, 150);
 }
 
-function shiftPanelLine(panel, anchorEl, file, newLine) {
-  panel.dataset.line = String(newLine);
+// 向上追加 5 行（前插到顶部）
+function expandPanelUp(panel, anchorEl, file) {
   const filePath = resolveFilePath(file);
-  const lines = _fileCache[filePath];
-  if (lines) renderPanelCode(panel, lines, newLine, file, anchorEl);
+  const allLines = _fileCache[filePath];
+  if (!allLines) return;
+
+  const curStart = parseInt(panel.dataset.start || '1');
+  if (curStart <= 1) return; // 已到顶
+
+  const newStart = Math.max(1, curStart - 5);
+  appendPanelLines(panel, anchorEl, file, allLines, newStart, curStart - 1, 'prepend');
+  panel.dataset.start = String(newStart);
+}
+
+// 向下追加 5 行（追加到底部）
+function expandPanelDown(panel, anchorEl, file) {
+  const filePath = resolveFilePath(file);
+  const allLines = _fileCache[filePath];
+  if (!allLines) return;
+
+  const curEnd = parseInt(panel.dataset.end || '1');
+  if (curEnd >= allLines.length) return; // 已到底
+
+  const newEnd = Math.min(allLines.length, curEnd + 5);
+  appendPanelLines(panel, anchorEl, file, allLines, curEnd + 1, newEnd, 'append');
+  panel.dataset.end = String(newEnd);
+}
+
+// 渲染指定行范围并插入到面板（prepend 或 append）
+function appendPanelLines(panel, anchorEl, file, allLines, fromLine, toLine, mode) {
+  const ext = file.split('.').pop();
+  const langMap = { ts: 'typescript', js: 'javascript', tsx: 'typescript', jsx: 'javascript', py: 'python', go: 'go', rs: 'rust', java: 'java', md: 'markdown' };
+  const lang = langMap[ext] || 'plaintext';
+
+  const snippet = allLines.slice(fromLine - 1, toLine).join('\n');
+  let highlighted;
+  try {
+    if (lang !== 'plaintext' && hljs.getLanguage(lang)) {
+      highlighted = hljs.highlight(snippet, { language: lang }).value;
+    } else {
+      highlighted = hljs.highlightAuto(snippet).value;
+    }
+  } catch (e) {
+    highlighted = escapeHtml(snippet);
+  }
+
+  const hlLines = splitHlLines(highlighted);
+  const rows = hlLines.map((lineHtml, i) => {
+    const lineNo = fromLine + i;
+    return `<span class="ap-line" data-line="${lineNo}"><span class="ap-lnum">${lineNo}</span><span class="ap-lcode">${lineHtml || ' '}</span></span>`;
+  }).join('\n');
+
+  const body = panel.querySelector('.ap-body');
+  const code = body && body.querySelector('.hljs.ap-code');
+  if (!code) return;
+
+  const tmp = document.createElement('div');
+  tmp.innerHTML = rows;
+  const newSpans = Array.from(tmp.childNodes);
+
+  if (mode === 'prepend') {
+    // 记录当前滚动位置，插入后补偿，避免视图跳动
+    const prevScrollTop = body.scrollTop;
+    const prevHeight = code.scrollHeight;
+    newSpans.reverse().forEach(n => code.insertBefore(n, code.firstChild));
+    const addedHeight = code.scrollHeight - prevHeight;
+    body.scrollTop = prevScrollTop + addedHeight;
+  } else {
+    newSpans.forEach(n => code.appendChild(n));
+    // 滚动到新增内容
+    setTimeout(() => {
+      const last = code.querySelector('.ap-line:last-child');
+      if (last) last.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }, 30);
+  }
+
+  // 重新定位面板
+  if (anchorEl) {
+    requestAnimationFrame(() => {
+      if (anchorEl._panel === panel) positionPanel(panel, anchorEl);
+    });
+  }
 }
 
 // ===== Utility =====
