@@ -449,6 +449,12 @@ function scheduleHide(anchorEl, delay = 220) {
 function closeAnchorPanel(anchorEl) {
   const panel = anchorEl._panel;
   if (panel) {
+    // 移除滚动/resize 监听
+    if (anchorEl._panelPositionHandler) {
+      window.removeEventListener('scroll', anchorEl._panelPositionHandler, true);
+      window.removeEventListener('resize', anchorEl._panelPositionHandler);
+      anchorEl._panelPositionHandler = null;
+    }
     panel.classList.add('ap-hiding');
     panel.addEventListener('animationend', () => panel.remove(), { once: true });
     anchorEl._panel = null;
@@ -456,21 +462,40 @@ function closeAnchorPanel(anchorEl) {
   anchorEl.classList.remove('active');
 }
 
+function positionPanel(panel, anchorEl) {
+  const PANEL_WIDTH = 520;
+  const OFFSET_Y = 8; // 锚点下方间距
+
+  const rect = anchorEl.getBoundingClientRect();
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+
+  // 水平：优先左对齐锚点，超出右边界则右对齐
+  let left = rect.left;
+  if (left + PANEL_WIDTH > vw - 12) {
+    left = Math.max(12, vw - PANEL_WIDTH - 12);
+  }
+
+  // 垂直：优先显示在锚点下方，空间不足则显示在上方
+  const spaceBelow = vh - rect.bottom - OFFSET_Y;
+  const PANEL_MAX_H = 320 + 40; // body max-height + header
+  let top;
+  if (spaceBelow >= PANEL_MAX_H || spaceBelow >= 160) {
+    top = rect.bottom + OFFSET_Y;
+  } else {
+    top = rect.top - OFFSET_Y - Math.min(PANEL_MAX_H, vh * 0.5);
+  }
+
+  panel.style.left = `${left}px`;
+  panel.style.top  = `${top}px`;
+  panel.style.width = `${PANEL_WIDTH}px`;
+}
+
 function showAnchorPanel(anchorEl, file, line) {
   // 已经展开则不重复创建
   if (anchorEl._panel) return;
 
   anchorEl.classList.add('active');
-
-  // 找插入位置：锚点所在最近块级祖先
-  let insertAfter = anchorEl;
-  while (
-    insertAfter.parentElement &&
-    !['P','LI','BLOCKQUOTE','DIV','H1','H2','H3','H4'].includes(insertAfter.parentElement.tagName)
-  ) {
-    insertAfter = insertAfter.parentElement;
-  }
-  insertAfter = insertAfter.parentElement || anchorEl.parentElement;
 
   const panel = document.createElement('div');
   panel.className = 'anchor-panel';
@@ -482,8 +507,21 @@ function showAnchorPanel(anchorEl, file, line) {
   panel.addEventListener('mouseenter', () => clearHideTimer(anchorEl));
   panel.addEventListener('mouseleave', () => scheduleHide(anchorEl));
 
-  insertAfter.after(panel);
+  // 挂到 body，fixed 定位，不影响文档流
+  document.body.appendChild(panel);
   anchorEl._panel = panel;
+
+  // 初始定位
+  positionPanel(panel, anchorEl);
+
+  // 滚动 / resize 时跟随锚点
+  const updatePos = () => {
+    if (!anchorEl._panel) return;
+    positionPanel(panel, anchorEl);
+  };
+  anchorEl._panelPositionHandler = updatePos;
+  window.addEventListener('scroll', updatePos, { passive: true, capture: true });
+  window.addEventListener('resize', updatePos, { passive: true });
 
   // 绑定上下行按钮
   panel.querySelector('.ap-up').addEventListener('click', () => {

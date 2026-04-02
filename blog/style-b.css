@@ -1031,15 +1031,17 @@ body {
 }
 
 .anchor-panel {
-  margin: 8px 0 14px;
+  position: fixed;
+  z-index: 2000;
   border-radius: 10px;
   overflow: hidden;
   border: 1px solid #2e2e2e;
   background: #1c1c1c;
-  box-shadow: 0 6px 24px rgba(0,0,0,0.3);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.45), 0 2px 8px rgba(0,0,0,0.3);
   font-family: 'JetBrains Mono', 'Fira Code', monospace;
-  animation: ap-expand 0.2s cubic-bezier(0.22, 1, 0.36, 1) both;
-  transform-origin: top center;
+  animation: ap-expand 0.18s cubic-bezier(0.22, 1, 0.36, 1) both;
+  transform-origin: top left;
+  /* width 由 JS positionPanel 动态设置 */
 }
 
 .anchor-panel.ap-hiding {
