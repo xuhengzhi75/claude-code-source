@@ -3,10 +3,6 @@ name: Deploy Blog to GitHub Pages
 on:
   push:
     branches: [main]
-    paths:
-      - 'blog/**'
-      - 'docs/book/chapters/**'
-      - '.github/workflows/deploy-blog.yml'
   workflow_dispatch:  # 支持手动触发
 
 permissions:
