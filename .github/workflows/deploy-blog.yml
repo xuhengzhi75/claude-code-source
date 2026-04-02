@@ -1,0 +1,48 @@
+name: Deploy Blog to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'blog/**'
+      - 'docs/book/chapters/**'
+      - '.github/workflows/deploy-blog.yml'
+  workflow_dispatch:  # 支持手动触发
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build — copy chapters into blog/
+        run: |
+          mkdir -p blog/chapters
+          cp docs/book/chapters/*.md blog/chapters/
+          echo "✅ Copied $(ls blog/chapters/*.md | wc -l) chapter files"
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: blog/   # 只发布 blog/ 目录
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

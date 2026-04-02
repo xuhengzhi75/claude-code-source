@@ -2,67 +2,41 @@
 # =============================================================
 # blog/deploy.sh — GitHub Pages 部署脚本
 #
-# 用途：构建 → 将 blog/chapters/ 临时加入 git → push → 清理
-#
-# GitHub Pages 设置：
-#   Settings → Pages → Source: Deploy from branch
-#   Branch: main  /  Folder: /blog
+# 部署方式：GitHub Actions（.github/workflows/deploy-blog.yml）
+# 只需 push 到 main 分支，Actions 自动构建并发布 blog/ 目录。
 #
 # 使用方式：
-#   bash blog/deploy.sh
+#   bash blog/deploy.sh        # 从项目根目录执行
 # =============================================================
 
 set -e
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
-echo "🚀 Claude Code Blog — 部署到 GitHub Pages"
+echo "🚀 Claude Code Blog — 推送触发 GitHub Actions 部署"
 echo ""
 
-# Step 1: 确保工作区干净（未提交的变更先提示）
+# 检查是否有未提交的变更
 if ! git diff --quiet || ! git diff --cached --quiet; then
-  echo "⚠️  检测到未提交的变更，请先 commit 后再部署："
+  echo "⚠️  检测到未提交的变更，请先 commit："
   git status --short
   exit 1
 fi
 
-# Step 2: 构建（同步 md 文件到 blog/chapters/）
-echo "🔨 Step 1/4  构建章节文件..."
-bash "$SCRIPT_DIR/build.sh"
-echo ""
-
-# Step 3: 临时将 blog/chapters/ 加入 git（覆盖 .gitignore）
-echo "📦 Step 2/4  暂存构建产物..."
-git add -f blog/chapters/
-CHAPTER_COUNT=$(git diff --cached --name-only | grep "^blog/chapters/" | wc -l | tr -d ' ')
-echo "   已暂存 $CHAPTER_COUNT 个章节文件"
-echo ""
-
-# Step 4: 提交
-echo "💾 Step 3/4  提交..."
-TIMESTAMP=$(date "+%Y-%m-%d %H:%M")
-git commit -m "deploy(blog): 更新章节内容 $TIMESTAMP"
-echo ""
-
-# Step 5: Push
-echo "☁️  Step 4/4  推送到 GitHub..."
+# Push 到 main，触发 Actions workflow
+echo "☁️  推送到 GitHub，触发自动部署..."
 git push origin main
+
+echo ""
+echo "✅ 推送完成！GitHub Actions 正在构建..."
 echo ""
 
-# Step 6: 清理 — 将 blog/chapters/ 从 git 追踪中移除（保留本地文件）
-echo "🧹 清理 git 追踪（保留本地文件）..."
-git rm -r --cached blog/chapters/ > /dev/null 2>&1 || true
-git commit -m "chore(blog): 移除构建产物追踪（chapters/ 由 build.sh 生成）" --allow-empty
-git push origin main
-echo ""
-
-echo "✅ 部署完成！"
-echo ""
-echo "   GitHub Pages 地址（需在仓库 Settings → Pages 中配置）："
 REPO_URL=$(git remote get-url origin | sed 's/\.git$//' | sed 's/https:\/\/github\.com\///')
-echo "   https://$(echo $REPO_URL | cut -d'/' -f1).github.io/$(echo $REPO_URL | cut -d'/' -f2)/blog/"
+OWNER=$(echo "$REPO_URL" | cut -d'/' -f1)
+REPO=$(echo "$REPO_URL" | cut -d'/' -f2)
+
+echo "   查看部署进度：https://github.com/$OWNER/$REPO/actions"
+echo "   部署完成后访问：https://$OWNER.github.io/$REPO/"
 echo ""
-echo "   注意：GitHub Pages 首次部署需等待约 1-2 分钟生效。"
+echo "   ⏱  通常 1-2 分钟内生效"
