@@ -284,7 +284,9 @@ function renderMarkdown(md, container) {
   mermaid.initialize({ startOnLoad: false, theme: isDark ? 'dark' : 'default', securityLevel: 'loose' });
   const mermaidEls = container.querySelectorAll('.mermaid');
   if (mermaidEls.length > 0) {
-    mermaid.run({ nodes: mermaidEls }).catch(err => console.warn('Mermaid render error:', err));
+    mermaid.run({ nodes: mermaidEls })
+      .then(() => setupMermaidLightbox(container))
+      .catch(err => console.warn('Mermaid render error:', err));
   }
 
   // 源码锚点 hover tooltip
@@ -446,6 +448,9 @@ function setupAnchorTooltips(container) {
       scheduleHide(el);
     });
   });
+
+  // 手机端：tap 触发
+  setupAnchorTouchTrigger(container);
 }
 
 function clearHideTimer(anchorEl) {
@@ -831,4 +836,79 @@ function escapeHtml(str) {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
+}
+
+// ===== Mermaid Lightbox =====
+function setupMermaidLightbox(container) {
+  const diagrams = container.querySelectorAll('.mermaid');
+  diagrams.forEach(el => {
+    // 避免重复绑定
+    if (el.dataset.lbBound) return;
+    el.dataset.lbBound = '1';
+    el.addEventListener('click', () => openMermaidLightbox(el));
+  });
+}
+
+function openMermaidLightbox(el) {
+  // 克隆 SVG 内容
+  const svgEl = el.querySelector('svg');
+  if (!svgEl) return;
+  const svgClone = svgEl.cloneNode(true);
+  // 移除固定宽高，让 CSS 控制
+  svgClone.removeAttribute('width');
+  svgClone.removeAttribute('height');
+  svgClone.style.maxWidth = '100%';
+  svgClone.style.height = 'auto';
+
+  const lb = document.createElement('div');
+  lb.className = 'mermaid-lightbox';
+  lb.innerHTML = `
+    <div class="mermaid-lightbox-backdrop"></div>
+    <div class="mermaid-lightbox-content">
+      <button class="mermaid-lightbox-close" title="关闭">✕</button>
+    </div>
+  `;
+  lb.querySelector('.mermaid-lightbox-content').appendChild(svgClone);
+  document.body.appendChild(lb);
+
+  // 关闭逻辑
+  const close = () => {
+    lb.classList.add('lb-closing');
+    lb.addEventListener('animationend', () => lb.remove(), { once: true });
+  };
+
+  lb.querySelector('.mermaid-lightbox-close').addEventListener('click', close);
+  lb.querySelector('.mermaid-lightbox-backdrop').addEventListener('click', close);
+
+  // ESC 关闭
+  const onKey = (e) => {
+    if (e.key === 'Escape') { close(); document.removeEventListener('keydown', onKey); }
+  };
+  document.addEventListener('keydown', onKey);
+}
+
+// ===== 手机端：锚点面板改为 tap 触发 =====
+// 在 setupAnchorTooltips 中已有 mouseenter/mouseleave，
+// 手机上没有 hover，需要额外绑定 click/touchstart
+function setupAnchorTouchTrigger(container) {
+  if (window.innerWidth > 768) return; // 仅手机
+  const anchors = container.querySelectorAll('code.code-anchor');
+  anchors.forEach(el => {
+    el.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (el._panel) {
+        closeAnchorPanel(el);
+      } else {
+        const file = el.dataset.file;
+        const line = parseInt(el.dataset.line);
+        showAnchorPanel(el, file, line);
+      }
+    });
+  });
+  // 点击其他地方关闭
+  document.addEventListener('click', () => {
+    document.querySelectorAll('code.code-anchor').forEach(el => {
+      if (el._panel) closeAnchorPanel(el);
+    });
+  }, { once: false, capture: true });
 }
