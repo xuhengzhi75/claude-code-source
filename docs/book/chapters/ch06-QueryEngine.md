@@ -34,7 +34,7 @@
 // — the single largest controllable critical-path cost after module eval.
 ```
 
-这次 transcript 写入是整个启动路径上**最大的可控延迟**——SSD 上约 4ms，磁盘竞争时约 30ms。
+这次 transcript 写入是整个启动路径上最大的可控延迟——SSD 上约 4ms，磁盘竞争时约 30ms。
 
 所以在 bare 模式（脚本调用）下，这次写入是 fire-and-forget 的，不阻塞主流程：
 
@@ -102,4 +102,4 @@ setMessages: () => {},  // 锁定，不再允许修改
 
 两次 `processUserInputContext` 的设计揭示了"阶段锁定"模式：斜杠命令处理阶段允许修改历史，查询执行阶段用空操作锁定历史。
 
-需要记住的核心概念：**持久化的时序决定了恢复能力的边界——写入发生在哪一步，恢复就能从哪一步开始。**
+持久化的时序决定了恢复能力的边界——写入发生在哪一步，恢复就能从哪一步开始。这个原则不只适用于 transcript，适用于任何需要从中断点恢复的系统。
