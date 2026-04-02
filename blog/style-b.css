@@ -90,7 +90,7 @@ body {
 }
 
 .sidebar-header {
-  padding: 28px 22px 18px;
+  padding: 18px 18px 16px;
   border-bottom: 1px solid var(--border);
   position: sticky;
   top: 0;
@@ -98,19 +98,75 @@ body {
   z-index: 1;
 }
 
+/* Brand 链接：Logo + 书名，整体可点击 */
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  text-decoration: none;
+  border-radius: 8px;
+  padding: 6px 6px;
+  margin: -6px -6px;
+  transition: background 0.15s;
+}
+
+.sidebar-brand:hover {
+  background: var(--hover-bg);
+}
+
+.brand-logo {
+  flex-shrink: 0;
+  line-height: 0;
+}
+
+.brand-logo svg rect {
+  transition: fill 0.15s;
+}
+
+.sidebar-brand:hover .brand-logo svg rect {
+  fill: var(--accent-hover);
+}
+
+.brand-text {
+  min-width: 0;
+}
+
 .book-title {
   font-family: 'Lora', 'Noto Serif SC', serif;
-  font-size: 15px;
+  font-size: 14.5px;
   font-weight: 600;
   color: var(--text);
   line-height: 1.35;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .book-subtitle {
-  font-size: 11.5px;
+  font-size: 11px;
   color: var(--text-muted);
-  margin-top: 4px;
+  margin-top: 3px;
   letter-spacing: 0.04em;
+}
+
+/* Topbar 首页按钮 */
+.topbar-home {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 13px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: color 0.15s, background 0.15s;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.topbar-home:hover {
+  color: var(--text);
+  background: var(--hover-bg);
 }
 
 /* TOC */
@@ -197,6 +253,9 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  /* 左侧竖线分隔 */
+  padding-left: 14px;
+  border-left: 1px solid var(--border);
 }
 
 .topbar-actions { display: flex; gap: 8px; }
