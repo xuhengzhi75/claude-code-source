@@ -7,6 +7,7 @@
 [![在线博客预览](docs/blog-screenshot.png)](https://xuhengzhi75.github.io/claude-code-source/)
 
 > Blog 是**公开阅读入口**；`docs/book-workspace/`、`inbox/`、`status/`、`workflow/` 等生产资料不属于公开发布面。
+> 当前 blog 发布为**手动触发**，不再随着每次 push 自动公开。
 
 ## Warning
 

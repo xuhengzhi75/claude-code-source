@@ -23,6 +23,25 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Validate public surface
+        run: |
+          test -d docs/book/chapters
+          test -f blog/index.html
+          test -f blog/app.js
+          test -f blog/style-b.css
+          CHAPTER_COUNT=$(find docs/book/chapters -maxdepth 1 -name '*.md' | wc -l | tr -d ' ')
+          if [ "$CHAPTER_COUNT" -eq 0 ]; then
+            echo "❌ No chapter markdown files found under docs/book/chapters"
+            exit 1
+          fi
+          for blocked in inbox status workflow excavation-tasks skills; do
+            if [ -e "blog/$blocked" ]; then
+              echo "❌ blog/$blocked must not be part of the public surface"
+              exit 1
+            fi
+          done
+          echo "✅ Public surface validation passed"
+
       - name: Build — copy chapters into blog/
         run: |
           mkdir -p blog/chapters
