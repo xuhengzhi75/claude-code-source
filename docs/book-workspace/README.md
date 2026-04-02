@@ -38,9 +38,10 @@
 4. 再扫描具体文档引用
 
 ### 5) 统一协作提交规范
-1. `workflow/commit-conventions.md`
-2. `workflow/collaboration-guide.md`
-3. 必要时回看 `planning/project-status.md`
+1. `../../COMMIT-CONVENTIONS.md`
+2. `workflow/commit-conventions.md`
+3. `workflow/collaboration-guide.md`
+4. 必要时回看 `planning/project-status.md`
 
 ### 6) 提炼 Skill
 1. `skills/source-analysis-to-book/SKILL.md`

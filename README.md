@@ -121,16 +121,18 @@ src/tasks/*              sessionStorage / compact / memory
 
 ## 这个仓库怎么食用
 
-### 快速导航（先看这 3 个入口）
+### 快速导航（先看这 4 个入口）
 
 - `README.md`（你正在读）
   - 先建立全局认知：仓库定位、主干架构、推荐阅读顺序
-- `docs/book/project-status.md`
+- `COMMIT-CONVENTIONS.md`
+  - 再看整个仓库的统一提交规范：适用于 docs、源码注释、脚本、配置、结构整理等所有改动
+- `docs/book-workspace/planning/project-status.md`
   - 再看当前进度：做到哪、缺什么、下一步优先级
-- `docs/book/WORKING-METHOD.md`
+- `docs/book-workspace/workflow/WORKING-METHOD.md`
   - 最后看协作与方法：阅读铁律、写作规则、交接与验收标准
 
-> 想快速进入状态：按上面顺序读一遍，再进入 `docs/book/chapters/` 或 `docs/book/architecture-notes/`。
+> 想快速进入状态：按上面顺序读一遍，再进入 `docs/book/chapters/` 或 `docs/book-workspace/architecture-notes/`。
 
 推荐按两条线使用：
 
@@ -155,17 +157,17 @@ src/tasks/*              sessionStorage / compact / memory
 
 建议顺序：
 
-1. `docs/book/requirements.md`
+1. `docs/book-workspace/planning/requirements.md`
    - 先看整套写作和研究的目标、标准、边界
-2. `docs/book/book-outline-v1.md`
+2. `docs/book-workspace/planning/book-outline-v1.md`
    - 看全书结构与章节定位
 3. `docs/book/chapters/`
    - 看已经整理出的章节正文
-4. `docs/book/architecture-notes/`
+4. `docs/book-workspace/architecture-notes/`
    - 看技术底稿与源码分析笔记
-5. `docs/book/chapter-evidence-map.md`
+5. `docs/book-workspace/references/chapter-evidence-map.md`
    - 看结论与源码锚点的对应关系
-6. `docs/book/analysis-handoff-template.md`
+6. `docs/book-workspace/workflow/analysis-handoff-template.md`
    - 看“源码分析侧 -> 写作侧”的标准交接格式
 
 ---
@@ -185,7 +187,7 @@ src/tasks/*              sessionStorage / compact / memory
 - `src/tasks/*`
 
 ### 2. 架构笔记
-位于：`docs/book/architecture-notes/`
+位于：`docs/book-workspace/architecture-notes/`
 
 包括但不限于：
 - system overview
@@ -203,9 +205,9 @@ src/tasks/*              sessionStorage / compact / memory
 当前已在持续推进，目标是把源码理解沉淀成一套人人看得懂的 Claude Code 架构拆解书稿。
 
 ### 4. 证据与交接资产
-- `docs/book/chapter-evidence-map.md`
-- `docs/book/analysis-handoff-template.md`
-- `docs/book/collab-split.md`
+- `docs/book-workspace/references/chapter-evidence-map.md`
+- `docs/book-workspace/workflow/analysis-handoff-template.md`
+- `docs/book-workspace/planning/collab-split.md`
 
 这些文件的作用是：
 - 避免写作漂移
@@ -280,9 +282,9 @@ src/tasks/*              sessionStorage / compact / memory
 推荐继续看：
 
 - `docs/architecture.md`
-- `docs/book/architecture-notes/bridge-reading-method.md`
-- `docs/book/architecture-notes/runtime-structure.md`
-- `docs/book/architecture-notes/tool-system-detail.md`
+- `docs/book-workspace/architecture-notes/bridge-reading-method.md`
+- `docs/book-workspace/architecture-notes/runtime-structure.md`
+- `docs/book-workspace/architecture-notes/tool-system-detail.md`
 - `docs/book/chapter-evidence-map.md`
 
 如果你想进一步研究“为什么成熟 Agent 产品比普通 LLM 工具调用器更稳定”，这个仓库很适合作为一个长期拆解样本。

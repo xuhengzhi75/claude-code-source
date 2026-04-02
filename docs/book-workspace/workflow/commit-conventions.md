@@ -1,6 +1,8 @@
-# Commit Conventions
+# Commit Conventions (Book Workspace Note)
 
-这个仓库当前存在多位协作者并行推进，因此提交规范必须统一，否则后续很难追踪“谁改了什么、为什么改、哪一类改动可以单独回滚”。
+> 仓库级统一提交规范请以根目录 `COMMIT-CONVENTIONS.md` 为准。
+
+这份文档保留在 `book-workspace/workflow/`，仅作为写书工作区内的导航与提醒入口，避免协作者只在局部工作时忽略仓库级提交约束。
 
 ## 目标
 
