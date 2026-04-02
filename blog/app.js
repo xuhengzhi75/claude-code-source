@@ -759,11 +759,15 @@ function appendPanelLines(panel, anchorEl, file, allLines, fromLine, toLine, mod
   const newSpans = Array.from(tmp.childNodes);
 
   if (mode === 'prepend') {
+    // 先记录插入前的 scrollHeight，插入后新内容高度就是差值
+    const prevHeight = body.scrollHeight;
     newSpans.reverse().forEach(n => code.insertBefore(n, code.firstChild));
-    // 直接滚到顶部（新内容在最顶，scrollIntoView 对已在顶部的元素无效）
+    const addedHeight = body.scrollHeight - prevHeight;
+    // 瞬间跳到新内容底部（让新内容刚好在视口上方），再 smooth 滚回顶部
+    body.scrollTop = addedHeight;
     setTimeout(() => {
       body.scrollTo({ top: 0, behavior: 'smooth' });
-    }, 30);
+    }, 16);
   } else {
     newSpans.forEach(n => code.appendChild(n));
     // 滚动到新增内容
