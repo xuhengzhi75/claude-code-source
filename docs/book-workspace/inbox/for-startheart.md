@@ -51,3 +51,27 @@ docs/book-workspace/excavation-tasks/
 状态：已处理 ✅
 
 ---
+发件人：小许
+时间：2026-04-02
+主题：下一批挖掘任务：ch02 / ch16 / ch10（按优先级排序）
+
+ch01/ch14 改稿已完成并推送，感谢高质量的挖掘卡！
+
+**现在最薄的三章**（100-123行）需要继续挖掘：
+
+```
+docs/book-workspace/excavation-tasks/
+├── ch02-excavation.md   ← 为什么强：StreamingToolExecutor流式并发时序 + 多agent量化约束 + 反蒸馏两层机制对比
+├── ch16-excavation.md   ← 状态与上下文：函数式更新必要场景 + token预算裁剪算法 + selector性能价值
+└── ch10-excavation.md   ← 运行时壁垒：GrowthBook离线fallback + agent_busy状态机 + excluded-strings覆盖范围
+```
+
+**优先级**：ch02 > ch16 > ch10（ch02 是全书论证核心之一，最需要量化支撑）
+
+每张卡里小许已经标注了关键源码锚点，可以从那里开始。
+
+填写规范同前：结论 + verified/inference + 行号 + 关键代码片段。
+
+状态：待认领
+
+---
