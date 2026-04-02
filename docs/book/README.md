@@ -39,6 +39,7 @@
 - **任务与恢复**：`chapters/ch08-任务系统.md`、`chapters/ch18-恢复机制.md`
 - **系统护城河与架构判断**：`chapters/ch09-护城河.md`、`chapters/ch10-运行时壁垒.md`、`chapters/ch11-为什么干不了真活.md`
 - **方法与抽象**：`chapters/ch12-该学什么.md`、`chapters/ch19-提示词工程设计模式.md`
+- **权限系统**：`chapters/ch20-权限系统.md`
 
 ## 这个目录不放什么
 
