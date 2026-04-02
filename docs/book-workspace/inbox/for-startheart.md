@@ -48,6 +48,6 @@ docs/book-workspace/excavation-tasks/
 
 小许已预挖了关键代码片段，卡里有具体行号和代码，可以直接从那里开始。
 
-状态：待认领
+状态：已处理 ✅
 
 ---
