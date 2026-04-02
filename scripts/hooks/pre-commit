@@ -134,10 +134,21 @@ check_pattern "ENTROPY" \
 # 2. 内部人员信息
 # =============================================================================
 
-# 真实中文姓名（已知）—— 通过检测特定姓名组合
-check_pattern "PII" \
-  '许国栋' \
-  "真实姓名「许国栋」出现在提交内容中"
+# 真实姓名检测 —— 从本地配置文件读取，不入仓库（见 .git/hooks/blocked-names.txt）
+# 文件格式：每行一个姓名，# 开头为注释
+# 生成方式：bash scripts/hooks/install.sh 会提示创建
+BLOCKED_NAMES_FILE="$(git rev-parse --git-dir)/hooks/blocked-names.txt"
+if [ -f "$BLOCKED_NAMES_FILE" ]; then
+  while IFS= read -r name || [ -n "$name" ]; do
+    # 跳过空行和注释
+    [[ -z "$name" || "$name" == \#* ]] && continue
+    if echo "$STAGED_DIFF" | grep -qF "$name" 2>/dev/null; then
+      ERRORS+=("[PII] 真实姓名出现在提交内容中（见 .git/hooks/blocked-names.txt）")
+      FAIL=1
+      break  # 不暴露具体名字
+    fi
+  done < "$BLOCKED_NAMES_FILE"
+fi
 
 # misId pattern (美团内部 misId 通常是字母数字组合)
 check_pattern "INTERNAL" \
