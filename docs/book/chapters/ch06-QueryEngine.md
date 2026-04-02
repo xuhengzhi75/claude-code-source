@@ -1,12 +1,12 @@
 # 第6章 QueryEngine：会话编排核心
 
-如果一个系统在崩溃后能恢复，这个能力是在哪里建立的？答案不是崩溃恢复逻辑本身，而是崩溃前"写了什么"——写了多少、写在哪一步。`QueryEngine` 把这件事固定为约束，让调用方无法绕过。
+数据库崩溃后能恢复，恢复能力不是在崩溃后建立的，而是在崩溃前写了什么决定的。写了什么、写在哪一步，系统就能从哪一步恢复。`QueryEngine` 把这件事固定为约束，让调用方无法绕过。
 
-## 6.1 恢复能力依赖写入时序，顺序颠倒时恢复静默失败
+`QueryEngine` 是 Claude Code 的会话编排层（跨多轮对话的状态管理器），负责持久化消息历史（transcript，即写入磁盘的对话记录文件）、累计 token 用量、记录权限拒绝状态。单轮对话的执行交给 `query.ts`。
 
-`QueryEngine` 是 Claude Code 的会话编排层，负责跨多轮对话（turn，即一次用户发送到下一次用户发送的完整交互周期）的状态管理：持久化消息历史（transcript）、累计 token 用量、记录权限拒绝状态。它不执行单轮对话，这件事交给 `query.ts`。
+## 6.1 持久化时序决定恢复边界，顺序颠倒时恢复静默失败
 
-"先持久化后执行"是 `QueryEngine` 强制的顺序。用户消息在 API 调用发起之前写入 transcript，不是之后。这个顺序的直接意义：进程在任意时刻被杀死，下次 `--resume` 都能找到最后一条用户消息作为恢复起点。
+"先持久化后执行"是 `QueryEngine` 强制的顺序。用户消息在 API 调用发起之前写入 transcript。这个顺序的直接意义：进程在任意时刻被杀死，下次 `--resume` 都能找到最后一条用户消息作为恢复起点。
 
 顺序颠倒时，恢复能力消失，且失败静默。用户发出消息，在 API 响应到来之前关闭终端，进程被杀。重开运行 `claude --resume`，提示"No conversation found"。没有报错，没有警告，只是找不到会话。
 
@@ -47,8 +47,6 @@ sequenceDiagram
 ```
 
 原来的逻辑等 API 响应到来后才写 transcript。在"发送后、响应前"被杀死时，transcript 里只有 `queue-operation` 条目，`getLastSessionLog` 过滤这些条目后返回 null，`--resume` 失败。修复方案是把写入移到 API 调用之前。代码位置移动一行，恢复语义从根本上改变。
-
-### 写入成本可控：4ms 是整条关键路径最大可控延迟
 
 提前写入不是零代价。同一注释记录了延迟数据：
 
@@ -121,17 +119,9 @@ flowchart LR
 
 这个模式有一个前提假设：斜杠命令处理和查询执行是严格顺序的，不会并发。如果未来引入并发斜杠命令处理，这套两阶段替换需要重新设计。[inference]
 
-### turn 级状态与会话级状态的区分是隐式约定
+turn 级状态与会话级状态的区分是已知技术债，目前依赖开发者记忆，没有类型级约束。`mutableMessages`（[`QueryEngine.ts#L190`](https://github.com/xuhengzhi75/claude-code-source/blob/c68ee10/src/QueryEngine.ts#L190)）、`totalUsage`（[`L193`](https://github.com/xuhengzhi75/claude-code-source/blob/c68ee10/src/QueryEngine.ts#L193)）、`permissionDenials`（[`L192`](https://github.com/xuhengzhi75/claude-code-source/blob/c68ee10/src/QueryEngine.ts#L192)）跨 turn 保留，是会话级状态。`discoveredSkillNames`（[`QueryEngine.ts#L201`](https://github.com/xuhengzhi75/claude-code-source/blob/c68ee10/src/QueryEngine.ts#L201)）在每次 `submitMessage()` 开始时清空，是 turn（一轮对话：从用户发消息到 AI 回复完毕算一个 turn）级状态。新增 turn 级状态时如果忘记在 `submitMessage()` 开始处清空，上一轮的状态会污染下一轮。没有编译器检查，没有运行时错误，只有行为异常。
 
-`QueryEngine` 内部有两类状态，区分方式目前依赖开发者记忆，没有类型级约束。
-
-`mutableMessages`（[`QueryEngine.ts#L190`](https://github.com/xuhengzhi75/claude-code-source/blob/c68ee10/src/QueryEngine.ts#L190)）、`totalUsage`（[`L193`](https://github.com/xuhengzhi75/claude-code-source/blob/c68ee10/src/QueryEngine.ts#L193)）、`permissionDenials`（[`L192`](https://github.com/xuhengzhi75/claude-code-source/blob/c68ee10/src/QueryEngine.ts#L192)）跨 turn 保留，是会话级状态。
-
-`discoveredSkillNames`（[`QueryEngine.ts#L201`](https://github.com/xuhengzhi75/claude-code-source/blob/c68ee10/src/QueryEngine.ts#L201)）在每次 `submitMessage()` 开始时清空，是 turn 级状态。
-
-这个区分目前是隐式的。哪些字段是会话级、哪些是 turn 级，需要读代码才能判断。新增 turn 级状态时如果忘记在 `submitMessage()` 开始处清空，上一轮的状态会污染下一轮——没有编译器检查，没有运行时错误，只有行为异常。这是当前设计的已知技术债。
-
-## 6.3 职责分层让两层可独立推理
+## 6.3 职责拆分让两层可独立推理和测试
 
 `QueryEngine` 管跨 turn 的状态，`query.ts` 管单轮内的执行。这条边界的价值不是"结构更清晰"，而是两层可以独立修改、独立测试。
 
@@ -145,7 +135,9 @@ flowchart LR
 
 持久化的时序决定恢复能力的边界。写入发生在哪一步，系统就能从哪一步恢复。
 
-这个原则适用于任何需要中断恢复的系统：写 WAL（预写日志）的数据库、记录检查点的批处理任务、带草稿自动保存的编辑器。反例：如果操作本身不可分割（如原子性数据库事务），或者操作完成前的中间状态没有意义（如网络请求的部分响应），提前写入会引入不必要的复杂性，得不到对应的恢复收益。
+这个原则适用于任何需要中断恢复的系统：写 WAL（预写日志）的数据库、记录检查点的批处理任务、带草稿自动保存的编辑器。适用条件是操作可以分割且中间状态有意义。
+
+反例：如果操作本身不可分割（如原子性数据库事务），或者操作完成前的中间状态没有意义（如网络请求的部分响应），提前写入会引入不必要的复杂性，得不到对应的恢复收益。
 
 原则是工具，不是教条。
 
