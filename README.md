@@ -6,6 +6,8 @@
 
 [![在线博客预览](docs/blog-screenshot.png)](https://xuhengzhi75.github.io/claude-code-source/)
 
+> Blog 是**公开阅读入口**；`docs/book-workspace/`、`inbox/`、`status/`、`workflow/` 等生产资料不属于公开发布面。
+
 ## Warning
 
 **This repository is unofficial and is reconstructed from the public npm package and source map analysis, for research purposes only. It does not represent the original internal development repository structure.**

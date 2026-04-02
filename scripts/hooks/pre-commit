@@ -258,6 +258,12 @@ for f in $STAGED_FILES; do
     FAIL=1
   fi
 
+  # 私有/内部脚本与本地 appid 文件
+  if echo "$f" | grep -qP '(^|/)(gen-infographic(-.*)?\.py|insert-infographic\.py|\.friday-appid)$'; then
+    ERRORS+=("[PRIVATE_SCRIPT] 私有脚本或本地 appid 文件被提交: $f")
+    FAIL=1
+  fi
+
   # 数据库文件
   if echo "$f" | grep -qP '\.(sqlite|sqlite3|db)$'; then
     WARNINGS+=("[DB] 数据库文件被提交: $f（可能含用户数据）")
