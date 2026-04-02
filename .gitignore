@@ -19,3 +19,9 @@ node_modules/
 # Python
 __pycache__/
 *.pyc
+
+# 图片生成脚本 — 含公司内网 API 信息，严禁提交
+scripts/gen-infographic.py
+scripts/gen-infographic-*.py
+scripts/insert-infographic.py
+scripts/.friday-appid

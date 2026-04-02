@@ -55,11 +55,7 @@ function setTheme(theme) {
   localStorage.setItem('theme', theme);
   const btn = document.querySelector('.theme-btn');
   if (btn) btn.textContent = theme === 'dark' ? '☀' : '🌙';
-  // Sync highlight.js theme
-  const hljsLight = document.getElementById('hljs-theme-light');
-  const hljsDark  = document.getElementById('hljs-theme-dark');
-  if (hljsLight) hljsLight.disabled = (theme === 'dark');
-  if (hljsDark)  hljsDark.disabled  = (theme !== 'dark');
+  // hljs 主题通过 CSS [data-theme="dark"] 选择器自动切换，无需 JS 操作
 }
 
 function toggleTheme() {
@@ -220,8 +216,9 @@ function setupMarked() {
   const renderer = new marked.Renderer();
 
   // Code blocks: 行号 + 语言标签 + highlight.js
-  renderer.code = function(code, lang) {
-    const language = lang || 'plaintext';
+  // marked v9 调用签名：renderer.code(code, infostring, escaped)
+  renderer.code = function(code, infostring, escaped) {
+    const language = (infostring || '').match(/^\S*/)?.[0] || 'plaintext';
 
     // Mermaid 单独处理
     if (language === 'mermaid') {
@@ -239,8 +236,8 @@ function setupMarked() {
       highlighted = escapeHtml(code);
     }
 
-    // 生成行号
-    const lines = highlighted.split('\n');
+    // 生成行号（splitHlLines 同时修复跨行 span 问题）
+    const lines = splitHlLines(highlighted);
     // 最后一行如果是空行（代码末尾换行）则去掉
     if (lines[lines.length - 1] === '') lines.pop();
     const numbered = lines.map((line, i) =>
@@ -254,6 +251,7 @@ function setupMarked() {
   };
 
   // 行内代码：检测源码锚点格式 `file.ts#L76`
+  // marked v9 调用签名：renderer.codespan(text)
   renderer.codespan = function(code) {
     // 匹配 filename.ext#L数字 格式
     const anchorMatch = code.match(/^([\w./-]+\.(?:ts|js|tsx|jsx|py|go|rs|java|md))#(L\d+(?:-L\d+)?)$/);
@@ -262,10 +260,10 @@ function setupMarked() {
       const lineNum = parseInt(lineRef.replace('L', ''));
       return `<code class="code-anchor" data-file="${escapeHtml(file)}" data-line="${lineNum}">${escapeHtml(code)}</code>`;
     }
-    return `<code>${code}</code>`;
+    return `<code>${escapeHtml(code)}</code>`;
   };
 
-  marked.setOptions({ renderer, breaks: false, gfm: true });
+  marked.use({ renderer, breaks: false, gfm: true });
 }
 
 function setupMermaid() {
@@ -405,6 +403,26 @@ function initReadProgress() {
 const REPO_RAW_BASE = 'https://raw.githubusercontent.com/xuhengzhi75/claude-code-source/main';
 const REPO_BLOB_BASE = 'https://github.com/xuhengzhi75/claude-code-source/blob/main';
 
+// 文件名 → 仓库内完整路径映射（处理深层目录文件）
+const FILE_PATH_MAP = {
+  'QueryEngine.ts':          'src/QueryEngine.ts',
+  'Tool.ts':                 'src/Tool.ts',
+  'query.ts':                'src/query.ts',
+  'tools.ts':                'src/tools.ts',
+  'commands.ts':             'src/commands.ts',
+  'cli.tsx':                 'src/entrypoints/cli.tsx',
+  'compact.ts':              'src/services/compact/compact.ts',
+  'growthbook.ts':           'src/services/analytics/growthbook.ts',
+  'claude.ts':               'src/services/api/claude.ts',
+  'sessionMemory.ts':        'src/services/SessionMemory/sessionMemory.ts',
+  'sessionStorage.ts':       'src/utils/sessionStorage.ts',
+  'tasks.ts':                'src/utils/tasks.ts',
+  'conversationRecovery.ts': 'src/utils/conversationRecovery.ts',
+  'streamlinedTransform.ts': 'src/utils/streamlinedTransform.ts',
+  'errors.ts':               'src/utils/errors.ts',
+  'prompts.ts':              'src/constants/prompts.ts',
+};
+
 // 文件内容缓存，避免重复 fetch
 const _fileCache = {};
 
@@ -464,7 +482,8 @@ function closeAnchorPanel(anchorEl) {
 
 function positionPanel(panel, anchorEl) {
   const PANEL_WIDTH = 520;
-  const OFFSET_Y = 8; // 锚点下方间距
+  const OFFSET_Y = 8;
+  const MARGIN = 12; // 距视口边缘最小间距
 
   const rect = anchorEl.getBoundingClientRect();
   const vw = window.innerWidth;
@@ -472,22 +491,31 @@ function positionPanel(panel, anchorEl) {
 
   // 水平：优先左对齐锚点，超出右边界则右对齐
   let left = rect.left;
-  if (left + PANEL_WIDTH > vw - 12) {
-    left = Math.max(12, vw - PANEL_WIDTH - 12);
+  if (left + PANEL_WIDTH > vw - MARGIN) {
+    left = Math.max(MARGIN, vw - PANEL_WIDTH - MARGIN);
   }
 
-  // 垂直：优先显示在锚点下方，空间不足则显示在上方
+  // 面板实际高度（已渲染时取真实高度，否则用估算值）
+  const panelH = panel.offsetHeight > 0 ? panel.offsetHeight : 360;
   const spaceBelow = vh - rect.bottom - OFFSET_Y;
-  const PANEL_MAX_H = 320 + 40; // body max-height + header
+  const spaceAbove = rect.top - OFFSET_Y;
+
   let top;
-  if (spaceBelow >= PANEL_MAX_H || spaceBelow >= 160) {
+  if (spaceBelow >= panelH || spaceBelow >= spaceAbove) {
+    // 下方放得下，或下方空间更大：显示在下方
     top = rect.bottom + OFFSET_Y;
+    // 如果超出底部，向上夹紧
+    if (top + panelH > vh - MARGIN) {
+      top = Math.max(MARGIN, vh - panelH - MARGIN);
+    }
   } else {
-    top = rect.top - OFFSET_Y - Math.min(PANEL_MAX_H, vh * 0.5);
+    // 上方空间更大：显示在上方
+    top = rect.top - OFFSET_Y - panelH;
+    if (top < MARGIN) top = MARGIN;
   }
 
-  panel.style.left = `${left}px`;
-  panel.style.top  = `${top}px`;
+  panel.style.left  = `${left}px`;
+  panel.style.top   = `${top}px`;
   panel.style.width = `${PANEL_WIDTH}px`;
 }
 
@@ -511,8 +539,12 @@ function showAnchorPanel(anchorEl, file, line) {
   document.body.appendChild(panel);
   anchorEl._panel = panel;
 
-  // 初始定位
+  // 初始定位（面板刚插入 DOM，offsetHeight 可能为 0，先粗定位）
   positionPanel(panel, anchorEl);
+  // 下一帧拿到真实高度后重新定位，修正底部截断
+  requestAnimationFrame(() => {
+    if (anchorEl._panel === panel) positionPanel(panel, anchorEl);
+  });
 
   // 滚动 / resize 时跟随锚点
   const updatePos = () => {
@@ -534,7 +566,7 @@ function showAnchorPanel(anchorEl, file, line) {
   });
 
   // 异步加载文件内容
-  loadFileForPanel(panel, file, line);
+  loadFileForPanel(panel, anchorEl, file, line);
 }
 
 function buildPanelHTML(file, line) {
@@ -569,15 +601,17 @@ function buildPanelHTML(file, line) {
   `;
 }
 
-function buildGithubUrl(file, line) {
-  const hasPath = file.includes('/');
-  const filePath = hasPath ? file : `src/${file}`;
-  return `${REPO_BLOB_BASE}/${filePath}#L${line}`;
+function resolveFilePath(file) {
+  if (file.includes('/')) return file;          // 已有路径，直接用
+  return FILE_PATH_MAP[file] || `src/${file}`;  // 查映射表，fallback 到 src/
 }
 
-async function loadFileForPanel(panel, file, line) {
-  const hasPath = file.includes('/');
-  const filePath = hasPath ? file : `src/${file}`;
+function buildGithubUrl(file, line) {
+  return `${REPO_BLOB_BASE}/${resolveFilePath(file)}#L${line}`;
+}
+
+async function loadFileForPanel(panel, anchorEl, file, line) {
+  const filePath = resolveFilePath(file);
   const rawUrl = `${REPO_RAW_BASE}/${filePath}`;
 
   let lines;
@@ -598,10 +632,10 @@ async function loadFileForPanel(panel, file, line) {
     return;
   }
 
-  renderPanelCode(panel, lines, parseInt(line), file);
+  renderPanelCode(panel, lines, parseInt(line), file, anchorEl);
 }
 
-function renderPanelCode(panel, allLines, centerLine, file) {
+function renderPanelCode(panel, allLines, centerLine, file, anchorEl) {
   const CONTEXT = 8;
   const total = allLines.length;
   const start = Math.max(1, centerLine - CONTEXT);
@@ -623,7 +657,7 @@ function renderPanelCode(panel, allLines, centerLine, file) {
     highlighted = escapeHtml(snippet);
   }
 
-  const hlLines = highlighted.split('\n');
+  const hlLines = splitHlLines(highlighted);
   const rows = hlLines.map((lineHtml, i) => {
     const lineNo = start + i;
     const isTarget = lineNo === centerLine;
@@ -652,17 +686,63 @@ function renderPanelCode(panel, allLines, centerLine, file) {
     if (targetLine) {
       setTimeout(() => targetLine.scrollIntoView({ block: 'nearest', behavior: 'smooth' }), 30);
     }
+
+    // 内容渲染后高度变化，重新定位防止底部截断
+    if (anchorEl) {
+      requestAnimationFrame(() => {
+        if (anchorEl._panel === panel) positionPanel(panel, anchorEl);
+      });
+    }
   }, 150);
 }
 
 function shiftPanelLine(panel, anchorEl, file, newLine) {
   panel.dataset.line = String(newLine);
-  const filePath = file.includes('/') ? file : `src/${file}`;
+  const filePath = resolveFilePath(file);
   const lines = _fileCache[filePath];
-  if (lines) renderPanelCode(panel, lines, newLine, file);
+  if (lines) renderPanelCode(panel, lines, newLine, file, anchorEl);
 }
 
 // ===== Utility =====
+
+/**
+ * 将 hljs 高亮后的 HTML 按行分割，同时修复跨行 span 问题。
+ * hljs 对多行字符串/注释会生成跨越多行的 <span>，直接 split('\n') 后
+ * 每行的 span 标签不完整，浏览器会把后续行合并成一行。
+ * 解决方案：每行末尾关闭所有未闭合的 span，下一行开头重新打开。
+ */
+function splitHlLines(highlighted) {
+  const lines = highlighted.split('\n');
+  const result = [];
+  // 记录当前"打开中"的 span 标签列表（保留完整 opening tag 以便重新打开）
+  let openSpans = [];
+
+  for (let i = 0; i < lines.length; i++) {
+    let line = lines[i];
+
+    // 在行首补上上一行未关闭的 span
+    const prefix = openSpans.join('');
+
+    // 扫描本行，更新 openSpans 状态
+    // 匹配所有 <span ...> 和 </span>
+    const tagRe = /<span([^>]*)>|<\/span>/g;
+    let m;
+    while ((m = tagRe.exec(line)) !== null) {
+      if (m[0].startsWith('</span>')) {
+        openSpans.pop();
+      } else {
+        openSpans.push('<span' + m[1] + '>');
+      }
+    }
+
+    // 行末补上关闭标签（倒序关闭）
+    const suffix = openSpans.map(() => '</span>').join('');
+
+    result.push(prefix + line + suffix);
+  }
+  return result;
+}
+
 function escapeHtml(str) {
   return str
     .replace(/&/g, '&amp;')

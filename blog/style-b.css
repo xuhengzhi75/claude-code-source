@@ -1037,6 +1037,7 @@ body {
   overflow: hidden;
   border: 1px solid #2e2e2e;
   background: #1c1c1c;
+  color: #abb2bf; /* 面板始终深色背景，强制浅色默认文字 */
   box-shadow: 0 8px 32px rgba(0,0,0,0.45), 0 2px 8px rgba(0,0,0,0.3);
   font-family: 'JetBrains Mono', 'Fira Code', monospace;
   animation: ap-expand 0.18s cubic-bezier(0.22, 1, 0.36, 1) both;
@@ -1231,26 +1232,7 @@ body {
   flex: 1;
   padding-right: 20px;
   white-space: pre;
-  /* 不设 color，让 hljs token 颜色透出 */
+  color: #abb2bf; /* 非 token 文字的默认颜色，hljs token 会覆盖 */
 }
 
-/* 面板内强制使用 dark 配色的 hljs token（面板始终深色背景） */
-.anchor-panel .hljs { color: #abb2bf; }
-.anchor-panel .hljs-keyword,
-.anchor-panel .hljs-selector-tag,
-.anchor-panel .hljs-built_in { color: #c678dd; }
-.anchor-panel .hljs-string,
-.anchor-panel .hljs-attr { color: #98c379; }
-.anchor-panel .hljs-number,
-.anchor-panel .hljs-literal { color: #d19a66; }
-.anchor-panel .hljs-comment { color: #5c6370; font-style: italic; }
-.anchor-panel .hljs-title,
-.anchor-panel .hljs-class .hljs-title { color: #e5c07b; }
-.anchor-panel .hljs-type,
-.anchor-panel .hljs-variable.language_ { color: #e06c75; }
-.anchor-panel .hljs-property { color: #abb2bf; }
-.anchor-panel .hljs-params { color: #abb2bf; }
-.anchor-panel .hljs-function .hljs-title,
-.anchor-panel .hljs-title.function_ { color: #61afef; }
-.anchor-panel .hljs-operator,
-.anchor-panel .hljs-punctuation { color: #abb2bf; }
+/* 面板 hljs 高亮主题由 index.html 的 #ap-hljs-theme <style> 标签统一管理 */
