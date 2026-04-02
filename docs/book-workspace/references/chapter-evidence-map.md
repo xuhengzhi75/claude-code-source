@@ -40,8 +40,17 @@
   - 锚点：`src/entrypoints/cli.tsx`
   - 状态：verified
 - 结论：这种按需加载有助于降低冷启动成本和无关模块初始化
-  - 锚点：`src/entrypoints/cli.tsx`
-  - 状态：inference
+  - 锚点：`src/entrypoints/cli.tsx:36-38`（注释明确说"protects cold-start latency and idle memory"，信号47）
+  - 状态：verified（第4轮抽样升级）
+- 结论：`--version` 是零模块加载的 fast-path，`MACRO.VERSION` 在构建时内联
+  - 锚点：`src/entrypoints/cli.tsx:40-46`（信号48）
+  - 状态：verified（第4轮抽样新增）
+- 结论：`feature()` 必须内联调用，不能提取为变量——构建时 DCE 依赖这个模式
+  - 锚点：`src/entrypoints/cli.tsx:114-115`（信号50）
+  - 状态：verified（第4轮抽样新增）
+- 结论：控制流收敛点：只有未命中任何 fast-path 时才进入完整 CLI 主路径
+  - 锚点：`src/entrypoints/cli.tsx:291-303`（信号51）
+  - 状态：verified（第4轮抽样新增）
 - 结论：入口层还承担少量必须前置的环境准备
   - 锚点：`src/entrypoints/cli.tsx`
   - 状态：verified
@@ -232,6 +241,18 @@
 - 结论：默认值保守（不可并发、非只读），防止遗漏安全判断
   - 锚点：`src/Tool.ts` `TOOL_DEFAULTS`
   - 状态：verified
+- 结论：`getAllBaseTools()` 必须与 Statsig 动态配置同步，否则 system prompt 缓存跨用户失效
+  - 锚点：`src/tools.ts:191`（信号39）
+  - 状态：verified（第4轮抽样新增）
+- 结论：`assembleToolPool()` 内建工具排在 MCP 工具前，保证 cache prefix 不被插入打断
+  - 锚点：`src/tools.ts:357-381`（信号40）
+  - 状态：verified（第4轮抽样新增）
+- 结论：`ToolPermissionContext` 用 `DeepImmutable` 包裹，防止工具执行过程中意外篡改权限快照
+  - 锚点：`src/Tool.ts:122-127`（信号43）
+  - 状态：verified（第4轮抽样新增）
+- 结论：`buildTool()` 的类型语义由 60+ 工具零错误类型检查证明
+  - 锚点：`src/Tool.ts:801-810`（信号42）
+  - 状态：verified（第4轮抽样新增）
 
 ## Chapter 15 提示词与任务指令
 
@@ -244,6 +265,15 @@
 - 结论：系统提示词和任务指令作用层次不同，不应混用
   - 锚点：`docs/book-workspace/architecture-notes/system-overview.md`
   - 状态：inference
+- 结论：`SYSTEM_PROMPT_DYNAMIC_BOUNDARY` 是缓存分界线，移除或重排必须同步更新两处下游
+  - 锚点：`src/constants/prompts.ts:108-115`（信号44）
+  - 状态：verified（第4轮抽样新增）
+- 结论：会话特定 guidance 放在边界后，防止 cache prefix 碎片化成 2^N 种变体
+  - 锚点：`src/constants/prompts.ts:343-351`（信号45，引用 PR #24490、#24171）
+  - 状态：verified（第4轮抽样新增）
+- 结论：`DANGEROUS_uncachedSystemPromptSection` 用于 MCP 指令，因为 MCP 连接/断开会在轮次间发生
+  - 锚点：`src/constants/prompts.ts:508-520`（信号46）
+  - 状态：verified（第4轮抽样新增）
 
 ## Chapter 16 状态与上下文
 

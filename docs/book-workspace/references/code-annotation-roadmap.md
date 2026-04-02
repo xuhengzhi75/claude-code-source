@@ -1,6 +1,6 @@
 # Code Annotation Roadmap（源码注释补齐路线图）
 
-更新时间：2026-04-02（第3轮抽样后）
+更新时间：2026-04-02（第4轮抽样后，P1 全部完成）
 
 ## 0. 目标与口径
 
@@ -86,6 +86,25 @@
 36. `updateTaskUnsafe` 是内部无锁变体，供已持锁调用方使用，避免 proper-lockfile 不可重入死锁（`tasks.ts:355-371`）
 37. teammate 崩溃或退出后，其持有的任务自动归还为 pending，防止任务永久卡死（`tasks.ts:823-865`）
 
+### B4. 第 4 轮抽样（2026-04-02，信号 38-51，P1 位点）
+
+来源：`src/tools.ts` + `src/Tool.ts` + `src/constants/prompts.ts` + `src/entrypoints/cli.tsx`
+
+38. `getAllBaseTools()` 维护"理论可用工具全集"，先全集后过滤（`tools.ts:185-196`）
+39. `getAllBaseTools()` 必须与 Statsig 动态配置同步，否则 system prompt 缓存跨用户失效（`tools.ts:191`）
+40. `assembleToolPool()` 内建工具排在 MCP 工具前，保证 cache prefix 不被插入打断（`tools.ts:357-381`）
+41. `TOOL_DEFAULTS` 采用 fail-closed 默认值：未知工具先按不可并发/非只读处理（`Tool.ts:771-787`）
+42. `buildTool()` 的类型语义由 60+ 工具零错误类型检查证明（`Tool.ts:801-810`）
+43. `ToolPermissionContext` 用 `DeepImmutable` 包裹，防止工具执行过程中意外篡改权限快照（`Tool.ts:122-127`）
+44. `SYSTEM_PROMPT_DYNAMIC_BOUNDARY` 是缓存分界线，移除或重排必须同步更新两处下游（`prompts.ts:108-115`）
+45. `getSessionSpecificGuidanceSection` 放在边界后，防止会话变量把 cache prefix 碎片化成 2^N 种（`prompts.ts:343-351`）
+46. `DANGEROUS_uncachedSystemPromptSection` 用于 MCP 指令，因为 MCP 连接/断开会在轮次间发生（`prompts.ts:508-520`）
+47. `cli.tsx` 架构原则：尽量在 argv 层分流，保持专用模式懒加载（`cli.tsx:36-38`）
+48. `--version` 是零模块加载的 fast-path，`MACRO.VERSION` 在构建时内联（`cli.tsx:40-46`）
+49. `--daemon-worker` fast-path 刻意不调用 `enableConfigs()` 和 analytics sinks，保持 worker 精简（`cli.tsx:99-103`）
+50. `feature()` 必须内联调用，不能提取为变量——构建时 DCE 依赖这个模式（`cli.tsx:114-115`）
+51. 控制流收敛点：只有未命中任何 fast-path 时才进入完整 CLI 主路径（`cli.tsx:291-303`）
+
 ---
 
 ## 2. 待补注释位点（按优先级）
@@ -98,9 +117,9 @@
 | ✅ P0 已完成 | `src/services/compact/compact.ts`（preserved segment、重建顺序） | 压缩后语义连续性约束、顺序不可变原因 | ch18 / ch10 / ch11（信号27-30）|
 | ✅ P0 已完成 | `src/services/SessionMemory/sessionMemory.ts`（阈值、受限工具执行） | 触发阈值设计动机、最小权限边界、失败回退策略 | ch18 / ch16 / ch10（信号31-32）|
 | ✅ P0 已完成 | `src/utils/tasks.ts`（claim/lock/busy check） | 并发竞态与 TOCTOU 防护意图、锁粒度取舍 | ch17 / ch08 / ch10（信号33-37）|
-| P1 | `src/tools.ts` + `src/Tool.ts`（全集→过滤→排序） | 缓存断点耦合、默认保守策略、并发安全语义 | ch14 / ch05 |
-| P1 | `src/constants/prompts.ts` + prompt 组装路径 | 缓存边界、动态段落拆分、模型专项补丁的治理注释 | ch15 / ch19 |
-| P1 | `src/entrypoints/cli.tsx`（路由分流 + 动态 import） | fast-path 与完整主链边界、分支不可合并原因 | ch03 / ch04 / ch13 |
+| ✅ P1 已完成 | `src/tools.ts` + `src/Tool.ts`（全集→过滤→排序） | 缓存断点耦合、默认保守策略、并发安全语义 | ch14 / ch05（信号38-43）|
+| ✅ P1 已完成 | `src/constants/prompts.ts` + prompt 组装路径 | 缓存边界、动态段落拆分、模型专项补丁的治理注释 | ch15 / ch19（信号44-46）|
+| ✅ P1 已完成 | `src/entrypoints/cli.tsx`（路由分流 + 动态 import） | fast-path 与完整主链边界、分支不可合并原因 | ch03 / ch04 / ch13（信号47-51）|
 | P2 | `src/commands/*`（权限/安全/配置相关命令） | 命令级权限策略、交互与非交互差异、降级策略 | ch09 / ch11 / Part V |
 | P2 | `src/services/*Manager*`（状态/权限/任务管理） | 状态机转换约束、可观测性字段、回滚路径 | ch11 / ch16 / Part V |
 | P2 | `src/bootstrap` / `src/bridge` / `src/assistant` | Bridge/Daemon/Assistant 运行边界与失败信号 | ch03 / ch09 / Part V |
@@ -118,6 +137,6 @@
 
 ## 4. 当前判断（简版）
 
-- 现状：启动链路与 Query 主链的注释证据已形成规模（21 条可核对信号）。
-- 短板：恢复/压缩/记忆/任务并发这四块仍需更系统化注释，才能稳定支撑 ch10/ch18/ch11 的“强结论”。
-- 下一步：按 P0 顺序推进，把“恢复连续性 + 并发一致性”从可写提升到可定稿。
+- 现状：P0 + P1 全部完成，共 51 条可核对信号，覆盖启动链路、Query 主链、恢复/压缩/记忆、任务并发、工具装配、提示词缓存边界、CLI 入口路由。
+- 短板：ch05（能力装配）、ch15（提示词）、ch19（提示词工程设计模式）的 verified 证据仍偏少，P1 信号补充后可升级部分 inference 条目。
+- 下一步：按 P2 顺序推进，或先把 P1 新增信号同步到 `chapter-evidence-map.md`，把 ch05/ch14/ch15/ch19/ch03/ch04 的相关条目从 inference 升 verified。

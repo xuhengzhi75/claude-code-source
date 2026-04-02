@@ -342,3 +342,126 @@
 可用于书中的事实表述：
 - 分布式任务系统的核心问题之一是"持有者消失后任务如何处理"。这里的解法是：崩溃即归还，不依赖超时或心跳，而是在进程退出时主动清理。
 - 这个设计把"任务归还"变成了进程生命周期管理的一部分，而不是一个独立的故障恢复机制。
+
+---
+
+## 第 4 轮抽样（2026-04-02，信号 38-50，P1 位点）
+
+抽样范围：`src/tools.ts` + `src/Tool.ts` + `src/constants/prompts.ts` + `src/entrypoints/cli.tsx`
+
+### 38) `getAllBaseTools()` 维护"理论可用工具全集"，下游过滤再收敛——先全集后过滤
+- 位置：`src/tools.ts:185-196`（`getAllBaseTools` 函数注释）
+- 注释明确说：这里维护"理论可用工具全集"（受构建特性与环境变量裁剪）。下游 `getTools()`/权限过滤会再按运行态进一步收敛，形成最终暴露给模型的集合。"先全集、后过滤，便于统一审计工具可见性与 system prompt 缓存一致性。"
+
+可用于书中的事实表述：
+- 工具集的组装不是"按需添加"，而是先维护一个完整的候选集，再逐层过滤。
+- 这让工具可见性的审计有单一入口，也让 system prompt 缓存的一致性更容易保证。
+
+### 39) `getAllBaseTools()` 必须与 Statsig 动态配置保持同步，否则 system prompt 缓存跨用户失效
+- 位置：`src/tools.ts:191`（`getAllBaseTools` 上方 NOTE 注释）
+- 注释明确说："This MUST stay in sync with https://console.statsig.com/…/claude_code_global_system_caching, in order to cache the system prompt across users."
+- 这是一条跨系统的强约束：工具列表的变更不只影响本地逻辑，还会影响服务端的 prompt cache 命中率。
+
+可用于书中的事实表述：
+- 工具列表不是纯本地配置，它与服务端的 prompt cache 策略深度耦合。
+- 这类"本地代码变更会影响远端缓存"的约束，是大规模 AI 系统特有的工程复杂性。
+
+### 40) `assembleToolPool()` 把内建工具排在 MCP 工具前，保证 cache prefix 不被 MCP 工具插入打断
+- 位置：`src/tools.ts:357-381`（`assembleToolPool` 函数注释）
+- 注释明确说：服务端的 `claude_code_system_cache_policy` 在最后一个内建工具后设置全局缓存断点；如果把内建和 MCP 工具混合排序，MCP 工具会插入内建工具之间，导致所有下游缓存键失效。`uniqBy` 保留插入顺序，所以内建工具在同名冲突时优先。
+- 注释还写明：避免使用 `Array.toSorted`（Node 20+），因为需要支持 Node 18。
+
+可用于书中的事实表述：
+- 工具排序不是美观问题，而是 prompt cache 命中率的关键因素。内建工具必须形成连续前缀，MCP 工具只能追加在后面。
+- 这类"排序即缓存协议"的约束，是系统在真实成本压力下积累出来的，不是设计文档里能预先写全的。
+
+### 41) `TOOL_DEFAULTS` 采用"fail-closed"默认值：未知工具先按不可并发/非只读处理
+- 位置：`src/Tool.ts:771-787`（`TOOL_DEFAULTS` 常量注释）
+- 注释明确说："默认值采用'安全兜底'思路：未知工具先按不可并发/非只读处理，由具体工具显式声明更宽松能力，避免遗漏实现时误放权。"
+- 同时注明：`isEnabled` 默认 `true` 只表示"功能可见"，不等于"可执行"——真正执行仍受 `checkPermissions` + 全局权限系统 + deny/allow 规则约束。
+
+可用于书中的事实表述：
+- 工具的默认行为是保守的：不声明并发安全就按不安全处理，不声明只读就按可写处理。
+- 这是"显式声明宽松能力"而非"显式声明限制"的设计哲学，把安全边界的维护成本转移给工具实现者。
+
+### 42) `buildTool()` 的类型语义由 60+ 工具零错误类型检查证明，而非文档断言
+- 位置：`src/Tool.ts:801-810`（`buildTool` 函数注释）
+- 注释明确说：运行时的 spread 是直接的；`as` 类型断言桥接了结构性 `any` 约束和精确的 `BuiltTool<D>` 返回类型。"The type semantics are proven by the 0-error typecheck across all 60+ tools."
+
+可用于书中的事实表述：
+- 这里用"全量工具零错误类型检查"作为类型正确性的证明，而不是依赖文档或单元测试。
+- 这是一种"以规模为证"的类型安全策略：如果类型语义有问题，60+ 个工具的类型检查会暴露它。
+
+### 43) `ToolPermissionContext` 用 `DeepImmutable` 包裹，防止工具执行过程中意外篡改权限快照
+- 位置：`src/Tool.ts:122-127`（`ToolPermissionContext` 类型注释）
+- 注释明确说：该类型被 `DeepImmutable` 包裹，"避免工具执行过程中被意外篡改（权限应由上游组装，工具侧只消费）"。
+
+可用于书中的事实表述：
+- 权限上下文是只读快照，工具只能读取，不能修改。这通过类型系统在编译期强制，而不是靠运行时检查。
+- 这是"把安全约束编码进类型"的典型做法：违反约束会在编译时报错，而不是在运行时静默失效。
+
+### 44) `SYSTEM_PROMPT_DYNAMIC_BOUNDARY` 是缓存分界线，移除或重排必须同步更新两处下游
+- 位置：`src/constants/prompts.ts:108-115`（`SYSTEM_PROMPT_DYNAMIC_BOUNDARY` 常量注释）
+- 注释明确说：该标记之前的内容可以跨用户缓存，之后的内容包含用户/会话特定内容不应缓存。WARNING："Do not remove or reorder this marker without updating cache logic in: src/utils/api.ts (splitSysPromptPrefix) and src/services/api/claude.ts (buildSystemPromptBlocks)."
+
+可用于书中的事实表述：
+- system prompt 的缓存边界不是隐式的，而是用一个显式标记常量来划定，并在注释里列出所有依赖它的下游。
+- 这类"改一处必须同步改多处"的约束，是系统在真实维护压力下积累出来的显式文档化。
+
+### 45) `getSessionSpecificGuidanceSection` 放在边界后，防止会话变量把 cache prefix 碎片化成 2^N 种
+- 位置：`src/constants/prompts.ts:343-351`（`getSessionSpecificGuidanceSection` 函数注释）
+- 注释明确说：会话变量的 guidance 如果放在 `SYSTEM_PROMPT_DYNAMIC_BOUNDARY` 之前，每个条件分支都会乘以 Blake2b prefix hash 的变体数（2^N）。注释还引用了 PR #24490、#24171 作为同类 bug 的历史案例。
+- 同时注明：`outputStyleConfig` 刻意不移到这里——身份框架（identity framing）暂时留在静态 intro 段，等 eval 结果。
+
+可用于书中的事实表述：
+- 把"会话特定内容"放在缓存边界之前，会导致 prompt cache 的命中率指数级下降（每个条件分支都翻倍变体数）。
+- 这类"缓存碎片化"的 bug 有历史案例可查，说明它是真实发生过的问题，不是理论风险。
+
+### 46) `DANGEROUS_uncachedSystemPromptSection` 用于 MCP 指令，因为 MCP 连接/断开会在轮次间发生
+- 位置：`src/constants/prompts.ts:508-520`（MCP 指令段注释）
+- 注释明确说：当 delta 模式未启用时，MCP 指令通过 `DANGEROUS_uncachedSystemPromptSection` 每轮重算，而不是缓存；原因是"MCP servers connect/disconnect between turns"。Gate check 放在 compute 内部（而不是在两个 section 变体之间选择），这样 mid-session 的 gate 翻转不会读到过期的缓存值。
+
+可用于书中的事实表述：
+- `DANGEROUS_` 前缀是一个显式的工程信号：这段内容每轮都会重新计算，会增加 token 成本，使用时需要有充分理由。
+- MCP 指令使用这个前缀，是因为 MCP 连接状态在轮次间可能变化，缓存旧值会导致模型看到错误的工具列表。
+
+### 47) `cli.tsx` 的架构原则：尽量在 argv 层分流，保持专用模式懒加载、保护冷启动延迟
+- 位置：`src/entrypoints/cli.tsx:36-38`（`main` 函数开头注释）
+- 注释明确说："route as much as possible at the argv layer before entering the general startup path. This keeps version/daemon/bg/bridge style modes lazily loaded and protects cold-start latency and idle memory."
+
+可用于书中的事实表述：
+- 入口文件的设计原则是"尽早分流"：在加载任何模块之前，先用 argv 判断走哪条路径。
+- 这让每种专用模式（daemon/bg/bridge 等）只在真正需要时才加载，不会因为一个 `--version` 查询而把整个 CLI 加载进内存。
+
+### 48) `--version` 是零模块加载的 fast-path，`MACRO.VERSION` 在构建时内联
+- 位置：`src/entrypoints/cli.tsx:40-46`（`--version` fast-path 注释）
+- 注释明确说："Fast-path for --version/-v: zero module loading needed"，`MACRO.VERSION` 是构建时内联的宏，不需要任何运行时 import。
+
+可用于书中的事实表述：
+- `--version` 查询不需要加载任何模块，版本号在构建时就已经嵌入二进制。
+- 这是"把常量前移到构建期"的典型优化：运行时不做任何工作，直接输出结果。
+
+### 49) `--daemon-worker` fast-path 刻意不调用 `enableConfigs()` 和 analytics sinks，保持 worker 精简
+- 位置：`src/entrypoints/cli.tsx:99-103`（`--daemon-worker` fast-path 注释）
+- 注释明确说：daemon worker 是 supervisor 生成的，对性能敏感（"spawned per-worker, so perf-sensitive"）。这一层不调用 `enableConfigs()` 和 analytics sinks——workers 是精简的。如果某个 worker 需要 configs/auth，它在自己的 `run()` 函数内部调用。
+
+可用于书中的事实表述：
+- daemon worker 的启动路径刻意比主 CLI 更精简：不加载配置，不挂 analytics，把这些开销推迟到真正需要的 worker 内部。
+- 这是"按需初始化"原则在多进程架构里的具体体现：supervisor 生成大量 worker 时，每个 worker 的启动开销直接影响整体吞吐。
+
+### 50) `feature()` 必须内联调用，不能提取为变量——构建时 DCE 依赖这个模式
+- 位置：`src/entrypoints/cli.tsx:114-115`（bridge fast-path 注释）
+- 注释明确说："feature() must stay inline for build-time dead code elimination"。这个约束在 bridge、environment-runner、self-hosted-runner 等多个 fast-path 里重复出现，说明它是整个入口文件的通用约束。
+
+可用于书中的事实表述：
+- `feature()` 的调用方式不只是风格问题，而是构建系统的约束：只有内联调用才能让构建工具在编译期识别并消除死代码分支。
+- 这类"调用方式影响构建产物"的约束，是前端/Node.js 工程里常见但容易被忽视的隐性规则。
+
+### 51) 控制流收敛点：只有未命中任何 fast-path 时才进入完整 CLI 主路径
+- 位置：`src/entrypoints/cli.tsx:291-303`（完整 CLI 主路径注释）
+- 注释明确说（L291-L292）："控制流收敛点：只有未命中任何 fast-path 时才进入完整 CLI 主路径。这使前面的专用模式（daemon/bg/bridge 等）保持低耦合、低启动成本。"
+- 这段注释是中文，说明是后来补充的架构说明，不是原始英文注释。
+
+可用于书中的事实表述：
+- `cli.tsx` 的整体结构是"一系列 fast-path 的 if-return 链，最后才是完整主路径"。
+- 这个模式让每种专用模式都能独立演化，不需要修改主路径，也不会影响其他模式的启动成本。
