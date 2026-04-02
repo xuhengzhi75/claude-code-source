@@ -759,12 +759,12 @@ function appendPanelLines(panel, anchorEl, file, allLines, fromLine, toLine, mod
   const newSpans = Array.from(tmp.childNodes);
 
   if (mode === 'prepend') {
-    // 记录当前滚动位置，插入后补偿，避免视图跳动
-    const prevScrollTop = body.scrollTop;
-    const prevHeight = code.scrollHeight;
     newSpans.reverse().forEach(n => code.insertBefore(n, code.firstChild));
-    const addedHeight = code.scrollHeight - prevHeight;
-    body.scrollTop = prevScrollTop + addedHeight;
+    // 滚动到新增的第一行（最顶部新内容）
+    setTimeout(() => {
+      const first = code.querySelector('.ap-line:first-child');
+      if (first) first.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }, 30);
   } else {
     newSpans.forEach(n => code.appendChild(n));
     // 滚动到新增内容
