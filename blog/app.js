@@ -399,7 +399,8 @@ function initReadProgress() {
 }
 
 // ===== 源码锚点 内联代码预览面板 =====
-// 点击锚点 → 在其所在段落后插入展开面板，再次点击或点 × 关闭
+// hover 锚点 → 在段落后展开面板（含 loading shimmer）
+// 鼠标在锚点或面板上时保持展开，离开后延迟 200ms 关闭
 
 const REPO_RAW_BASE = 'https://raw.githubusercontent.com/xuhengzhi75/claude-code-source/main';
 const REPO_BLOB_BASE = 'https://github.com/xuhengzhi75/claude-code-source/blob/main';
@@ -407,66 +408,82 @@ const REPO_BLOB_BASE = 'https://github.com/xuhengzhi75/claude-code-source/blob/m
 // 文件内容缓存，避免重复 fetch
 const _fileCache = {};
 
+// 每个锚点的关闭定时器
+const _hideTimers = new WeakMap();
+
 function setupAnchorTooltips(container) {
   const anchors = container.querySelectorAll('code.code-anchor');
   if (!anchors.length) return;
 
   anchors.forEach(el => {
-    el.addEventListener('click', (e) => {
-      e.stopPropagation();
+    el.addEventListener('mouseenter', () => {
+      // 取消可能正在倒计时的关闭
+      clearHideTimer(el);
       const file = el.dataset.file;
       const line = parseInt(el.dataset.line);
-      toggleAnchorPanel(el, file, line);
+      showAnchorPanel(el, file, line);
+    });
+
+    el.addEventListener('mouseleave', () => {
+      scheduleHide(el);
     });
   });
-
-  // 点击其他地方关闭所有面板
-  document.addEventListener('click', closeAllAnchorPanels);
 }
 
-function closeAllAnchorPanels() {
-  document.querySelectorAll('.anchor-panel').forEach(p => p.remove());
-  document.querySelectorAll('code.code-anchor.active').forEach(el => el.classList.remove('active'));
+function clearHideTimer(anchorEl) {
+  const t = _hideTimers.get(anchorEl);
+  if (t) { clearTimeout(t); _hideTimers.delete(anchorEl); }
 }
 
-function toggleAnchorPanel(anchorEl, file, line) {
-  // 如果当前锚点已展开，则关闭
-  if (anchorEl.classList.contains('active')) {
-    closeAllAnchorPanels();
-    return;
+function scheduleHide(anchorEl, delay = 220) {
+  clearHideTimer(anchorEl);
+  const t = setTimeout(() => {
+    // 只有面板不在 hover 状态才真正关闭
+    const panel = anchorEl._panel;
+    if (panel && panel.matches(':hover')) return;
+    closeAnchorPanel(anchorEl);
+  }, delay);
+  _hideTimers.set(anchorEl, t);
+}
+
+function closeAnchorPanel(anchorEl) {
+  const panel = anchorEl._panel;
+  if (panel) {
+    panel.classList.add('ap-hiding');
+    panel.addEventListener('animationend', () => panel.remove(), { once: true });
+    anchorEl._panel = null;
   }
-  // 关闭其他面板
-  closeAllAnchorPanels();
+  anchorEl.classList.remove('active');
+}
+
+function showAnchorPanel(anchorEl, file, line) {
+  // 已经展开则不重复创建
+  if (anchorEl._panel) return;
+
   anchorEl.classList.add('active');
 
-  // 找插入位置：锚点所在的最近块级祖先（p / li / blockquote）
+  // 找插入位置：锚点所在最近块级祖先
   let insertAfter = anchorEl;
-  while (insertAfter.parentElement && !['P','LI','BLOCKQUOTE','DIV','H1','H2','H3','H4'].includes(insertAfter.parentElement.tagName)) {
+  while (
+    insertAfter.parentElement &&
+    !['P','LI','BLOCKQUOTE','DIV','H1','H2','H3','H4'].includes(insertAfter.parentElement.tagName)
+  ) {
     insertAfter = insertAfter.parentElement;
   }
   insertAfter = insertAfter.parentElement || anchorEl.parentElement;
 
-  // 创建面板骨架（先显示 loading）
   const panel = document.createElement('div');
   panel.className = 'anchor-panel';
   panel.dataset.file = file;
-  panel.dataset.line = line;
-  panel.innerHTML = buildPanelSkeleton(file, line);
-  panel.addEventListener('click', e => e.stopPropagation());
+  panel.dataset.line = String(line);
+  panel.innerHTML = buildPanelHTML(file, line);
+
+  // 面板 hover 时取消关闭，离开时重新倒计时
+  panel.addEventListener('mouseenter', () => clearHideTimer(anchorEl));
+  panel.addEventListener('mouseleave', () => scheduleHide(anchorEl));
 
   insertAfter.after(panel);
-
-  // 绑定关闭按钮
-  panel.querySelector('.ap-close').addEventListener('click', () => {
-    panel.remove();
-    anchorEl.classList.remove('active');
-  });
-
-  // 绑定 GitHub 按钮
-  panel.querySelector('.ap-github').addEventListener('click', () => {
-    const url = buildGithubUrl(file, line);
-    window.open(url, '_blank', 'noopener');
-  });
+  anchorEl._panel = panel;
 
   // 绑定上下行按钮
   panel.querySelector('.ap-up').addEventListener('click', () => {
@@ -482,28 +499,39 @@ function toggleAnchorPanel(anchorEl, file, line) {
   loadFileForPanel(panel, file, line);
 }
 
-function buildPanelSkeleton(file, line) {
+function buildPanelHTML(file, line) {
   const githubUrl = buildGithubUrl(file, line);
+  const ext = file.split('.').pop();
+  const langMap = { ts: 'typescript', js: 'javascript', tsx: 'typescript', jsx: 'javascript', py: 'python', go: 'go', rs: 'rust', java: 'java', md: 'markdown' };
+  const lang = langMap[ext] || ext;
+
   return `
     <div class="ap-header">
       <span class="ap-filepath">${escapeHtml(file)}#L${line}</span>
       <div class="ap-actions">
-        <button class="ap-btn ap-up" title="上一行">↑</button>
-        <button class="ap-btn ap-down" title="下一行">↓</button>
-        <button class="ap-btn ap-github" title="在 GitHub 查看">
+        <span class="ap-lang">${escapeHtml(lang)}</span>
+        <button class="ap-btn ap-up" title="上移">↑</button>
+        <button class="ap-btn ap-down" title="下移">↓</button>
+        <a class="ap-btn ap-github" href="${githubUrl}" target="_blank" rel="noopener" title="在 GitHub 查看源码">
           <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
-        </button>
-        <button class="ap-btn ap-close" title="关闭">✕</button>
+        </a>
       </div>
     </div>
     <div class="ap-body ap-loading">
-      <span class="ap-spinner"></span>
+      <div class="ap-sk-lines">
+        <div class="ap-sk-line" style="width:72%"></div>
+        <div class="ap-sk-line" style="width:55%"></div>
+        <div class="ap-sk-line" style="width:80%"></div>
+        <div class="ap-sk-line" style="width:48%"></div>
+        <div class="ap-sk-line ap-sk-target"></div>
+        <div class="ap-sk-line" style="width:65%"></div>
+        <div class="ap-sk-line" style="width:78%"></div>
+      </div>
     </div>
   `;
 }
 
 function buildGithubUrl(file, line) {
-  // 尝试推断路径：如果 file 已含路径前缀则直接用，否则放 src/
   const hasPath = file.includes('/');
   const filePath = hasPath ? file : `src/${file}`;
   return `${REPO_BLOB_BASE}/${filePath}#L${line}`;
@@ -527,7 +555,7 @@ async function loadFileForPanel(panel, file, line) {
     const body = panel.querySelector('.ap-body');
     if (body) {
       body.className = 'ap-body ap-error';
-      body.innerHTML = `<span>无法加载文件：${escapeHtml(err.message)}</span>`;
+      body.innerHTML = `<span>无法加载：${escapeHtml(err.message)}</span>`;
     }
     return;
   }
@@ -536,12 +564,11 @@ async function loadFileForPanel(panel, file, line) {
 }
 
 function renderPanelCode(panel, allLines, centerLine, file) {
-  const CONTEXT = 8; // 上下各显示 8 行
+  const CONTEXT = 8;
   const total = allLines.length;
   const start = Math.max(1, centerLine - CONTEXT);
   const end   = Math.min(total, centerLine + CONTEXT);
 
-  // 确定语言
   const ext = file.split('.').pop();
   const langMap = { ts: 'typescript', js: 'javascript', tsx: 'typescript', jsx: 'javascript', py: 'python', go: 'go', rs: 'rust', java: 'java', md: 'markdown' };
   const lang = langMap[ext] || 'plaintext';
@@ -559,7 +586,7 @@ function renderPanelCode(panel, allLines, centerLine, file) {
   }
 
   const hlLines = highlighted.split('\n');
-  const numbered = hlLines.map((lineHtml, i) => {
+  const rows = hlLines.map((lineHtml, i) => {
     const lineNo = start + i;
     const isTarget = lineNo === centerLine;
     return `<span class="ap-line${isTarget ? ' ap-line-target' : ''}" data-line="${lineNo}"><span class="ap-lnum">${lineNo}</span><span class="ap-lcode">${lineHtml || ' '}</span></span>`;
@@ -567,27 +594,34 @@ function renderPanelCode(panel, allLines, centerLine, file) {
 
   const body = panel.querySelector('.ap-body');
   if (!body) return;
-  body.className = 'ap-body';
-  body.innerHTML = `<code class="hljs ap-code">${numbered}</code>`;
 
-  // 滚动目标行到可见区域
-  const targetLine = body.querySelector('.ap-line-target');
-  if (targetLine) {
-    setTimeout(() => targetLine.scrollIntoView({ block: 'nearest', behavior: 'smooth' }), 50);
-  }
+  // 淡出 loading → 淡入代码
+  body.classList.add('ap-body-fade');
+  setTimeout(() => {
+    body.className = 'ap-body';
+    body.innerHTML = `<code class="hljs ap-code">${rows}</code>`;
 
-  // 更新 header 中的行号
-  const fp = panel.querySelector('.ap-filepath');
-  if (fp) fp.textContent = `${file}#L${centerLine}`;
+    // 更新 header 行号
+    const fp = panel.querySelector('.ap-filepath');
+    if (fp) fp.textContent = `${file}#L${centerLine}`;
+
+    // 更新 GitHub 链接
+    const gh = panel.querySelector('.ap-github');
+    if (gh) gh.href = buildGithubUrl(file, centerLine);
+
+    // 目标行滚动到可见
+    const targetLine = body.querySelector('.ap-line-target');
+    if (targetLine) {
+      setTimeout(() => targetLine.scrollIntoView({ block: 'nearest', behavior: 'smooth' }), 30);
+    }
+  }, 150);
 }
 
 function shiftPanelLine(panel, anchorEl, file, newLine) {
-  panel.dataset.line = newLine;
-  anchorEl.dataset.line = newLine;
-  const lines = _fileCache[file.includes('/') ? file : `src/${file}`];
-  if (lines) {
-    renderPanelCode(panel, lines, newLine, file);
-  }
+  panel.dataset.line = String(newLine);
+  const filePath = file.includes('/') ? file : `src/${file}`;
+  const lines = _fileCache[filePath];
+  if (lines) renderPanelCode(panel, lines, newLine, file);
 }
 
 // ===== Utility =====

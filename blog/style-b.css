@@ -951,21 +951,40 @@ body {
 }
 
 /* ===== Anchor Panel (内联代码预览) ===== */
+@keyframes ap-expand {
+  from { opacity: 0; transform: translateY(-4px) scaleY(0.96); }
+  to   { opacity: 1; transform: translateY(0) scaleY(1); }
+}
+
+@keyframes ap-collapse {
+  from { opacity: 1; transform: translateY(0) scaleY(1); }
+  to   { opacity: 0; transform: translateY(-4px) scaleY(0.96); }
+}
+
+@keyframes ap-shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+@keyframes ap-body-fade-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
 .anchor-panel {
-  margin: 10px 0 16px;
+  margin: 8px 0 14px;
   border-radius: 10px;
   overflow: hidden;
-  border: 1px solid #2a2a2a;
-  background: #1a1a1a;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+  border: 1px solid #2e2e2e;
+  background: #1c1c1c;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.3);
   font-family: 'JetBrains Mono', 'Fira Code', monospace;
-  animation: ap-expand 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+  animation: ap-expand 0.2s cubic-bezier(0.22, 1, 0.36, 1) both;
   transform-origin: top center;
 }
 
-@keyframes ap-expand {
-  from { opacity: 0; transform: scaleY(0.92); }
-  to   { opacity: 1; transform: scaleY(1); }
+.anchor-panel.ap-hiding {
+  animation: ap-collapse 0.16s ease both;
 }
 
 /* Header */
@@ -973,15 +992,15 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 14px;
-  background: #222;
-  border-bottom: 1px solid #333;
-  gap: 12px;
+  padding: 7px 12px;
+  background: #242424;
+  border-bottom: 1px solid #2e2e2e;
+  gap: 10px;
 }
 
 .ap-filepath {
   font-size: 12px;
-  color: #7dd3fc; /* sky-300 */
+  color: #7dd3fc;
   font-weight: 500;
   letter-spacing: 0.01em;
   white-space: nowrap;
@@ -994,74 +1013,101 @@ body {
 .ap-actions {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
   flex-shrink: 0;
+}
+
+.ap-lang {
+  font-size: 11px;
+  color: #666;
+  padding: 1px 7px;
+  border: 1px solid #333;
+  border-radius: 4px;
+  margin-right: 4px;
+  letter-spacing: 0.02em;
 }
 
 .ap-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 26px;
-  height: 26px;
+  width: 24px;
+  height: 24px;
   border: none;
   background: transparent;
-  color: #888;
+  color: #666;
   border-radius: 5px;
   cursor: pointer;
-  font-size: 13px;
+  font-size: 12px;
+  text-decoration: none;
   transition: background 0.12s, color 0.12s;
   line-height: 1;
 }
 
 .ap-btn:hover {
   background: #333;
-  color: #ccc;
-}
-
-.ap-close:hover {
-  background: #3a1a1a;
-  color: #f87171;
+  color: #bbb;
 }
 
 .ap-github:hover {
-  background: #1a2a3a;
+  background: #1a2e40;
   color: #7dd3fc;
 }
 
 /* Body */
 .ap-body {
   overflow-x: auto;
-  max-height: 340px;
+  max-height: 320px;
   overflow-y: auto;
-  background: #1a1a1a;
+  background: #1c1c1c;
   scrollbar-width: thin;
-  scrollbar-color: #444 transparent;
+  scrollbar-color: #3a3a3a transparent;
+  transition: opacity 0.15s;
 }
 
-.ap-body::-webkit-scrollbar { width: 6px; height: 6px; }
+.ap-body.ap-body-fade {
+  animation: ap-body-fade-out 0.15s ease both;
+}
+
+.ap-body::-webkit-scrollbar { width: 5px; height: 5px; }
 .ap-body::-webkit-scrollbar-track { background: transparent; }
-.ap-body::-webkit-scrollbar-thumb { background: #444; border-radius: 3px; }
+.ap-body::-webkit-scrollbar-thumb { background: #3a3a3a; border-radius: 3px; }
 
-/* Loading */
+/* Loading shimmer skeleton */
 .ap-loading {
+  padding: 14px 16px 16px;
+}
+
+.ap-sk-lines {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 80px;
+  flex-direction: column;
+  gap: 8px;
 }
 
-.ap-spinner {
-  width: 20px;
-  height: 20px;
-  border: 2px solid #333;
-  border-top-color: #7dd3fc;
-  border-radius: 50%;
-  animation: ap-spin 0.7s linear infinite;
+.ap-sk-line {
+  height: 12px;
+  border-radius: 3px;
+  width: 100%;
+  background: linear-gradient(90deg, #2a2a2a 0%, #383838 45%, #2a2a2a 90%);
+  background-size: 400px 100%;
+  animation: ap-shimmer 1.4s ease-in-out infinite;
 }
 
-@keyframes ap-spin {
-  to { transform: rotate(360deg); }
+.ap-sk-line:nth-child(1) { animation-delay: 0s; }
+.ap-sk-line:nth-child(2) { animation-delay: 0.07s; }
+.ap-sk-line:nth-child(3) { animation-delay: 0.14s; }
+.ap-sk-line:nth-child(4) { animation-delay: 0.21s; }
+.ap-sk-line:nth-child(5) { animation-delay: 0.28s; }
+.ap-sk-line:nth-child(6) { animation-delay: 0.35s; }
+.ap-sk-line:nth-child(7) { animation-delay: 0.42s; }
+
+/* 目标行骨架高亮 */
+.ap-sk-target {
+  width: 100% !important;
+  background: linear-gradient(90deg, #1e3040 0%, #2a4a60 45%, #1e3040 90%);
+  background-size: 400px 100%;
+  animation: ap-shimmer 1.4s ease-in-out infinite;
+  box-shadow: inset 2px 0 0 #7dd3fc;
 }
 
 /* Error */
@@ -1069,7 +1115,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 60px;
+  height: 56px;
   color: #f87171;
   font-size: 12px;
   padding: 0 16px;
@@ -1081,35 +1127,35 @@ body {
   padding: 10px 0;
   background: transparent !important;
   font-size: 12.5px;
-  line-height: 1.6;
+  line-height: 1.65;
 }
 
 .ap-line {
   display: flex;
   align-items: stretch;
-  min-height: 1.6em;
+  min-height: 1.65em;
   transition: background 0.1s;
 }
 
 .ap-line:hover {
-  background: rgba(255,255,255,0.04);
+  background: rgba(255,255,255,0.035);
 }
 
 .ap-line-target {
-  background: rgba(125, 211, 252, 0.1) !important;
-  border-left: 2px solid #7dd3fc;
+  background: rgba(125, 211, 252, 0.09) !important;
+  box-shadow: inset 2px 0 0 #7dd3fc;
 }
 
 .ap-line-target:hover {
-  background: rgba(125, 211, 252, 0.14) !important;
+  background: rgba(125, 211, 252, 0.13) !important;
 }
 
 .ap-lnum {
   flex-shrink: 0;
-  width: 48px;
-  padding: 0 14px 0 16px;
+  width: 46px;
+  padding: 0 12px 0 16px;
   text-align: right;
-  color: #555;
+  color: #4a4a4a;
   font-size: 11.5px;
   user-select: none;
   border-right: 1px solid #2a2a2a;
