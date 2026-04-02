@@ -1170,5 +1170,26 @@ body {
   flex: 1;
   padding-right: 20px;
   white-space: pre;
-  color: #d4d4d4;
+  /* 不设 color，让 hljs token 颜色透出 */
 }
+
+/* 面板内强制使用 dark 配色的 hljs token（面板始终深色背景） */
+.anchor-panel .hljs { color: #abb2bf; }
+.anchor-panel .hljs-keyword,
+.anchor-panel .hljs-selector-tag,
+.anchor-panel .hljs-built_in { color: #c678dd; }
+.anchor-panel .hljs-string,
+.anchor-panel .hljs-attr { color: #98c379; }
+.anchor-panel .hljs-number,
+.anchor-panel .hljs-literal { color: #d19a66; }
+.anchor-panel .hljs-comment { color: #5c6370; font-style: italic; }
+.anchor-panel .hljs-title,
+.anchor-panel .hljs-class .hljs-title { color: #e5c07b; }
+.anchor-panel .hljs-type,
+.anchor-panel .hljs-variable.language_ { color: #e06c75; }
+.anchor-panel .hljs-property { color: #abb2bf; }
+.anchor-panel .hljs-params { color: #abb2bf; }
+.anchor-panel .hljs-function .hljs-title,
+.anchor-panel .hljs-title.function_ { color: #61afef; }
+.anchor-panel .hljs-operator,
+.anchor-panel .hljs-punctuation { color: #abb2bf; }
