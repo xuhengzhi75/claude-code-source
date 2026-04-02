@@ -37,7 +37,12 @@
 3. 目标目录 README
 4. 再扫描具体文档引用
 
-### 5) 提炼 Skill
+### 5) 统一协作提交规范
+1. `workflow/commit-conventions.md`
+2. `workflow/collaboration-guide.md`
+3. 必要时回看 `planning/project-status.md`
+
+### 6) 提炼 Skill
 1. `skills/source-analysis-to-book/SKILL.md`
 2. `skills/source-analysis-to-book/references/navigation.md`
 3. `methodology/book-writing-playbook-2026-04-01_to_2026-04-02.md`

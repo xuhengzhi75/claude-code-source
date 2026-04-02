@@ -24,6 +24,7 @@
 - `workflow-templates.md`：工作流模板
 - `agent-role-templates.md`：agent 角色模板
 - `collaboration-guide.md`：协作规范
+- `commit-conventions.md`：多人协作下的统一提交规范
 
 ## 使用原则
 - 要交接时优先用模板，不临时自由发挥
