@@ -24,6 +24,28 @@
 
 修复方案是把 transcript 写入移到 API 调用之前。一行代码的位置变化，解决了一个真实的用户体验问题。
 
+```mermaid
+sequenceDiagram
+    participant U as 用户
+    participant QE as QueryEngine
+    participant FS as 文件系统 (transcript)
+    participant API as Claude API
+
+    U->>QE: submitMessage()
+    Note over QE,FS: ✅ 修复后：先写 transcript
+    QE->>FS: 写入用户消息（await / fire-and-forget）
+    QE->>API: 发起 API 请求
+    alt 进程在此被杀死
+        Note over FS: transcript 已有用户消息<br/>--resume 可以找到对话
+    else 正常响应
+        API-->>QE: assistant 消息
+        QE->>FS: 写入 assistant 消息
+    end
+
+    Note over QE,FS: ❌ 修复前：响应后才写
+    Note over QE,FS: 进程被杀 → transcript 只有 queue-op<br/>getLastSessionLog 返回 null<br/>--resume 失败："No conversation found"
+```
+
 ## 6.2 这次写入有多贵
 
 注释里还有一个细节：
@@ -73,6 +95,25 @@ setMessages: () => {},  // 锁定，不再允许修改
 ```
 
 这是一种"阶段锁定"：斜杠命令处理阶段允许修改历史，查询执行阶段锁定历史。不需要引入新的类型或状态机，只需要替换回调实现。如果后续代码意外调用了 `setMessages`，什么都不会发生，不会有 bug，也不会有报错。
+
+```mermaid
+flowchart LR
+    subgraph P1["阶段一：斜杠命令处理"]
+        A["processUserInputContext #1\nsetMessages: fn => 真实写回"]
+        B["/force-snip 等命令\n可以截断消息历史"]
+        A --> B
+    end
+
+    subgraph P2["阶段二：查询执行"]
+        C["processUserInputContext #2\nsetMessages: () => {} 空操作"]
+        D["queryLoop 执行\n消息历史已锁定"]
+        C --> D
+    end
+
+    P1 -->|"斜杠命令处理完成\n替换 setMessages 实现"| P2
+    B -.->|"意外调用 setMessages"| E["什么都不发生\n不报错 · 不产生 bug"]
+    D -.-> E
+```
 
 ## 6.4 QueryEngine 管什么，query.ts 管什么
 
