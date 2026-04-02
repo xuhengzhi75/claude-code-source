@@ -90,6 +90,54 @@ type(scope): purpose
 - 大改动先拆结构，再拆内容，再拆证据
 - 能单独回滚的内容不要混在一起
 
+## 实际样例
+
+下面这些都是当前仓库里较好的、可读性较强的真实样例：
+- `docs(book): split manuscript from writing workspace`
+- `docs(book): refine reader index and skill scaffold`
+- `docs(book): deepen workspace navigation and skill references`
+- `docs(book): add chapter index and skill quality gates`
+- `docs(workflow): define shared commit conventions`
+
+这些样例的共同点：
+- 主题单一
+- 作用域明确
+- 目的清楚
+- 回滚边界相对干净
+
+相对不推荐的提交标题类型：
+- `update docs`
+- `fix stuff`
+- `more changes`
+- `book updates`
+
+问题在于：标题无法快速说明改动边界，也不利于多人协作 review。
+
+## 推荐提交流程
+
+### 小改动
+1. 明确这次改动属于哪一类（结构 / 正文 / 证据 / workflow / 方法论 / 注释）
+2. 只改一类内容
+3. 本地自查引用、结构与命名
+4. 用 `type(scope): purpose` 提交
+5. 立即 push，减少分叉
+
+### 大改动
+1. 先更新状态文档，说明目标与范围
+2. 先提交结构性改动
+3. 再提交内容性改动
+4. 再提交证据/索引/路径修正
+5. 每一类单独 commit
+6. 每完成一段就 push，保持远端是最新协作基线
+
+## Push 前最低检查
+
+提交前至少确认：
+- 改动边界是否单一
+- 路径/引用是否被这次改动破坏
+- 提交标题是否能让别人一眼看懂
+- 是否还有本应拆开的内容混在一起
+
 ## 最低验收标准
 
 一个 commit 如果不能快速回答下面三问，就不够好：
