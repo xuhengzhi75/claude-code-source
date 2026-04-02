@@ -1,0 +1,21 @@
+# 构建产物 — 由 blog/build.sh 生成，不入仓库
+# GitHub Pages 部署时由 CI 或手动执行 build.sh 后再 push
+blog/chapters/
+
+# Node
+node_modules/
+.npm/
+
+# macOS
+.DS_Store
+**/.DS_Store
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Python
+__pycache__/
+*.pyc

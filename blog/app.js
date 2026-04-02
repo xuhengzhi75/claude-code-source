@@ -27,7 +27,8 @@ const CHAPTERS = [
 ];
 
 // Base path for markdown files (relative to index.html)
-const MD_BASE = '../docs/book/chapters/';
+// build.sh 会将 docs/book/chapters/*.md 复制到 blog/chapters/
+const MD_BASE = './chapters/';
 
 // ===== State =====
 let currentChapterIndex = -1;
