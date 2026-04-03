@@ -1028,11 +1028,11 @@ function openMermaidLightbox(el) {
     return;
   }
   const svgClone = svgEl.cloneNode(true);
-  // 移除固定宽高，让 CSS 控制
-  svgClone.removeAttribute('width');
-  svgClone.removeAttribute('height');
-  svgClone.style.maxWidth = '100%';
+  // 用 style 覆盖宽高，保留 viewBox 让浏览器正确缩放
+  svgClone.style.width = '100%';
   svgClone.style.height = 'auto';
+  svgClone.style.maxWidth = '100%';
+  svgClone.style.display = 'block';
 
   const lb = document.createElement('div');
   lb.className = 'mermaid-lightbox';
