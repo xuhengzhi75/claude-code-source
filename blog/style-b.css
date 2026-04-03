@@ -330,7 +330,12 @@ body {
 }
 
 /* Welcome */
-.welcome { padding: 8px 0; }
+.welcome { padding: 0; }
+
+/* 欢迎页顶部不需要大段留白 */
+#content-inner:has(.welcome) {
+  padding-top: 20px;
+}
 
 .welcome h1 {
   font-family: 'Lora', 'Noto Serif SC', serif;
@@ -1133,7 +1138,7 @@ body {
 
 /* ===== Welcome Page ===== */
 .welcome {
-  padding: 8px 0 60px;
+  padding: 0 0 60px;
   max-width: 680px;
 }
 
