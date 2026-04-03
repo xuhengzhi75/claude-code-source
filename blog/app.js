@@ -74,6 +74,8 @@ function setTheme(theme) {
   const btn = document.querySelector('.theme-btn');
   if (btn) btn.textContent = theme === 'dark' ? '☀' : '🌙';
   // hljs 主题通过 CSS [data-theme="dark"] 选择器自动切换，无需 JS 操作
+  // 主题切换时重新 initialize mermaid，下次渲染时生效
+  mermaid.initialize({ startOnLoad: false, theme: theme === 'dark' ? 'dark' : 'default', securityLevel: 'loose', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' });
 }
 
 function toggleTheme() {
@@ -415,18 +417,14 @@ function renderMarkdown(md, container) {
   const html = marked.parse(md);
   container.innerHTML = `<div class="md-body">${html}</div>`;
 
-  // Mermaid
-  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-  mermaid.initialize({ startOnLoad: false, theme: isDark ? 'dark' : 'default', securityLevel: 'loose' });
-  const mermaidEls = container.querySelectorAll('.mermaid');
+  // Mermaid — 不在这里重复 initialize（会重置内部状态导致 .then() 不触发）
+  // initialize 只在 setupMermaid() 和主题切换时调用
+  const mermaidEls = Array.from(container.querySelectorAll('.mermaid'));
   if (mermaidEls.length > 0) {
     mermaid.run({ nodes: mermaidEls })
       .then(() => {
-        // mermaid.run() resolve 时 SVG 可能还未完全插入 DOM，
-        // 用 rAF + 小延迟确保 SVG 已渲染再绑定 lightbox
-        requestAnimationFrame(() => {
-          setTimeout(() => setupMermaidLightbox(container), 50);
-        });
+        // 用 rAF 确保 SVG 已写入 DOM 再绑定 lightbox
+        requestAnimationFrame(() => setupMermaidLightbox(container));
       })
       .catch(err => console.warn('Mermaid render error:', err));
   }
@@ -1050,7 +1048,8 @@ function openMermaidLightbox(el) {
   // 关闭逻辑
   const close = () => {
     lb.classList.add('lb-closing');
-    lb.addEventListener('animationend', () => lb.remove(), { once: true });
+    // animationend 在某些情况下不可靠（多个子元素动画），改用 setTimeout
+    setTimeout(() => lb.remove(), 200);
   };
 
   lb.querySelector('.mermaid-lightbox-close').addEventListener('click', close);
