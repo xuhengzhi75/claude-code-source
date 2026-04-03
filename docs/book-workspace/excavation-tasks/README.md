@@ -21,6 +21,10 @@
 
 | 章节 | 文件 | 状态 |
 |------|------|------|
-| ch11 为什么干不了真活 | `ch11-excavation.md` | 待认领 |
-| ch12 该学什么 | `ch12-excavation.md` | 待认领 |
-| ch13 最小可用骨架 | `ch13-excavation.md` | 待认领 |
+| ch11 为什么干不了真活 | `ch11-excavation.md` | ✅ 已完成 |
+| ch12 该学什么 | `ch12-excavation.md` | ✅ 已完成 |
+| ch13 最小可用骨架 | `ch13-excavation.md` | ✅ 已完成 |
+| ch14 工具 | `ch14-excavation.md` | ✅ 已完成 |
+| ch17 任务推进 | `ch17-excavation.md` | 待认领 |
+| ch18 恢复机制 | `ch18-excavation.md` | 待认领 |
+| ch20 权限系统 | `ch20-excavation.md` | ✅ 已完成 |
