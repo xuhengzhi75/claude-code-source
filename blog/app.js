@@ -626,11 +626,11 @@ function toggleSidebar() {
   if (isOpening) {
     // 恢复滚动位置，并确保 active 条目可见
     sidebar.scrollTop = _sidebarScrollTop;
-    // 等 transition 结束后再 scrollIntoView（250ms = transition 时长）
+    // 等 transition 结束后直接定位到 active 条目（不用滚动动画）
     setTimeout(() => {
       const activeItem = sidebar.querySelector('.toc-item.active');
       if (activeItem) {
-        activeItem.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        activeItem.scrollIntoView({ block: 'nearest', behavior: 'instant' });
       }
     }, 260);
   }
