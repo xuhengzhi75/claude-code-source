@@ -421,12 +421,26 @@ function renderMarkdown(md, container) {
   // initialize 只在 setupMermaid() 和主题切换时调用
   const mermaidEls = Array.from(container.querySelectorAll('.mermaid'));
   if (mermaidEls.length > 0) {
-    mermaid.run({ nodes: mermaidEls })
-      .then(() => {
-        // 用 rAF 确保 SVG 已写入 DOM 再绑定 lightbox
+    // 用 MutationObserver 监听 SVG 插入，比 mermaid.run().then() 更可靠
+    // mermaid.run().then() 在某些版本/场景下不 resolve（已渲染节点、多图等）
+    let rendered = 0;
+    const observer = new MutationObserver(() => {
+      rendered = mermaidEls.filter(el => el.querySelector('svg')).length;
+      if (rendered === mermaidEls.length) {
+        observer.disconnect();
         requestAnimationFrame(() => setupMermaidLightbox(container));
-      })
+      }
+    });
+    observer.observe(container, { childList: true, subtree: true });
+
+    mermaid.run({ nodes: mermaidEls })
       .catch(err => console.warn('Mermaid render error:', err));
+
+    // 兜底：3s 后无论如何都绑定一次（防止 observer 漏掉）
+    setTimeout(() => {
+      observer.disconnect();
+      setupMermaidLightbox(container);
+    }, 3000);
   }
 
   // 源码锚点 hover tooltip
@@ -469,6 +483,24 @@ function showWelcome() {
             <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
             GitHub
           </a>
+        </div>
+        <div class="welcome-cards">
+          <div class="welcome-card welcome-card-easy" onclick="loadEasyChapter('README')">
+            <div class="welcome-card-icon">☕</div>
+            <div class="welcome-card-body">
+              <div class="welcome-card-title">通俗版 · 人人看得懂</div>
+              <div class="welcome-card-desc">不需要看代码。用日常语言讲清楚 Claude Code 为什么这样设计，对你意味着什么。</div>
+              <div class="welcome-card-meta">10 篇 · 每篇 5 分钟</div>
+            </div>
+          </div>
+          <div class="welcome-card welcome-card-tech" onclick="loadChapter('README')">
+            <div class="welcome-card-icon">⚙️</div>
+            <div class="welcome-card-body">
+              <div class="welcome-card-title">技术版 · 源码级解析</div>
+              <div class="welcome-card-desc">深入源码，分析每一个设计决策背后的工程权衡。适合想理解实现细节的开发者。</div>
+              <div class="welcome-card-meta">20 章 · 含源码引用</div>
+            </div>
+          </div>
         </div>
       </div>`;
     contentInner.classList.remove('content-leaving');
@@ -1028,7 +1060,6 @@ function openMermaidLightbox(el) {
     return;
   }
   const svgClone = svgEl.cloneNode(true);
-  // 用 style 覆盖宽高，保留 viewBox 让浏览器正确缩放
   svgClone.style.width = '100%';
   svgClone.style.height = 'auto';
   svgClone.style.maxWidth = '100%';
@@ -1040,24 +1071,163 @@ function openMermaidLightbox(el) {
     <div class="mermaid-lightbox-backdrop"></div>
     <div class="mermaid-lightbox-content">
       <button class="mermaid-lightbox-close" title="关闭">✕</button>
+      <div class="mermaid-lb-zoom"></div>
+      <span class="mermaid-lb-hint">滚轮缩放 · 拖拽平移 · 双击重置</span>
+      <span class="mermaid-lb-scale">100%</span>
     </div>
   `;
-  lb.querySelector('.mermaid-lightbox-content').appendChild(svgClone);
+  lb.querySelector('.mermaid-lb-zoom').appendChild(svgClone);
   document.body.appendChild(lb);
 
-  // 关闭逻辑
-  const close = () => {
+  // ── 缩放 / 平移状态 ──────────────────────────────────────
+  const zoomEl = lb.querySelector('.mermaid-lb-zoom');
+  const scaleEl = lb.querySelector('.mermaid-lb-scale');
+  let scale = 1, tx = 0, ty = 0;
+  const MIN_SCALE = 0.5, MAX_SCALE = 8;
+  let scaleTimer = null;
+
+  function applyTransform() {
+    zoomEl.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
+  }
+
+  function showScale() {
+    scaleEl.textContent = Math.round(scale * 100) + '%';
+    scaleEl.classList.add('visible');
+    clearTimeout(scaleTimer);
+    scaleTimer = setTimeout(() => scaleEl.classList.remove('visible'), 1200);
+  }
+
+  const content = lb.querySelector('.mermaid-lightbox-content');
+
+  function clampTranslate() {
+    // 缩放 < 1 时居中，不允许拖出边界
+    const cw = content.clientWidth, ch = content.clientHeight;
+    const maxTx = Math.max(0, (cw * scale - cw) / 2);
+    const maxTy = Math.max(0, (ch * scale - ch) / 2);
+    tx = Math.max(-maxTx, Math.min(maxTx, tx));
+    ty = Math.max(-maxTy, Math.min(maxTy, ty));
+  }
+
+  // ── 滚轮缩放 ─────────────────────────────────────────────
+  content.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? 0.9 : 1.1;
+    const newScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, scale * delta));
+    // 以鼠标位置为缩放中心
+    const rect = content.getBoundingClientRect();
+    const ox = e.clientX - rect.left - rect.width / 2;
+    const oy = e.clientY - rect.top - rect.height / 2;
+    tx = ox - (ox - tx) * (newScale / scale);
+    ty = oy - (oy - ty) * (newScale / scale);
+    scale = newScale;
+    clampTranslate();
+    applyTransform();
+    showScale();
+  }, { passive: false });
+
+  // ── 双击重置 ─────────────────────────────────────────────
+  content.addEventListener('dblclick', (e) => {
+    if (e.target.closest('.mermaid-lightbox-close')) return;
+    scale = 1; tx = 0; ty = 0;
+    zoomEl.style.transition = 'transform 0.25s ease';
+    applyTransform();
+    showScale();
+    setTimeout(() => { zoomEl.style.transition = ''; }, 260);
+  });
+
+  // ── 鼠标拖拽平移 ─────────────────────────────────────────
+  let dragging = false, dragStartX = 0, dragStartY = 0, dragTx = 0, dragTy = 0;
+
+  const onMouseMove = (e) => {
+    if (!dragging) return;
+    tx = dragTx + (e.clientX - dragStartX);
+    ty = dragTy + (e.clientY - dragStartY);
+    clampTranslate();
+    applyTransform();
+  };
+
+  const onMouseUp = () => {
+    if (!dragging) return;
+    dragging = false;
+    content.classList.remove('lb-dragging');
+  };
+
+  content.addEventListener('mousedown', (e) => {
+    if (e.target.closest('.mermaid-lightbox-close')) return;
+    dragging = true;
+    dragStartX = e.clientX; dragStartY = e.clientY;
+    dragTx = tx; dragTy = ty;
+    content.classList.add('lb-dragging');
+    e.preventDefault();
+  });
+
+  window.addEventListener('mousemove', onMouseMove);
+  window.addEventListener('mouseup', onMouseUp);
+
+  // ── 触摸：捏合缩放 + 单指拖拽 ────────────────────────────
+  let lastTouchDist = 0, lastTouchMidX = 0, lastTouchMidY = 0;
+  let touchDragging = false, touchStartX = 0, touchStartY = 0, touchTx = 0, touchTy = 0;
+
+  content.addEventListener('touchstart', (e) => {
+    if (e.target.closest('.mermaid-lightbox-close')) return;
+    if (e.touches.length === 2) {
+      const t0 = e.touches[0], t1 = e.touches[1];
+      lastTouchDist = Math.hypot(t1.clientX - t0.clientX, t1.clientY - t0.clientY);
+      lastTouchMidX = (t0.clientX + t1.clientX) / 2;
+      lastTouchMidY = (t0.clientY + t1.clientY) / 2;
+      touchDragging = false;
+    } else if (e.touches.length === 1) {
+      touchDragging = true;
+      touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
+      touchTx = tx; touchTy = ty;
+    }
+  }, { passive: true });
+
+  content.addEventListener('touchmove', (e) => {
+    if (e.target.closest('.mermaid-lightbox-close')) return;
+    if (e.touches.length === 2) {
+      e.preventDefault();
+      const t0 = e.touches[0], t1 = e.touches[1];
+      const dist = Math.hypot(t1.clientX - t0.clientX, t1.clientY - t0.clientY);
+      const midX = (t0.clientX + t1.clientX) / 2;
+      const midY = (t0.clientY + t1.clientY) / 2;
+      const rect = content.getBoundingClientRect();
+      const ox = midX - rect.left - rect.width / 2;
+      const oy = midY - rect.top - rect.height / 2;
+      const ratio = dist / lastTouchDist;
+      const newScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, scale * ratio));
+      tx = ox - (ox - tx) * (newScale / scale) + (midX - lastTouchMidX);
+      ty = oy - (oy - ty) * (newScale / scale) + (midY - lastTouchMidY);
+      scale = newScale;
+      lastTouchDist = dist;
+      lastTouchMidX = midX; lastTouchMidY = midY;
+      clampTranslate();
+      applyTransform();
+      showScale();
+    } else if (e.touches.length === 1 && touchDragging) {
+      tx = touchTx + (e.touches[0].clientX - touchStartX);
+      ty = touchTy + (e.touches[0].clientY - touchStartY);
+      clampTranslate();
+      applyTransform();
+    }
+  }, { passive: false });
+
+  content.addEventListener('touchend', () => { touchDragging = false; });
+
+  // ── 关闭逻辑 ─────────────────────────────────────────────
+  const closeFn = () => {
+    window.removeEventListener('mousemove', onMouseMove);
+    window.removeEventListener('mouseup', onMouseUp);
     lb.classList.add('lb-closing');
-    // animationend 在某些情况下不可靠（多个子元素动画），改用 setTimeout
     setTimeout(() => lb.remove(), 200);
   };
 
-  lb.querySelector('.mermaid-lightbox-close').addEventListener('click', close);
-  lb.querySelector('.mermaid-lightbox-backdrop').addEventListener('click', close);
+  lb.querySelector('.mermaid-lightbox-close').addEventListener('click', closeFn);
+  lb.querySelector('.mermaid-lightbox-backdrop').addEventListener('click', closeFn);
 
-  // ESC 关闭
   const onKey = (e) => {
-    if (e.key === 'Escape') { close(); document.removeEventListener('keydown', onKey); }
+    if (e.key === 'Escape') { closeFn(); document.removeEventListener('keydown', onKey); }
   };
   document.addEventListener('keydown', onKey);
 }

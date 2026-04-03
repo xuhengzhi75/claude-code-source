@@ -196,7 +196,24 @@
           <div class="welcome">
             <h1>深入 Claude Code：架构解析</h1>
             <p>从源码视角理解 Claude Code 的设计哲学与工程实现。</p>
-            <p>请从左侧目录选择章节开始阅读。</p>
+            <div class="welcome-cards">
+              <div class="welcome-card welcome-card-easy" onclick="loadEasyChapter('README')">
+                <div class="welcome-card-icon">☕</div>
+                <div class="welcome-card-body">
+                  <div class="welcome-card-title">通俗版 · 人人看得懂</div>
+                  <div class="welcome-card-desc">不需要看代码。用日常语言讲清楚 Claude Code 为什么这样设计，对你意味着什么。适合会用 AI 工具但不看源码的人。</div>
+                  <div class="welcome-card-meta">10 篇 · 每篇 5 分钟</div>
+                </div>
+              </div>
+              <div class="welcome-card welcome-card-tech" onclick="loadChapter('README')">
+                <div class="welcome-card-icon">⚙️</div>
+                <div class="welcome-card-body">
+                  <div class="welcome-card-title">技术版 · 源码级解析</div>
+                  <div class="welcome-card-desc">深入源码，分析每一个设计决策背后的工程权衡。适合想理解"代码里怎么实现的"的开发者。</div>
+                  <div class="welcome-card-meta">20 章 · 含源码引用</div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </main>

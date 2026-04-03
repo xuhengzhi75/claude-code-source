@@ -576,22 +576,72 @@ body {
   background: var(--bg-secondary);
   border: 1px solid var(--border);
   border-radius: 14px;
-  padding: 32px;
+  width: min(90vw, 960px);
   max-width: min(90vw, 960px);
-  max-height: 85vh;
-  overflow: auto;
+  height: min(85vh, 800px);
+  overflow: hidden;
   box-shadow: 0 24px 80px rgba(0,0,0,0.4);
   animation: lb-scale-in 0.22s cubic-bezier(0.22, 1, 0.36, 1) both;
-  text-align: center;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.mermaid-lightbox-content.lb-dragging {
+  cursor: grabbing;
 }
 
 .mermaid-lightbox.lb-closing .mermaid-lightbox-content {
   animation: lb-fade-out 0.18s ease both;
 }
 
-.mermaid-lightbox-content svg {
+/* 缩放容器：transform 作用在这里，不影响 close 按钮 */
+.mermaid-lb-zoom {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+  box-sizing: border-box;
+  transform-origin: center center;
+  will-change: transform;
+}
+
+.mermaid-lb-zoom svg {
   max-width: 100%;
   height: auto;
+  display: block;
+  pointer-events: none;
+}
+
+/* 缩放提示 */
+.mermaid-lb-hint {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 11px;
+  color: var(--text-muted);
+  opacity: 0.6;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+/* 缩放比例指示器 */
+.mermaid-lb-scale {
+  position: absolute;
+  bottom: 10px;
+  right: 12px;
+  font-size: 11px;
+  color: var(--text-muted);
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+
+.mermaid-lb-scale.visible {
+  opacity: 0.7;
 }
 
 .mermaid-lightbox-close {
@@ -619,8 +669,10 @@ body {
 }
 
 @media (max-width: 768px) {
-  .mermaid-lightbox { padding: 12px; }
-  .mermaid-lightbox-content { padding: 20px 16px; border-radius: 10px; max-height: 80vh; }
+  .mermaid-lightbox { padding: 8px; }
+  .mermaid-lightbox-content { border-radius: 10px; width: 96vw; height: 80vh; }
+  .mermaid-lb-zoom { padding: 16px; }
+  .mermaid-lb-hint { display: none; }
 }
 
 /* Footer */
@@ -1173,6 +1225,90 @@ body {
   color: var(--text);
   border-color: var(--border-strong);
   background: var(--hover-bg);
+}
+
+/* ===== Welcome Cards (入口卡片) ===== */
+.welcome-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 32px;
+}
+
+.welcome-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: all 0.18s;
+  background: var(--bg-secondary);
+}
+
+.welcome-card:hover {
+  border-color: var(--border-strong);
+  background: var(--hover-bg);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.welcome-card-easy:hover {
+  border-color: #b49b64;
+  background: #fdf8ee;
+}
+
+[data-theme="dark"] .welcome-card-easy:hover {
+  border-color: #b49b64;
+  background: #2a2518;
+}
+
+.welcome-card-icon {
+  font-size: 28px;
+  line-height: 1;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.welcome-card-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.welcome-card-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--heading-color);
+  margin-bottom: 6px;
+  line-height: 1.3;
+}
+
+.welcome-card-easy .welcome-card-title {
+  color: #8a7040;
+}
+
+[data-theme="dark"] .welcome-card-easy .welcome-card-title {
+  color: #c4a85a;
+}
+
+.welcome-card-desc {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 10px;
+}
+
+.welcome-card-meta {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+@media (max-width: 600px) {
+  .welcome-cards {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* ===== GitHub Star Button (topbar) ===== */
