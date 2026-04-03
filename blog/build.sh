@@ -41,6 +41,22 @@ for f in "$SRC_DIR"/*.md; do
 done
 
 echo "✅ 已复制 $COUNT 个章节文件到 $DEST_DIR"
+
+# 同步 easy-chapters（通俗版）
+EASY_SRC_DIR="$ROOT_DIR/docs/book/easy-chapters"
+EASY_DEST_DIR="$SCRIPT_DIR/easy-chapters"
+
+if [ -d "$EASY_SRC_DIR" ]; then
+  mkdir -p "$EASY_DEST_DIR"
+  EASY_COUNT=0
+  for f in "$EASY_SRC_DIR"/*.md; do
+    [ -f "$f" ] || continue
+    cp "$f" "$EASY_DEST_DIR/"
+    EASY_COUNT=$((EASY_COUNT + 1))
+  done
+  echo "✅ 已复制 $EASY_COUNT 个通俗版文章到 $EASY_DEST_DIR"
+fi
+
 echo ""
 echo "下一步："
 echo "  本地预览 → bash blog/dev.sh"

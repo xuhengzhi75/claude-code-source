@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>配色方案对比</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "PingFang SC", sans-serif;
+    background: #f5f5f0;
+    padding: 40px 32px;
+    color: #2d2926;
+  }
+  h1 { font-size: 18px; font-weight: 600; margin-bottom: 8px; color: #1a1714; }
+  .subtitle { font-size: 13px; color: #9a9088; margin-bottom: 40px; }
+
+  .options { display: flex; gap: 24px; flex-wrap: wrap; }
+
+  .option {
+    background: #faf8f5;
+    border: 1px solid #e2ddd7;
+    border-radius: 12px;
+    overflow: hidden;
+    width: 320px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  }
+  .option-label {
+    padding: 12px 18px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: #f0ede8;
+    border-bottom: 1px solid #e2ddd7;
+    color: #6b6460;
+    font-family: monospace;
+  }
+  .option-body { padding: 20px 18px; }
+
+  /* badge 展示 */
+  .badge-row { margin-bottom: 16px; }
+  .badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    padding: 3px 12px;
+    border-radius: 20px;
+    font-family: monospace;
+  }
+
+  /* toc 条目展示 */
+  .toc-demo { border-radius: 8px; overflow: hidden; border: 1px solid #e2ddd7; }
+  .toc-section {
+    padding: 8px 14px 3px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #b0a89e;
+    font-family: monospace;
+    background: #f0ede8;
+  }
+  .toc-row {
+    display: flex;
+    flex-direction: column;
+    padding: 6px 14px;
+    font-size: 12.5px;
+    color: #6b6460;
+    border-left: 3px solid transparent;
+    background: #f0ede8;
+  }
+  .toc-row.active { font-weight: 600; }
+  .toc-num-small { font-size: 10px; color: #b0a89e; font-family: monospace; }
+
+  /* 正文预览 */
+  .prose-preview {
+    margin-top: 14px;
+    font-size: 13.5px;
+    line-height: 1.75;
+    color: #2d2926;
+  }
+  .prose-preview strong { }
+
+  /* ===== 方案 A：钛金属 ===== */
+  .a-badge {
+    color: #636366;
+    background: #f2f2f7;
+    border: 1px solid rgba(99,99,102,0.22);
+  }
+  .a-toc { border-left-color: #8e8e93 !important; background: #ebebf0 !important; color: #3a3a3c !important; }
+
+  /* ===== 方案 B：香槟金 ===== */
+  .b-badge {
+    color: #7d6a4a;
+    background: #f5f0e8;
+    border: 1px solid rgba(180,155,100,0.28);
+  }
+  .b-toc { border-left-color: #b49b64 !important; background: #f5f0e8 !important; color: #5c4a28 !important; }
+
+  /* ===== 方案 C：太空蓝灰（iPhone Pro 深空色）===== */
+  .c-badge {
+    color: #4a5568;
+    background: #edf2f7;
+    border: 1px solid rgba(74,85,104,0.22);
+  }
+  .c-toc { border-left-color: #718096 !important; background: #edf2f7 !important; color: #2d3748 !important; }
+
+  /* ===== 方案 D：哑光银（Apple Silver）===== */
+  .d-badge {
+    color: #5a5a5e;
+    background: linear-gradient(135deg, #f8f8fa 0%, #ededf0 100%);
+    border: 1px solid rgba(120,120,128,0.2);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.8), 0 1px 2px rgba(0,0,0,0.06);
+  }
+  .d-toc {
+    border-left-color: #aeaeb2 !important;
+    background: linear-gradient(90deg, #f0f0f5 0%, #ebebf0 100%) !important;
+    color: #3a3a3c !important;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.6) !important;
+  }
+
+  .recommend {
+    display: inline-block;
+    font-size: 10px;
+    background: #c0622a;
+    color: white;
+    padding: 2px 7px;
+    border-radius: 4px;
+    margin-left: 8px;
+    font-weight: 600;
+    vertical-align: middle;
+  }
+</style>
+</head>
+<body>
+
+<h1>通俗版配色方案对比</h1>
+<p class="subtitle">当前绿色 → 苹果金属质感替代方案，4 个选项</p>
+
+<div class="options">
+
+  <!-- 方案 A：钛金属灰 -->
+  <div class="option">
+    <div class="option-label">方案 A · 钛金属灰</div>
+    <div class="option-body">
+      <div class="badge-row">
+        <span class="badge a-badge">通俗版 · 无需代码基础</span>
+      </div>
+      <div class="toc-demo">
+        <div class="toc-section">通俗版 · 人人看得懂</div>
+        <div class="toc-row active a-toc">
+          <span class="toc-num-small">第1篇</span>为什么不会"忘记"
+        </div>
+        <div class="toc-row">
+          <span class="toc-num-small">第2篇</span>怎么知道任务没完
+        </div>
+        <div class="toc-row">
+          <span class="toc-num-small">第3篇</span>请求进来先做什么
+        </div>
+      </div>
+      <div class="prose-preview">
+        低调、克制，和整体暖米色调<strong>略有对比</strong>。<br>
+        iOS systemGray 系，不抢眼。
+      </div>
+    </div>
+  </div>
+
+  <!-- 方案 B：香槟金 -->
+  <div class="option">
+    <div class="option-label">方案 B · 香槟金 <span class="recommend">推荐</span></div>
+    <div class="option-body">
+      <div class="badge-row">
+        <span class="badge b-badge">通俗版 · 无需代码基础</span>
+      </div>
+      <div class="toc-demo">
+        <div class="toc-section">通俗版 · 人人看得懂</div>
+        <div class="toc-row active b-toc">
+          <span class="toc-num-small">第1篇</span>为什么不会"忘记"
+        </div>
+        <div class="toc-row">
+          <span class="toc-num-small">第2篇</span>怎么知道任务没完
+        </div>
+        <div class="toc-row">
+          <span class="toc-num-small">第3篇</span>请求进来先做什么
+        </div>
+      </div>
+      <div class="prose-preview">
+        iPhone 香槟金/星光色系，<strong>与暖米色底色天然融合</strong>。<br>
+        有质感，不突兀，和技术版橙棕形成层次。
+      </div>
+    </div>
+  </div>
+
+  <!-- 方案 C：太空蓝灰 -->
+  <div class="option">
+    <div class="option-label">方案 C · 深空蓝灰</div>
+    <div class="option-body">
+      <div class="badge-row">
+        <span class="badge c-badge">通俗版 · 无需代码基础</span>
+      </div>
+      <div class="toc-demo">
+        <div class="toc-section">通俗版 · 人人看得懂</div>
+        <div class="toc-row active c-toc">
+          <span class="toc-num-small">第1篇</span>为什么不会"忘记"
+        </div>
+        <div class="toc-row">
+          <span class="toc-num-small">第2篇</span>怎么知道任务没完
+        </div>
+        <div class="toc-row">
+          <span class="toc-num-small">第3篇</span>请求进来先做什么
+        </div>
+      </div>
+      <div class="prose-preview">
+        iPhone Pro 深空色系，冷暖对比明显。<br>
+        <strong>区分度最高</strong>，但和暖米色底调性稍有冲突。
+      </div>
+    </div>
+  </div>
+
+  <!-- 方案 D：哑光银 -->
+  <div class="option">
+    <div class="option-label">方案 D · 哑光银（金属光泽）</div>
+    <div class="option-body">
+      <div class="badge-row">
+        <span class="badge d-badge">通俗版 · 无需代码基础</span>
+      </div>
+      <div class="toc-demo">
+        <div class="toc-section">通俗版 · 人人看得懂</div>
+        <div class="toc-row active d-toc">
+          <span class="toc-num-small">第1篇</span>为什么不会"忘记"
+        </div>
+        <div class="toc-row">
+          <span class="toc-num-small">第2篇</span>怎么知道任务没完
+        </div>
+        <div class="toc-row">
+          <span class="toc-num-small">第3篇</span>请求进来先做什么
+        </div>
+      </div>
+      <div class="prose-preview">
+        用渐变模拟金属拉丝质感，<strong>最有苹果硬件感</strong>。<br>
+        badge 有微微内嵌光泽，精致但不过度。
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

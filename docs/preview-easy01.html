@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>预览：通俗版第1篇</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
+    background: #faf8f5;
+    color: #2d2926;
+    display: flex;
+    min-height: 100vh;
+  }
+
+  /* 侧边栏模拟 */
+  .sidebar {
+    width: 260px;
+    min-height: 100vh;
+    background: #f0ede8;
+    border-right: 1px solid #e2ddd7;
+    padding: 20px 0;
+    flex-shrink: 0;
+  }
+  .sidebar-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 18px 20px;
+    border-bottom: 1px solid #e2ddd7;
+    margin-bottom: 12px;
+  }
+  .brand-logo {
+    width: 32px; height: 32px;
+    background: #c0622a;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-weight: 700; font-size: 14px;
+  }
+  .brand-text .book-title { font-size: 13px; font-weight: 600; color: #2d2926; }
+  .brand-text .book-subtitle { font-size: 11px; color: #9a9088; }
+
+  .toc-section-label {
+    padding: 10px 18px 4px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #b0a89e;
+    font-family: monospace;
+  }
+  .toc-section-label-tech {
+    margin-top: 8px;
+    padding-top: 14px;
+    border-top: 1px solid #e2ddd7;
+  }
+  .toc-item {
+    display: block;
+    padding: 6px 18px;
+    font-size: 13px;
+    color: #6b6460;
+    text-decoration: none;
+    border-left: 3px solid transparent;
+    line-height: 1.4;
+  }
+  .toc-item:hover { background: #e8e3dc; }
+  .toc-item.active {
+    background: linear-gradient(90deg, #f0f0f5 0%, #ebebf0 100%);
+    color: #3a3a3c;
+    border-left-color: #aeaeb2;
+    font-weight: 600;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.7);
+  }
+  .toc-item.tech-active {
+    background: #fde8d8;
+    color: #b85c28;
+    border-left-color: #c0622a;
+    font-weight: 600;
+  }
+  .toc-num {
+    font-size: 10px;
+    color: #b0a89e;
+    display: block;
+    font-family: monospace;
+  }
+
+  /* 主内容 */
+  .main {
+    flex: 1;
+    padding: 48px 60px;
+    max-width: 780px;
+  }
+
+  .easy-mode-badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    color: #5a5a5e;
+    background: linear-gradient(135deg, #f8f8fa 0%, #ededf0 100%);
+    border: 1px solid rgba(120,120,128,0.2);
+    padding: 3px 12px;
+    border-radius: 20px;
+    margin-bottom: 28px;
+    font-family: monospace;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.85), 0 1px 2px rgba(0,0,0,0.06);
+  }
+
+  h1 {
+    font-family: Georgia, "Noto Serif SC", serif;
+    font-size: 28px;
+    font-weight: 600;
+    color: #1a1714;
+    line-height: 1.35;
+    margin-bottom: 32px;
+  }
+  h2 {
+    font-family: Georgia, "Noto Serif SC", serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: #1a1714;
+    margin: 36px 0 14px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #e2ddd7;
+  }
+  p {
+    font-size: 15.5px;
+    line-height: 1.85;
+    color: #2d2926;
+    margin-bottom: 18px;
+  }
+  hr {
+    border: none;
+    border-top: 1px solid #e2ddd7;
+    margin: 32px 0;
+  }
+  strong { color: #1a1714; }
+  blockquote {
+    border-left: 3px solid #c0622a;
+    padding: 10px 18px;
+    background: #fdf5ef;
+    border-radius: 0 6px 6px 0;
+    margin: 20px 0;
+    font-size: 14px;
+    color: #6b6460;
+  }
+  blockquote a { color: #c0622a; }
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-logo">CC</div>
+    <div class="brand-text">
+      <div class="book-title">深入 Claude Code</div>
+      <div class="book-subtitle">架构解析</div>
+    </div>
+  </div>
+
+  <div class="toc-section-label">通俗版 · 人人看得懂</div>
+  <a class="toc-item active" href="#">
+    <span class="toc-num">第1篇</span>为什么不会"忘记"
+  </a>
+  <a class="toc-item" href="#">
+    <span class="toc-num">第2篇</span>怎么知道任务没完
+  </a>
+  <a class="toc-item" href="#">
+    <span class="toc-num">第3篇</span>请求进来先做什么
+  </a>
+  <a class="toc-item" href="#">
+    <span class="toc-num">第4篇</span>它的"手"和"脚"
+  </a>
+  <a class="toc-item" href="#">
+    <span class="toc-num">第5篇</span>怎么记住你说过的话
+  </a>
+  <a class="toc-item" href="#">
+    <span class="toc-num">第6篇</span>长任务为什么不会断
+  </a>
+  <a class="toc-item" href="#">
+    <span class="toc-num">第7篇</span>源码泄露了为何难复制
+  </a>
+  <a class="toc-item" href="#">
+    <span class="toc-num">第8篇</span>凭什么比普通工具靠谱
+  </a>
+  <a class="toc-item" href="#">
+    <span class="toc-num">第9篇</span>你真正在依赖什么
+  </a>
+  <a class="toc-item" href="#">
+    <span class="toc-num">第10篇</span>什么样的工具值得信任
+  </a>
+
+  <div class="toc-section-label toc-section-label-tech">技术版 · 源码解析</div>
+  <a class="toc-item" href="#">
+    <span class="toc-num">第1章</span>不只是聊天工具
+  </a>
+  <a class="toc-item" href="#">
+    <span class="toc-num">第2章</span>为什么强
+  </a>
+  <a class="toc-item" href="#">
+    <span class="toc-num">第3章</span>从入口到执行
+  </a>
+</div>
+
+<div class="main">
+  <div class="easy-mode-badge">通俗版 · 无需代码基础</div>
+
+  <h1>第1篇：为什么 Claude Code 不会"忘记"你让它做到一半的事</h1>
+
+  <p>你有没有遇到过这种情况：</p>
+  <p>让 AI 帮你改一批文件，改到一半网络断了，或者你不小心关掉了窗口。重新打开，它完全不记得刚才做到哪了。你只能从头来。</p>
+  <p>这不是 AI 不够聪明，是它的设计方式决定的。</p>
+
+  <hr>
+
+  <h2>普通聊天工具的设计假设</h2>
+  <p>ChatGPT、普通版 Claude 这类工具，设计时有一个隐含的假设：<strong>你的需求可以在一次对话里完成</strong>。</p>
+  <p>问一个问题，得到一个答案，对话结束。这个假设在问答场景下完全成立。</p>
+  <p>但当你让它做一件需要很多步骤的事——比如"帮我把这 30 个文件按新格式重新整理"——这个假设就开始出问题了。</p>
+  <p>它在内存里记着"现在做到第 7 个文件了"。进程一死，内存清空，这个记录消失。下次启动，它不知道自己做到哪了。</p>
+
+  <h2>Claude Code 的不同之处</h2>
+  <p>Claude Code 的设计假设是反过来的：<strong>进程随时可能死掉，这是正常情况，不是异常情况。</strong></p>
+  <p>所以它在做每一件事之前，先把"我要做什么"写到磁盘上的一个文件里。</p>
+  <p>注意这个顺序：<strong>先写，再做</strong>。不是做完了再记录。</p>
+  <p>这个顺序的差别，决定了一件事：</p>
+  <p>如果进程在执行过程中被杀死，磁盘上已经有了"用户说了什么、做到哪一步了"的记录。下次启动，它可以从这个记录里找到上次的位置，继续往下做。</p>
+  <p>如果是"做完再记录"，进程死掉就意味着这一步的记录丢失，恢复只能从上一个完成的步骤开始。</p>
+
+  <h2>一个具体的例子</h2>
+  <p>你让 Claude Code 帮你重构一个项目，它开始工作。</p>
+  <p>做到一半，你的电脑死机了。</p>
+  <p>重启之后，你输入 <code>--resume</code>（继续上次的意思）。</p>
+  <p>它找到磁盘上的记录，知道你上次说了什么、做到哪一步了，从那个点继续。</p>
+  <p>这件事能成立，完全依赖"先写再做"这个顺序。如果顺序反过来，<code>--resume</code> 就是一句空话——它找不到任何可以恢复的记录。</p>
+
+  <h2>记录用的是什么格式</h2>
+  <p>Claude Code 把对话记录存成一个普通的文本文件，每条消息单独一行。</p>
+  <p>这个格式有一个关键特性：每次写入只是在文件末尾加一行，不需要重写整个文件。</p>
+  <p>这意味着：进程在任意时刻被杀死，已经写进去的内容都是完整的、可以读取的。不会出现"文件写到一半，格式损坏，读不了"的情况。</p>
+  <p>用数据库不是更专业吗？数据库的优势是支持复杂查询和并发写入，但 Claude Code 是本地单机工具，这些优势用不上。文本文件的优势是：出问题时，你直接打开文件就能看，不需要任何特殊工具。</p>
+
+  <h2>这对你意味着什么</h2>
+  <p>如果你在用 Claude Code 做一件需要很多步骤的事，中途出了问题，不要慌。</p>
+  <p>用 <code>--resume</code> 重新启动，它会从中断的地方继续，不需要你重新解释一遍你要做什么。</p>
+  <p>更重要的是，这背后有一个可以迁移的判断标准：<strong>一个 AI 工具是否值得信任去做长任务，取决于它在什么时候把状态写下来。</strong></p>
+  <p>写在执行之前，中断可以恢复。写在执行之后，中断就是丢失。</p>
+  <p>下次你在选择用哪个 AI 工具做重要的长任务时，可以问一句：它会在做之前先记录吗？</p>
+
+  <hr>
+
+  <blockquote>
+    <strong>对应技术版：</strong> 这篇文章的内容来自技术版 <a href="#">第1章</a> 和 <a href="#">第18章</a>。技术版里有完整的源码引用和实现细节。
+  </blockquote>
+</div>
+
+</body>
+</html>

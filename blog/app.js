@@ -27,12 +27,29 @@ const CHAPTERS = [
   { id: 'ch20', file: 'ch20-权限系统.md',           title: '权限系统',             num: '第20章' },
 ];
 
+// 通俗版章节（扫地阿姨也能看懂）
+const EASY_CHAPTERS = [
+  { id: 'easy01', file: '01-为什么不会忘记.md',    title: '为什么不会"忘记"',     num: '第1篇' },
+  { id: 'easy02', file: '02-怎么知道任务没完.md',  title: '怎么知道任务没完',     num: '第2篇' },
+  { id: 'easy03', file: '03-请求进来先做什么.md',  title: '请求进来先做什么',     num: '第3篇' },
+  { id: 'easy04', file: '04-工具系统.md',          title: '它的"手"和"脚"',       num: '第4篇' },
+  { id: 'easy05', file: '05-状态与上下文.md',      title: '怎么记住你说过的话',   num: '第5篇' },
+  { id: 'easy06', file: '06-任务系统.md',          title: '长任务为什么不会断',   num: '第6篇' },
+  { id: 'easy07', file: '07-为什么难以复制.md',    title: '源码泄露了为何难复制', num: '第7篇' },
+  { id: 'easy08', file: '08-为什么更靠谱.md',      title: '凭什么比普通工具靠谱', num: '第8篇' },
+  { id: 'easy09', file: '09-你在依赖什么.md',      title: '你真正在依赖什么',     num: '第9篇' },
+  { id: 'easy10', file: '10-什么样的工具值得信任.md', title: '什么样的工具值得信任', num: '第10篇' },
+];
+
 // Base path for markdown files (relative to index.html)
 // build.sh 会将 docs/book/chapters/*.md 复制到 blog/chapters/
 const MD_BASE = './chapters/';
+const EASY_MD_BASE = './easy-chapters/';
 
 // ===== State =====
 let currentChapterIndex = -1;
+let currentEasyIndex = -1;
+let currentMode = 'tech'; // 'tech' | 'easy'
 
 // ===== Init =====
 document.addEventListener('DOMContentLoaded', () => {
@@ -68,14 +85,40 @@ function toggleTheme() {
 function buildTOC() {
   const toc = document.getElementById('toc');
   toc.innerHTML = '';
+
+  // 通俗版分区
+  const easyLabel = document.createElement('div');
+  easyLabel.className = 'toc-section-label';
+  easyLabel.textContent = '通俗版 · 人人看得懂';
+  toc.appendChild(easyLabel);
+
+  EASY_CHAPTERS.forEach((ch, idx) => {
+    const a = document.createElement('a');
+    a.className = 'toc-item toc-item-easy';
+    a.href = `#${ch.id}`;
+    a.dataset.idx = idx;
+    a.dataset.mode = 'easy';
+    a.innerHTML = `<span class="toc-chapter-num">${ch.num}</span>${ch.title}`;
+    a.addEventListener('click', () => {
+      if (window.innerWidth <= 768) closeSidebar();
+    });
+    toc.appendChild(a);
+  });
+
+  // 技术版分区
+  const techLabel = document.createElement('div');
+  techLabel.className = 'toc-section-label toc-section-label-tech';
+  techLabel.textContent = '技术版 · 源码解析';
+  toc.appendChild(techLabel);
+
   CHAPTERS.forEach((ch, idx) => {
     const a = document.createElement('a');
     a.className = 'toc-item';
     a.href = `#${ch.id}`;
     a.dataset.idx = idx;
+    a.dataset.mode = 'tech';
     a.innerHTML = `<span class="toc-chapter-num">${ch.num}</span>${ch.title}`;
-    a.addEventListener('click', (e) => {
-      // On mobile, close sidebar after click
+    a.addEventListener('click', () => {
       if (window.innerWidth <= 768) closeSidebar();
     });
     toc.appendChild(a);
@@ -89,6 +132,15 @@ function handleRoute() {
     showWelcome();
     return;
   }
+  // 通俗版路由
+  if (hash.startsWith('easy')) {
+    const idx = EASY_CHAPTERS.findIndex(ch => ch.id === hash);
+    if (idx !== -1) {
+      loadEasyChapter(idx);
+      return;
+    }
+  }
+  // 技术版路由
   const idx = CHAPTERS.findIndex(ch => ch.id === hash);
   if (idx === -1) {
     showWelcome();
@@ -101,11 +153,14 @@ function handleRoute() {
 async function loadChapter(idx) {
   const ch = CHAPTERS[idx];
   currentChapterIndex = idx;
+  currentEasyIndex = -1;
+  currentMode = 'tech';
 
-  // Update active state in TOC
-  document.querySelectorAll('.toc-item').forEach((el, i) => {
+  // Update active state in TOC (only tech items)
+  document.querySelectorAll('.toc-item[data-mode="tech"]').forEach((el, i) => {
     el.classList.toggle('active', i === idx);
   });
+  document.querySelectorAll('.toc-item[data-mode="easy"]').forEach(el => el.classList.remove('active'));
 
   // Scroll TOC item into view
   const activeItem = document.querySelector('.toc-item.active');
@@ -163,6 +218,86 @@ async function loadChapter(idx) {
       </div>`;
   } else {
     renderMarkdown(md, contentInner);
+  }
+
+  contentInner.classList.remove('content-leaving');
+  contentInner.classList.add('content-entering');
+  contentInner.addEventListener('animationend', () => {
+    contentInner.classList.remove('content-entering');
+  }, { once: true });
+}
+
+// ===== Load Easy Chapter (通俗版) =====
+async function loadEasyChapter(idx) {
+  const ch = EASY_CHAPTERS[idx];
+  currentEasyIndex = idx;
+  currentChapterIndex = -1;
+  currentMode = 'easy';
+
+  // Update active state in TOC
+  document.querySelectorAll('.toc-item[data-mode="easy"]').forEach((el, i) => {
+    el.classList.toggle('active', i === idx);
+  });
+  document.querySelectorAll('.toc-item[data-mode="tech"]').forEach(el => el.classList.remove('active'));
+
+  // Scroll TOC item into view
+  const activeItem = document.querySelector('.toc-item.active');
+  if (activeItem) {
+    activeItem.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }
+
+  // Update topbar title
+  document.getElementById('topbar-title').textContent = `${ch.num} ${ch.title}`;
+  document.title = `${ch.num} ${ch.title} — 深入 Claude Code`;
+
+  // Update footer nav for easy mode
+  updateEasyFooterNav(idx);
+
+  const contentInner = document.getElementById('content-inner');
+
+  // Fade out
+  contentInner.classList.add('content-leaving');
+  await new Promise(r => setTimeout(r, 140));
+
+  // Show loading skeleton
+  window.scrollTo({ top: 0, behavior: 'instant' });
+  showLoadingSkeleton(contentInner, ch);
+  contentInner.classList.remove('content-leaving');
+  contentInner.classList.add('content-entering');
+  contentInner.addEventListener('animationend', () => {
+    contentInner.classList.remove('content-entering');
+  }, { once: true });
+
+  // Fetch markdown
+  let md = null, fetchErr = null;
+  try {
+    const resp = await fetch(EASY_MD_BASE + ch.file);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    md = await resp.text();
+  } catch (err) {
+    fetchErr = err;
+  }
+
+  const skeletonShown = Date.now();
+  const elapsed = Date.now() - skeletonShown;
+  if (elapsed < 300) await new Promise(r => setTimeout(r, 300 - elapsed));
+
+  contentInner.classList.add('content-leaving');
+  await new Promise(r => setTimeout(r, 120));
+
+  if (fetchErr) {
+    contentInner.innerHTML = `
+      <div class="error-msg">
+        <strong>加载失败</strong><br>
+        无法加载文章：${ch.file}<br>
+        <small>${fetchErr.message}</small>
+      </div>`;
+  } else {
+    // 通俗版：在内容顶部加一个"通俗版"标签
+    const easyBadge = `<div class="easy-mode-badge">通俗版 · 无需代码基础</div>`;
+    renderMarkdown(md, contentInner);
+    const mdBody = contentInner.querySelector('.md-body');
+    if (mdBody) mdBody.insertAdjacentHTML('afterbegin', easyBadge);
   }
 
   contentInner.classList.remove('content-leaving');
@@ -286,7 +421,13 @@ function renderMarkdown(md, container) {
   const mermaidEls = container.querySelectorAll('.mermaid');
   if (mermaidEls.length > 0) {
     mermaid.run({ nodes: mermaidEls })
-      .then(() => setupMermaidLightbox(container))
+      .then(() => {
+        // mermaid.run() resolve 时 SVG 可能还未完全插入 DOM，
+        // 用 rAF + 小延迟确保 SVG 已渲染再绑定 lightbox
+        requestAnimationFrame(() => {
+          setTimeout(() => setupMermaidLightbox(container), 50);
+        });
+      })
       .catch(err => console.warn('Mermaid render error:', err));
   }
 
@@ -362,15 +503,46 @@ function updateFooterNav(idx) {
   }
 }
 
+function updateEasyFooterNav(idx) {
+  const prevBtn = document.getElementById('prev-btn');
+  const nextBtn = document.getElementById('next-btn');
+
+  if (idx > 0) {
+    prevBtn.style.display = 'block';
+    prevBtn.textContent = `← ${EASY_CHAPTERS[idx - 1].num} ${EASY_CHAPTERS[idx - 1].title}`;
+  } else {
+    prevBtn.style.display = 'none';
+  }
+
+  if (idx < EASY_CHAPTERS.length - 1) {
+    nextBtn.style.display = 'block';
+    nextBtn.textContent = `${EASY_CHAPTERS[idx + 1].num} ${EASY_CHAPTERS[idx + 1].title} →`;
+  } else {
+    nextBtn.style.display = 'none';
+  }
+}
+
 function navigatePrev() {
-  if (currentChapterIndex > 0) {
-    window.location.hash = CHAPTERS[currentChapterIndex - 1].id;
+  if (currentMode === 'easy') {
+    if (currentEasyIndex > 0) {
+      window.location.hash = EASY_CHAPTERS[currentEasyIndex - 1].id;
+    }
+  } else {
+    if (currentChapterIndex > 0) {
+      window.location.hash = CHAPTERS[currentChapterIndex - 1].id;
+    }
   }
 }
 
 function navigateNext() {
-  if (currentChapterIndex < CHAPTERS.length - 1) {
-    window.location.hash = CHAPTERS[currentChapterIndex + 1].id;
+  if (currentMode === 'easy') {
+    if (currentEasyIndex < EASY_CHAPTERS.length - 1) {
+      window.location.hash = EASY_CHAPTERS[currentEasyIndex + 1].id;
+    }
+  } else {
+    if (currentChapterIndex < CHAPTERS.length - 1) {
+      window.location.hash = CHAPTERS[currentChapterIndex + 1].id;
+    }
   }
 }
 
@@ -853,7 +1025,10 @@ function setupMermaidLightbox(container) {
 function openMermaidLightbox(el) {
   // 克隆 SVG 内容
   const svgEl = el.querySelector('svg');
-  if (!svgEl) return;
+  if (!svgEl) {
+    console.warn('[Lightbox] SVG not found in mermaid element, skipping lightbox', el);
+    return;
+  }
   const svgClone = svgEl.cloneNode(true);
   // 移除固定宽高，让 CSS 控制
   svgClone.removeAttribute('width');
