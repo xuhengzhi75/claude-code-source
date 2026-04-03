@@ -24,6 +24,7 @@ const CHAPTERS = [
   { id: 'ch17', file: 'ch17-任务推进.md',          title: '任务推进',             num: '第17章' },
   { id: 'ch18', file: 'ch18-恢复机制.md',          title: '恢复机制',             num: '第18章' },
   { id: 'ch19', file: 'ch19-提示词工程设计模式.md', title: '提示词工程设计模式',  num: '第19章' },
+  { id: 'ch20', file: 'ch20-权限系统.md',           title: '权限系统',             num: '第20章' },
 ];
 
 // Base path for markdown files (relative to index.html)
@@ -307,11 +308,11 @@ function showWelcome() {
         <div class="welcome-badge">源码解析</div>
         <h1>深入 Claude Code</h1>
         <p class="welcome-subtitle">架构解析</p>
-        <p class="welcome-desc">从源码视角理解 Claude Code 的设计哲学与工程实现。<br>19 章，覆盖入口路由、QueryEngine、任务系统、工具链、提示词工程等核心模块。</p>
+        <p class="welcome-desc">从源码视角理解 Claude Code 的设计哲学与工程实现。<br>20 章，覆盖入口路由、QueryEngine、任务系统、工具链、提示词工程等核心模块。</p>
         <div class="welcome-meta">
           <span>作者：startheart &amp; Gordon</span>
           <span>·</span>
-          <span>19 章节</span>
+          <span>20 章节</span>
           <span>·</span>
           <span>持续更新中</span>
         </div>
