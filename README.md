@@ -24,7 +24,9 @@
 
 ## 在线书稿
 
-20 章，持续更新中。覆盖从入口分流到权限系统的完整主干。
+### 技术版（20 章）
+
+面向会看源码的读者，覆盖从入口分流到权限系统的完整主干。
 
 | 章节 | 主题 |
 |------|------|
@@ -51,6 +53,12 @@
 
 章节正文位于 [`docs/book/chapters/`](docs/book/chapters/)，在线阅读体验更佳：<https://xuhengzhi75.github.io/claude-code-source/>
 
+### 通俗版（10 篇）
+
+面向不看代码但对 AI 工具有好奇心的读者，讲的是"为什么要这么设计，这对你意味着什么"。结论与技术版一致，讲法不同。
+
+位于 [`docs/book/easy-chapters/`](docs/book/easy-chapters/)，分四个部分：你以为你在用聊天工具（其实不是）、它是怎么工作的、为什么别人抄不走、这对你意味着什么。
+
 ---
 
 ## 仓库结构
@@ -70,7 +78,9 @@ claude-code-source/
 │       ├── architecture-notes/   # 源码深读笔记
 │       ├── planning/             # 进度与规划
 │       ├── references/           # 证据映射与交接模板
-│       └── methodology/          # 写作原则与验收标准
+│       ├── methodology/          # 写作原则与验收标准
+│       ├── inbox/                # 多 Agent 异步通信层
+│       └── excavation-tasks/     # 挖掘任务卡（章节素材补充）
 ├── blog/                         # 在线博客（GitHub Pages）
 ├── meta/                         # 方法论沉淀
 │   ├── articles/                 # 经验分享文章
@@ -143,7 +153,7 @@ src/tasks/*                    sessionStorage / compact / memory
 
 ### 想了解写作方法论
 
-[`meta/articles/`](meta/articles/) 沉淀了这套"源码 → 书稿"工作流的完整经验，包括多 Agent 协作规范、博客搭建踩坑等。
+[`meta/articles/`](meta/articles/) 沉淀了这套"源码 → 书稿"工作流的完整经验，目前有 5 篇：如何从源码写成书、博客搭建踩坑、多 Agent 协作规范、挖掘任务卡体系、技术写作方法论。
 
 ---
 
