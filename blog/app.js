@@ -55,6 +55,7 @@ let currentMode = 'tech'; // 'tech' | 'easy'
 document.addEventListener('DOMContentLoaded', () => {
   initTheme();
   buildTOC();
+  buildWelcomeCards();
   setupMarked();
   setupMermaid();
   handleRoute();
@@ -72,7 +73,9 @@ function setTheme(theme) {
   document.documentElement.setAttribute('data-theme', theme);
   localStorage.setItem('theme', theme);
   const btn = document.querySelector('.theme-btn');
-  if (btn) btn.textContent = theme === 'dark' ? '☀' : '🌙';
+  if (btn) btn.innerHTML = theme === 'dark'
+    ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>'
+    : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
   // hljs 主题通过 CSS [data-theme="dark"] 选择器自动切换，无需 JS 操作
   // 主题切换时重新 initialize mermaid，下次渲染时生效
   mermaid.initialize({ startOnLoad: false, theme: theme === 'dark' ? 'dark' : 'default', securityLevel: 'loose', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' });
@@ -125,6 +128,37 @@ function buildTOC() {
     });
     toc.appendChild(a);
   });
+}
+
+// ===== Build Welcome Cards =====
+function buildWelcomeCards() {
+  const el = document.getElementById('welcome-cards-placeholder');
+  if (!el) return;
+  el.innerHTML = `
+    <div class="welcome-card welcome-card-easy" onclick="loadEasyChapter(0)">
+      <div class="welcome-card-header">
+        <div class="welcome-card-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+        </div>
+        <div class="welcome-card-title">通俗版 · 人人看得懂</div>
+      </div>
+      <div class="welcome-card-desc">不需要看代码。用日常语言讲清楚 Claude Code 为什么这样设计，对你意味着什么。</div>
+      <div class="welcome-card-chapters">
+        ${EASY_CHAPTERS.map(ch => `<a class="welcome-ch" href="#${ch.id}"><span class="welcome-ch-num">${ch.num}</span><span class="welcome-ch-title">${ch.title}</span></a>`).join('')}
+      </div>
+    </div>
+    <div class="welcome-card welcome-card-tech" onclick="loadChapter(0)">
+      <div class="welcome-card-header">
+        <div class="welcome-card-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+        </div>
+        <div class="welcome-card-title">技术版 · 源码级解析</div>
+      </div>
+      <div class="welcome-card-desc">深入源码，分析每一个设计决策背后的工程权衡。适合想理解实现细节的开发者。</div>
+      <div class="welcome-card-chapters">
+        ${CHAPTERS.map(ch => `<a class="welcome-ch" href="#${ch.id}"><span class="welcome-ch-num">${ch.num}</span><span class="welcome-ch-title">${ch.title}</span></a>`).join('')}
+      </div>
+    </div>`;
 }
 
 // ===== Routing =====
@@ -461,44 +495,42 @@ function showWelcome() {
         <div class="welcome-badge">源码解析</div>
         <h1>深入 Claude Code</h1>
         <p class="welcome-subtitle">架构解析</p>
-        <p class="welcome-desc">从源码视角理解 Claude Code 的设计哲学与工程实现。<br>20 章，覆盖入口路由、QueryEngine、任务系统、工具链、提示词工程等核心模块。</p>
+        <p class="welcome-desc">从源码视角理解 Claude Code 的设计哲学与工程实现。覆盖入口路由、QueryEngine、任务系统、工具链、提示词工程等核心模块。</p>
         <div class="welcome-meta">
           <span>作者：startheart &amp; Gordon</span>
           <span>·</span>
-          <span>20 章节</span>
-          <span>·</span>
           <span>持续更新中</span>
         </div>
-        <div class="welcome-chapters">
-          ${CHAPTERS.map((ch, i) => `
-            <a class="welcome-ch" href="#${ch.id}">
-              <span class="welcome-ch-num">${ch.num}</span>
-              <span class="welcome-ch-title">${ch.title}</span>
-            </a>
-          `).join('')}
-        </div>
         <div class="welcome-actions">
-          <a class="welcome-start" href="#ch01">开始阅读 →</a>
+          <a class="welcome-start" href="#easy01">开始阅读 →</a>
           <a class="welcome-github" href="https://github.com/xuhengzhi75/claude-code-source" target="_blank" rel="noopener">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
             GitHub
           </a>
         </div>
         <div class="welcome-cards">
-          <div class="welcome-card welcome-card-easy" onclick="loadEasyChapter('README')">
-            <div class="welcome-card-icon">☕</div>
-            <div class="welcome-card-body">
+          <div class="welcome-card welcome-card-easy" onclick="loadEasyChapter(0)">
+            <div class="welcome-card-header">
+              <div class="welcome-card-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+              </div>
               <div class="welcome-card-title">通俗版 · 人人看得懂</div>
-              <div class="welcome-card-desc">不需要看代码。用日常语言讲清楚 Claude Code 为什么这样设计，对你意味着什么。</div>
-              <div class="welcome-card-meta">10 篇 · 每篇 5 分钟</div>
+            </div>
+            <div class="welcome-card-desc">不需要看代码。用日常语言讲清楚 Claude Code 为什么这样设计，对你意味着什么。</div>
+            <div class="welcome-card-chapters">
+              ${EASY_CHAPTERS.map(ch => `<a class="welcome-ch" href="#${ch.id}"><span class="welcome-ch-num">${ch.num}</span><span class="welcome-ch-title">${ch.title}</span></a>`).join('')}
             </div>
           </div>
-          <div class="welcome-card welcome-card-tech" onclick="loadChapter('README')">
-            <div class="welcome-card-icon">⚙️</div>
-            <div class="welcome-card-body">
+          <div class="welcome-card welcome-card-tech" onclick="loadChapter(0)">
+            <div class="welcome-card-header">
+              <div class="welcome-card-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+              </div>
               <div class="welcome-card-title">技术版 · 源码级解析</div>
-              <div class="welcome-card-desc">深入源码，分析每一个设计决策背后的工程权衡。适合想理解实现细节的开发者。</div>
-              <div class="welcome-card-meta">20 章 · 含源码引用</div>
+            </div>
+            <div class="welcome-card-desc">深入源码，分析每一个设计决策背后的工程权衡。适合想理解实现细节的开发者。</div>
+            <div class="welcome-card-chapters">
+              ${CHAPTERS.map(ch => `<a class="welcome-ch" href="#${ch.id}"><span class="welcome-ch-num">${ch.num}</span><span class="welcome-ch-title">${ch.title}</span></a>`).join('')}
             </div>
           </div>
         </div>
@@ -1079,6 +1111,13 @@ function openMermaidLightbox(el) {
   lb.querySelector('.mermaid-lb-zoom').appendChild(svgClone);
   document.body.appendChild(lb);
 
+  // ── 禁止 lightbox 打开期间页面级滚轮缩放 ─────────────────
+  // 浏览器的 Ctrl+Wheel 页面缩放发生在 document 层，
+  // 必须在 capture 阶段拦截才能阻止（lightbox 内的 wheel 已 preventDefault，
+  // 但冒泡到 document 后浏览器仍会处理 Ctrl+Wheel）
+  const blockPageZoom = (e) => { e.preventDefault(); };
+  document.addEventListener('wheel', blockPageZoom, { passive: false, capture: true });
+
   // ── 缩放 / 平移状态 ──────────────────────────────────────
   const zoomEl = lb.querySelector('.mermaid-lb-zoom');
   const scaleEl = lb.querySelector('.mermaid-lb-scale');
@@ -1217,6 +1256,7 @@ function openMermaidLightbox(el) {
 
   // ── 关闭逻辑 ─────────────────────────────────────────────
   const closeFn = () => {
+    document.removeEventListener('wheel', blockPageZoom, { capture: true });
     window.removeEventListener('mousemove', onMouseMove);
     window.removeEventListener('mouseup', onMouseUp);
     lb.classList.add('lb-closing');

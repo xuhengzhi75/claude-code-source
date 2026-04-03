@@ -187,32 +187,33 @@
             <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.751.751 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Z"/></svg>
             Star
           </a>
-          <button class="theme-btn" onclick="toggleTheme()" title="切换主题">☀</button>
+          <button class="theme-btn" onclick="toggleTheme()" title="切换主题">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          </button>
         </div>
       </header>
 
       <main class="content" id="content">
         <div class="content-inner" id="content-inner">
           <div class="welcome">
-            <h1>深入 Claude Code：架构解析</h1>
-            <p>从源码视角理解 Claude Code 的设计哲学与工程实现。</p>
-            <div class="welcome-cards">
-              <div class="welcome-card welcome-card-easy" onclick="loadEasyChapter('README')">
-                <div class="welcome-card-icon">☕</div>
-                <div class="welcome-card-body">
-                  <div class="welcome-card-title">通俗版 · 人人看得懂</div>
-                  <div class="welcome-card-desc">不需要看代码。用日常语言讲清楚 Claude Code 为什么这样设计，对你意味着什么。适合会用 AI 工具但不看源码的人。</div>
-                  <div class="welcome-card-meta">10 篇 · 每篇 5 分钟</div>
-                </div>
-              </div>
-              <div class="welcome-card welcome-card-tech" onclick="loadChapter('README')">
-                <div class="welcome-card-icon">⚙️</div>
-                <div class="welcome-card-body">
-                  <div class="welcome-card-title">技术版 · 源码级解析</div>
-                  <div class="welcome-card-desc">深入源码，分析每一个设计决策背后的工程权衡。适合想理解"代码里怎么实现的"的开发者。</div>
-                  <div class="welcome-card-meta">20 章 · 含源码引用</div>
-                </div>
-              </div>
+            <div class="welcome-badge">源码解析</div>
+            <h1>深入 Claude Code</h1>
+            <p class="welcome-subtitle">架构解析</p>
+            <p class="welcome-desc">从源码视角理解 Claude Code 的设计哲学与工程实现。覆盖入口路由、QueryEngine、任务系统、工具链、提示词工程等核心模块。</p>
+            <div class="welcome-meta">
+              <span>作者：startheart &amp; Gordon</span>
+              <span>·</span>
+              <span>持续更新中</span>
+            </div>
+            <div class="welcome-actions">
+              <a class="welcome-start" href="#easy01">开始阅读 →</a>
+              <a class="welcome-github" href="https://github.com/xuhengzhi75/claude-code-source" target="_blank" rel="noopener">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
+                GitHub
+              </a>
+            </div>
+            <div class="welcome-cards" id="welcome-cards-placeholder">
+              <!-- JS 初始化后由 buildWelcomeCards() 填充 -->
             </div>
           </div>
         </div>
