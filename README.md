@@ -57,7 +57,7 @@
 
 面向不看代码但对 AI 工具有好奇心的读者，讲的是"为什么要这么设计，这对你意味着什么"。结论与技术版一致，讲法不同。
 
-位于 [`docs/book/easy-chapters/`](docs/book/easy-chapters/)，分四个部分：你以为你在用聊天工具（其实不是）、它是怎么工作的、为什么别人抄不走、这对你意味着什么。
+源文件位于 [`docs/book/easy-chapters/`](docs/book/easy-chapters/)，并已接入在线 blog 阅读入口；站点侧内容位于 [`blog/easy-chapters/`](blog/easy-chapters/)。目前分四个部分：你以为你在用聊天工具（其实不是）、它是怎么工作的、为什么别人抄不走、这对你意味着什么。
 
 ---
 
@@ -73,7 +73,8 @@ claude-code-source/
 │   ├── Task.ts / tasks/          # 任务系统
 │   └── tools/ commands/ ...
 ├── docs/
-│   ├── book/chapters/            # 书稿正文（20章）
+│   ├── book/chapters/            # 技术版书稿正文（20章）
+│   ├── book/easy-chapters/       # 通俗版源文件（10篇）
 │   └── book-workspace/           # 写作工作区
 │       ├── architecture-notes/   # 源码深读笔记
 │       ├── planning/             # 进度与规划
@@ -82,6 +83,9 @@ claude-code-source/
 │       ├── inbox/                # 多 Agent 异步通信层
 │       └── excavation-tasks/     # 挖掘任务卡（章节素材补充）
 ├── blog/                         # 在线博客（GitHub Pages）
+│   └── easy-chapters/            # 通俗版站点内容
+├── scripts/                      # 校验脚本与辅助工具
+├── .github/workflows/            # 自动化流程
 ├── meta/                         # 方法论沉淀
 │   ├── articles/                 # 经验分享文章
 │   └── skills/                   # 可复用 Agent Skill
@@ -126,7 +130,7 @@ src/tasks/*                    sessionStorage / compact / memory
 
 直接访问在线博客：<https://xuhengzhi75.github.io/claude-code-source/>
 
-或在本地打开 [`docs/book/chapters/`](docs/book/chapters/) 下的 Markdown 文件。
+技术版正文位于 [`docs/book/chapters/`](docs/book/chapters/)，通俗版源文件位于 [`docs/book/easy-chapters/`](docs/book/easy-chapters/)；两者都已接入在线 blog 阅读入口。
 
 ### 想看源码
 
@@ -153,7 +157,15 @@ src/tasks/*                    sessionStorage / compact / memory
 
 ### 想了解写作方法论
 
-[`meta/articles/`](meta/articles/) 沉淀了这套"源码 → 书稿"工作流的完整经验，目前有 5 篇：如何从源码写成书、博客搭建踩坑、多 Agent 协作规范、挖掘任务卡体系、技术写作方法论。
+[`meta/articles/`](meta/articles/) 沉淀了这套"源码 → 书稿"工作流的完整经验，涵盖如何从源码写成书、博客搭建踩坑、多 Agent 协作规范、挖掘任务卡体系、技术写作方法论等主题。
+
+### 想本地预览或构建 blog
+
+可直接查看：
+
+- `blog/dev.sh` — 本地预览
+- `blog/build.sh` — 站点构建
+- `blog/deploy.sh` — 部署辅助脚本
 
 ---
 
