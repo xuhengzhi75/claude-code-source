@@ -666,6 +666,8 @@ body {
   justify-content: center;
   transition: background 0.15s, color 0.15s;
   line-height: 1;
+  z-index: 10; /* 确保在 lb-zoom 拖拽层之上 */
+  -webkit-tap-highlight-color: transparent;
 }
 
 .mermaid-lightbox-close:hover {

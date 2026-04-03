@@ -496,7 +496,6 @@ function showWelcome() {
   setTimeout(() => {
     contentInner.innerHTML = `
       <div class="welcome">
-        <div class="welcome-badge">源码解析</div>
         <h1>深入 Claude Code</h1>
         <p class="welcome-subtitle">架构解析</p>
         <p class="welcome-desc">从源码视角理解 Claude Code 的设计哲学与工程实现。覆盖入口路由、QueryEngine、任务系统、工具链、提示词工程等核心模块。</p>
