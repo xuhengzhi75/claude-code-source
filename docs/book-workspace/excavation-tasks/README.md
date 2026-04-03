@@ -21,10 +21,15 @@
 
 | 章节 | 文件 | 状态 |
 |------|------|------|
+| ch03/ch04 入口路由与装配 | `ch03-excavation.md` | ✅ 已完成 |
+| ch05/ch06 能力装配与 QueryEngine | `ch05-excavation.md` | ✅ 已完成 |
+| ch07/ch08/ch09 QueryLoop、任务系统、护城河 | `ch07-excavation.md` | ✅ 已完成 |
 | ch11 为什么干不了真活 | `ch11-excavation.md` | ✅ 已完成 |
 | ch12 该学什么 | `ch12-excavation.md` | ✅ 已完成 |
 | ch13 最小可用骨架 | `ch13-excavation.md` | ✅ 已完成 |
 | ch14 工具 | `ch14-excavation.md` | ✅ 已完成 |
+| ch15 提示词是工程产物 | `ch15-excavation.md` | ✅ 已完成 |
 | ch17 任务推进 | `ch17-excavation.md` | ✅ 已完成 |
 | ch18 恢复机制 | `ch18-excavation.md` | ✅ 已完成 |
+| ch19 提示词工程设计模式 | `ch19-excavation.md` | ✅ 已完成 |
 | ch20 权限系统 | `ch20-excavation.md` | ✅ 已完成 |
