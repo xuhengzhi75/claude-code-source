@@ -1372,6 +1372,63 @@ body {
 }
 
 /* ===== GitHub Star Button (topbar) ===== */
+/* ===== Share Button ===== */
+.share-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--text-secondary);
+  background: none;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12.5px;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: all 0.15s;
+  font-weight: 500;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.share-btn:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--active-bg);
+}
+
+.share-btn:active {
+  transform: scale(0.95);
+  transition: transform 0.08s ease;
+}
+
+/* 手机端只显示图标，不显示文字 */
+@media (max-width: 768px) {
+  .share-btn-label { display: none; }
+  .share-btn { padding: 4px 8px; }
+}
+
+/* 复制成功 toast */
+.share-toast {
+  position: fixed;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%) translateY(12px);
+  background: var(--text);
+  color: var(--bg);
+  font-size: 13px;
+  padding: 8px 18px;
+  border-radius: 20px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  z-index: 9999;
+  white-space: nowrap;
+}
+
+.share-toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
 .star-btn {
   display: inline-flex;
   align-items: center;
