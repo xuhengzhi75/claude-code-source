@@ -198,10 +198,12 @@ async function loadChapter(idx) {
   });
   document.querySelectorAll('.toc-item[data-mode="easy"]').forEach(el => el.classList.remove('active'));
 
-  // Scroll TOC item into view
-  const activeItem = document.querySelector('.toc-item.active');
-  if (activeItem) {
-    activeItem.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  // Scroll TOC item into view（手机端侧边栏关闭时跳过，打开时再滚动）
+  if (window.innerWidth > 768) {
+    const activeItem = document.querySelector('.toc-item.active');
+    if (activeItem) {
+      activeItem.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
   }
 
   // Update topbar title
@@ -276,10 +278,12 @@ async function loadEasyChapter(idx) {
   });
   document.querySelectorAll('.toc-item[data-mode="tech"]').forEach(el => el.classList.remove('active'));
 
-  // Scroll TOC item into view
-  const activeItem = document.querySelector('.toc-item.active');
-  if (activeItem) {
-    activeItem.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  // Scroll TOC item into view（手机端侧边栏关闭时跳过，打开时再滚动）
+  if (window.innerWidth > 768) {
+    const activeItem = document.querySelector('.toc-item.active');
+    if (activeItem) {
+      activeItem.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
   }
 
   // Update topbar title
@@ -609,15 +613,34 @@ function navigateNext() {
 }
 
 // ===== Mobile Sidebar =====
+let _sidebarScrollTop = 0; // 记住侧边栏滚动位置
+
 function toggleSidebar() {
   const sidebar = document.getElementById('sidebar');
   const overlay = document.getElementById('overlay');
+  const isOpening = !sidebar.classList.contains('open');
+
   sidebar.classList.toggle('open');
   overlay.classList.toggle('show');
+
+  if (isOpening) {
+    // 恢复滚动位置，并确保 active 条目可见
+    sidebar.scrollTop = _sidebarScrollTop;
+    // 等 transition 结束后再 scrollIntoView（250ms = transition 时长）
+    setTimeout(() => {
+      const activeItem = sidebar.querySelector('.toc-item.active');
+      if (activeItem) {
+        activeItem.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      }
+    }, 260);
+  }
 }
 
 function closeSidebar() {
-  document.getElementById('sidebar').classList.remove('open');
+  const sidebar = document.getElementById('sidebar');
+  // 关闭前保存滚动位置
+  _sidebarScrollTop = sidebar.scrollTop;
+  sidebar.classList.remove('open');
   document.getElementById('overlay').classList.remove('show');
 }
 
