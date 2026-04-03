@@ -330,7 +330,7 @@ body {
 }
 
 /* Welcome */
-.welcome { padding: 28px 0; }
+.welcome { padding: 8px 0; }
 
 .welcome h1 {
   font-family: 'Lora', 'Noto Serif SC', serif;
@@ -1133,7 +1133,7 @@ body {
 
 /* ===== Welcome Page ===== */
 .welcome {
-  padding: 28px 0 60px;
+  padding: 8px 0 60px;
   max-width: 680px;
 }
 
