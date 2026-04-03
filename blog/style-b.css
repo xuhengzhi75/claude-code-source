@@ -61,6 +61,11 @@
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+/* 消除 iOS Safari 默认 tap 高亮，用自定义 :active 替代 */
+a, button, [role="button"], .toc-item, .welcome-ch, .welcome-card {
+  -webkit-tap-highlight-color: transparent;
+}
+
 html { font-size: 16px; scroll-behavior: smooth; }
 
 /* ===== 文字选中色 ===== */
@@ -786,6 +791,13 @@ body {
   padding-left: 26px;
 }
 
+/* 手机端 toc-item 点击态 */
+.toc-item:active {
+  background: var(--hover-bg);
+  transform: scale(0.98);
+  transition: background 0s, transform 0.08s ease;
+}
+
 /* ===== Topbar title fade on chapter change ===== */
 #topbar-title {
   transition: opacity 0.2s ease;
@@ -799,6 +811,27 @@ body {
 
 .theme-btn:active {
   transform: scale(0.92);
+}
+
+/* welcome-start 按钮点击态 */
+.welcome-start:active {
+  transform: scale(0.97);
+  background: var(--accent-hover);
+  transition: transform 0.08s ease, background 0s;
+}
+
+/* welcome-ch 点击态 */
+.welcome-ch:active {
+  background: var(--hover-bg);
+  border-color: var(--border);
+  transform: scale(0.98);
+  transition: transform 0.08s ease, background 0s;
+}
+
+/* welcome-card 点击态 */
+.welcome-card:active {
+  transform: scale(0.99);
+  transition: transform 0.08s ease;
 }
 
 /* ===== Nav buttons ===== */
@@ -883,7 +916,7 @@ body {
   .md-body th, .md-body td { padding: 8px 12px; white-space: nowrap; }
 
   /* 欢迎页 */
-  .welcome { padding: 20px 0 40px; }
+  .welcome { padding: 20px 0 40px; max-width: 100%; }
   .welcome h1 { font-size: 26px; }
   .welcome-subtitle { font-size: 16px; }
   .welcome-desc { font-size: 14.5px; }
@@ -891,6 +924,14 @@ body {
   .welcome-ch { padding: 6px 10px; }
   .welcome-ch-title { font-size: 12.5px; }
   .welcome-actions { flex-wrap: wrap; }
+
+  /* 手机端卡片：单列，隐藏章节列表（太长） */
+  .welcome-cards { grid-template-columns: 1fr; gap: 12px; }
+  .welcome-card-chapters { display: none; }
+  .welcome-card { padding: 16px 18px; }
+
+  /* 手机端 toc-item active 不做 padding 位移（避免抖动） */
+  .toc-item.active { padding-left: 22px; }
 
   /* 章节骨架 */
   .chapter-skeleton { padding: 32px 0 60px; }
@@ -930,6 +971,7 @@ body {
   .topbar { padding: 0 12px; }
   .welcome h1 { font-size: 22px; }
   .welcome-chapters { grid-template-columns: 1fr; }
+  .welcome-meta { flex-wrap: wrap; gap: 4px; }
   .md-body pre { margin: 14px -14px; }
   .md-body h1 { font-size: 20px; }
   .md-body h2 { font-size: 17px; }
