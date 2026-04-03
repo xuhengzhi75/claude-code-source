@@ -89,12 +89,21 @@ function toggleTheme() {
 // ===== Share =====
 function sharePage() {
   const url = location.href;
-  const toast = document.getElementById('share-toast');
+  const title = document.title;
+  const text = '推荐一篇文章：' + title;
 
+  // 手机端优先用原生分享面板
+  if (navigator.share) {
+    navigator.share({ title, text, url }).catch(() => {});
+    return;
+  }
+
+  // PC 端：复制链接 + 显示 toast
+  const toast = document.getElementById('share-toast');
   navigator.clipboard.writeText(url).then(() => {
     showShareToast(toast, '已复制链接');
   }).catch(() => {
-    // 降级：execCommand
+    // clipboard API 不可用时降级：execCommand
     const ta = document.createElement('textarea');
     ta.value = url;
     ta.style.cssText = 'position:fixed;opacity:0';
