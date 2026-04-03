@@ -927,7 +927,7 @@ body {
 
   /* 手机端卡片：单列，隐藏章节列表（太长） */
   .welcome-cards { grid-template-columns: 1fr; gap: 12px; }
-  .welcome-card-chapters { display: none; }
+  /* welcome-card-chapters 隐藏规则已移至定义之后的 @media 块，此处无需重复 */
   .welcome-card { padding: 16px 18px; }
 
   /* 手机端 toc-item active 不做 padding 位移（避免抖动） */
@@ -1346,6 +1346,11 @@ body {
   border-top: 1px solid var(--border);
   padding-top: 10px;
   margin-top: 2px;
+}
+
+/* 手机端隐藏卡片内章节列表（必须在定义之后，否则被覆盖） */
+@media (max-width: 768px) {
+  .welcome-card-chapters { display: none; }
 }
 
 .welcome-card-chapters .welcome-ch {
