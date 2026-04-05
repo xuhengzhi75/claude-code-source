@@ -1,5 +1,18 @@
 /* eslint-disable custom-rules/no-process-exit */
 
+// setup.ts — 会话启动初始化编排器
+// 职责：在第一次 query 之前完成所有必要的环境准备工作，包括：
+//   1. Node.js 版本检查（>= 18）
+//   2. UDS 消息服务器启动（Mac/Linux，用于 inbox 注入）
+//   3. 终端备份恢复（iTerm2 / Terminal.app 中断恢复）
+//   4. setCwd() + hooks 快照捕获（必须在 getCommands() 之前）
+//   5. worktree 创建与 tmux 会话绑定（--worktree 模式）
+//   6. 后台任务注册（SessionMemory / contextCollapse / attributionHooks 等）
+//   7. 预取（getCommands / loadPluginHooks / apiKeyHelper）
+//   8. --dangerously-skip-permissions 安全门控（root/Docker 检查）
+//
+// 调用时机：main.tsx 在渲染 UI 之前 await setup()，
+// 确保所有环境变量、cwd、hooks 均已就绪。
 import { feature } from 'bun:bundle'
 import chalk from 'chalk'
 import {

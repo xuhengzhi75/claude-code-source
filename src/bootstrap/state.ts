@@ -1,3 +1,20 @@
+// bootstrap/state.ts — 进程级全局状态单例
+// 职责：集中管理 Claude Code 进程生命周期内的所有全局可变状态。
+// 这是整个应用的"状态根"，所有跨模块共享的运行时数据都在这里。
+//
+// 主要状态分类：
+//   - 会话标识：sessionId / projectRoot / originalCwd
+//   - Token 计数：totalInputTokens / totalOutputTokens / cacheTokens
+//   - 费用追踪：totalCostUSD / modelUsage（按模型分组）
+//   - 功能开关：sdkBetas / featureFlags
+//   - Hook 注册表：registeredHooks（SessionStart/Stop/PreTool/PostTool 等）
+//   - Agent 状态：agentColors / invokedSkills / kairosActive
+//   - OpenTelemetry：meterProvider / tracerProvider / loggerProvider
+//
+// 设计约束（见注释 "DO NOT ADD MORE STATE HERE"）：
+//   - 新增字段前必须确认是否真的需要全局可见
+//   - 全局状态会增加恢复、并发会话与测试隔离的成本
+//   - 优先考虑将状态下沉到具体模块或通过参数传递
 import type { BetaMessageStreamParams } from '@anthropic-ai/sdk/resources/beta/messages/messages.mjs'
 import type { Attributes, Meter, MetricOptions } from '@opentelemetry/api'
 import type { logs } from '@opentelemetry/api-logs'

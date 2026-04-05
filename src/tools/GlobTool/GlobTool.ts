@@ -1,3 +1,12 @@
+// GlobTool.ts — 文件路径 Glob 匹配工具
+// 职责：在工作目录中按 glob 模式（如 "**/*.ts"）查找匹配的文件路径列表。
+// 适用场景：快速定位文件、批量操作前的路径发现。
+//
+// 关键特性：
+//   - 支持标准 glob 语法（*, **, ?, [...]）
+//   - 结果按修改时间降序排列，最近修改的文件优先
+//   - 路径相对于 cwd 返回，便于后续工具调用
+//   - 超出结果数量上限时截断并提示
 import { z } from 'zod/v4'
 import type { ValidationResult } from '../../Tool.js'
 import { buildTool, type ToolDef } from '../../Tool.js'

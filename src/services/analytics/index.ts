@@ -1,3 +1,12 @@
+// services/analytics/index.ts — 埋点事件系统公共 API
+// 职责：提供 logEvent() 统一入口，将埋点事件路由到 Datadog 和内部 1P 日志系统。
+//
+// 架构设计：
+//   - 零依赖原则：本模块不 import 任何业务模块，避免循环依赖
+//   - 事件队列：attachAnalyticsSink() 调用前，所有事件缓存在内存队列中
+//   - Sink 路由：attachAnalyticsSink() 后，事件同时发往 Datadog + firstPartyEventLogger
+//   - 敏感数据保护：AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS 类型
+//     强制开发者显式声明字符串不含代码/文件路径等敏感信息
 /**
  * Analytics service - public API for event logging
  *

@@ -1,3 +1,10 @@
+// context.ts — 会话前缀上下文装配层
+// 职责：在每次会话开始前，将 git 状态、CLAUDE.md 内容、当前日期等
+// 静态信息收集并缓存为字典，供 system prompt 和 user prompt 注入使用。
+// 设计原则：
+//   - 所有函数均通过 lodash memoize 缓存，保证同一会话内只执行一次 I/O
+//   - 不承担 query 循环内的状态推进，仅做"一次性前置收集"
+//   - setSystemPromptInjection() 会主动清除缓存，用于 ant 内部 cache-break 调试
 import { feature } from 'bun:bundle'
 import memoize from 'lodash-es/memoize.js'
 import {

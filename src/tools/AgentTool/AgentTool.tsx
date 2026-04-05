@@ -1,3 +1,19 @@
+// AgentTool.tsx — 子 Agent 派发工具（核心并发编排器）
+// 职责：创建并管理子 Agent 实例，实现任务并行化和专业化分工。
+// 这是 Claude Code 多 Agent 架构的核心入口。
+//
+// 执行模式：
+//   - 本地模式（LocalAgentTask）：在同进程内 fork 子 Agent，共享内存
+//   - 远程模式（RemoteAgentTask）：通过 CCR 在远端执行，适合长时间任务
+//   - Teammate 模式：通过 spawnTeammate() 创建协作 Agent
+//
+// 关键特性：
+//   - 工具池隔离：assembleToolPool() 为每个子 Agent 构建独立工具集
+//   - 权限继承：子 Agent 继承父 Agent 的权限模式，可通过 permissionMode 覆盖
+//   - 进度追踪：createProgressTracker() 实时上报子 Agent 执行进度
+//   - Worktree 支持：createAgentWorktree() 为子 Agent 创建独立 git worktree
+//   - 异步生命周期：runAsyncAgentLifecycle() 管理 async Agent 的完整生命周期
+//   - Teleport：teleportToRemote() 支持将 Agent 迁移到远端环境执行
 import { feature } from 'bun:bundle';
 import * as React from 'react';
 import { buildTool, type ToolDef, toolMatchesName } from 'src/Tool.js';

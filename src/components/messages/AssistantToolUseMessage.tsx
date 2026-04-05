@@ -1,3 +1,16 @@
+// components/messages/AssistantToolUseMessage.tsx — 工具调用消息渲染组件
+// 职责：渲染 assistant 消息中的工具调用（tool_use block），
+// 包括工具名称、参数预览、执行状态和结果展示。
+//
+// 渲染状态：
+//   - 排队中（queued）：显示等待图标
+//   - 执行中（running）：显示加载动画 + 进度信息
+//   - 已完成（done）：显示工具结果摘要
+//   - 权限等待（permission）：显示权限请求 UI
+//
+// 工具 UI 委托：
+//   findToolByName() 找到对应工具后，调用工具自定义的 renderToolUseMessage()
+//   若工具未定义自定义 UI，则使用 FallbackPermissionRequest 通用渲染
 import { c as _c } from "react/compiler-runtime";
 import type { ToolUseBlockParam } from '@anthropic-ai/sdk/resources/index.mjs';
 import React, { useMemo } from 'react';

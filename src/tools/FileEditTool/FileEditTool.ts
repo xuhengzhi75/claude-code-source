@@ -1,3 +1,15 @@
+// FileEditTool.ts — 文件精确编辑工具（string_replace 语义）
+// 职责：通过 old_string → new_string 替换实现文件的精确局部修改，
+// 是 Claude Code 最常用的代码编辑工具。
+//
+// 关键特性：
+//   - 唯一性校验：old_string 必须在文件中唯一出现，否则拒绝执行
+//   - 行尾保留：readFileSyncWithMetadata() 检测并保留原始行尾（CRLF/LF）
+//   - 文件历史：fileHistoryTrackEdit() 记录每次编辑，支持 rewind
+//   - LSP 集成：编辑后通知 LSP 服务器刷新诊断（clearDeliveredDiagnosticsForFile）
+//   - Skill 发现：编辑文件时触发 discoverSkillDirsForPaths()
+//   - 团队密钥检查：checkTeamMemSecrets() 防止意外提交敏感信息
+//   - diff 统计：countLinesChanged() 追踪代码行变化量
 import { dirname, isAbsolute, sep } from 'path'
 import { logEvent } from 'src/services/analytics/index.js'
 import { getFeatureValue_CACHED_MAY_BE_STALE } from '../../services/analytics/growthbook.js'

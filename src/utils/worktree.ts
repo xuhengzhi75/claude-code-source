@@ -1,3 +1,17 @@
+// utils/worktree.ts — Git Worktree 管理工具
+// 职责：为 --worktree 模式和 AgentTool 创建/管理 git worktree，
+// 实现多 Agent 并行开发时的代码隔离。
+//
+// 核心操作：
+//   - createWorktreeForSession()：为会话创建新 worktree（含分支创建）
+//   - createAgentWorktree()：为子 Agent 创建临时 worktree
+//   - removeAgentWorktree()：子 Agent 完成后清理 worktree
+//   - hasWorktreeChanges()：检测 worktree 是否有未提交变更
+//   - generateTmuxSessionName()：生成 tmux 会话名（用于 --tmux 模式）
+//
+// Worktree 类型：
+//   - 会话 worktree（--worktree）：持久化，会话结束后保留
+//   - Agent worktree（AgentTool）：临时，Agent 完成后自动删除
 import { feature } from 'bun:bundle'
 import chalk from 'chalk'
 import { spawnSync } from 'child_process'

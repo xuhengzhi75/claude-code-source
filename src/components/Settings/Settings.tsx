@@ -1,3 +1,13 @@
+// components/Settings/Settings.tsx — 设置面板主组件
+// 职责：渲染 /settings 命令打开的设置面板，包含三个标签页：
+//   - Status：系统状态、API 连接、MCP 服务器状态
+//   - Config：配置项查看与修改
+//   - Usage：Token 用量和费用统计
+//
+// 交互：
+//   - Tab/Shift+Tab 切换标签页
+//   - Ctrl+C/D 关闭面板
+//   - 支持在 modal 和终端两种尺寸模式下渲染
 import { c as _c } from "react/compiler-runtime";
 // biome-ignore-all assist/source/organizeImports: ANT-ONLY import markers must not be reordered
 import * as React from 'react';

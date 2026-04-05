@@ -1,3 +1,14 @@
+// FileReadTool.ts — 文件读取工具
+// 职责：读取文件内容并返回给模型，支持文本、图片、PDF 三种格式。
+//
+// 关键特性：
+//   - 行号注入：addLineNumbers() 为文本文件每行添加行号，便于模型精确引用
+//   - 行范围读取：offset/limit 参数支持分段读取大文件
+//   - 图片处理：imageProcessor.ts 将图片转为 base64 content block
+//   - PDF 支持：超过阈值时提取文本，否则内联传输（PDF_EXTRACT_SIZE_THRESHOLD）
+//   - 目录列表：路径为目录时返回 ls 风格的文件树
+//   - Skill 发现：读取文件时触发 discoverSkillDirsForPaths()，自动激活相关 skill
+//   - Token 估算：roughTokenCountEstimationForFileType() 预估 token 消耗
 import type { Base64ImageSource } from '@anthropic-ai/sdk/resources/index.mjs'
 import { readdir, readFile as readFileAsync } from 'fs/promises'
 import * as path from 'path'

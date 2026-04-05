@@ -1,3 +1,14 @@
+// history.ts — 用户输入历史管理模块
+// 职责：将用户每次输入（含粘贴内容）持久化到 ~/.claude/history.jsonl，
+// 并提供 Up-arrow 历史回溯（getHistory）和 ctrl+r 搜索（getTimestampedHistory）。
+//
+// 关键设计：
+//   - 写入采用"先缓冲 pendingEntries，再异步 flush"策略，避免阻塞 UI 渲染
+//   - 大段粘贴文本（>1024 字节）通过 hash 引用存入独立 paste store，
+//     history.jsonl 只保存 hash，防止文件膨胀
+//   - 多会话并发写入通过文件锁（lockfile）保证原子性
+//   - removeLastFromHistory() 支持 Esc 撤销：先尝试从 pendingEntries 弹出，
+//     若已 flush 则加入 skippedTimestamps 跳过集合
 import { appendFile, writeFile } from 'fs/promises'
 import { join } from 'path'
 import { getProjectRoot, getSessionId } from './bootstrap/state.js'
