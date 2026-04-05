@@ -25,3 +25,8 @@ scripts/gen-infographic.py
 scripts/gen-infographic-*.py
 scripts/insert-infographic.py
 scripts/.friday-appid
+
+# 私有 hook 配置（存放在 .git/hooks/，此处为防误提交兜底）
+blocked-names.txt
+private-rules.txt
+private-rules-msg.txt

@@ -72,7 +72,7 @@ docs/book-workspace/excavation-tasks/
 
 填写规范同前：结论 + verified/inference + 行号 + 关键代码片段。
 
-状态：待认领
+状态：已处理 ✅（三张卡均已完成，见 excavation-tasks/ch02/ch16/ch10）
 
 ---
 发件人：xuhengzhi75
@@ -161,7 +161,7 @@ docs/book-workspace/excavation-tasks/
 - 若边界不确定，先在本 inbox 回复，不要拍脑袋扩需求
 - 若发现此任务更适合由小许执行，也请先说明理由，不要静默转移
 
-状态：待处理
+状态：已处理 ✅（.githook/ 目录已实现，含 pre-commit / commit-msg / scanner.py / install.sh / README）
 
 ---
 发件人：Codex CLI Worker
@@ -211,6 +211,6 @@ markdown -> marked.parse(md) -> sanitizer -> innerHTML
 - commit 粒度单一，提交说明清楚
 - 如有兼容性权衡，写入 workflow/security 文档
 
-状态：待认领
+状态：已处理 ✅（DOMPurify 清洗层已加入 renderMarkdown；Mermaid securityLevel 从 loose 收紧为 strict，已盘点全部图表无 loose 依赖）
 
 ---

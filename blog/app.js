@@ -78,7 +78,7 @@ function setTheme(theme) {
     : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
   // hljs 主题通过 CSS [data-theme="dark"] 选择器自动切换，无需 JS 操作
   // 主题切换时重新 initialize mermaid，下次渲染时生效
-  mermaid.initialize({ startOnLoad: false, theme: theme === 'dark' ? 'dark' : 'default', securityLevel: 'loose', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' });
+  mermaid.initialize({ startOnLoad: false, theme: theme === 'dark' ? 'dark' : 'default', securityLevel: 'strict', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' });
 }
 
 function toggleTheme() {
@@ -482,13 +482,29 @@ function setupMermaid() {
   mermaid.initialize({
     startOnLoad: false,
     theme: document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default',
-    securityLevel: 'loose',
+    // securityLevel 从 'loose' 收紧为 'strict'。
+    // 已盘点全部图表（ch01/ch03/ch06/ch07/ch08/ch20），均为纯 flowchart/sequenceDiagram，
+    // 无 click 事件、href 链接、内联 HTML，不依赖 loose 模式。
+    // strict 模式下 SVG 输出经过 DOMPurify 清洗，消除 XSS 风险。
+    securityLevel: 'strict',
     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
   });
 }
 
 function renderMarkdown(md, container) {
-  const html = marked.parse(md);
+  const rawHtml = marked.parse(md);
+  // DOMPurify 清洗层：防止 markdown 内容中的恶意 HTML/XSS 注入。
+  // 保留代码高亮所需的 class 属性，允许 data-* 属性（源码锚点用）。
+  // 不允许 script、on* 事件属性、javascript: 协议。
+  const html = (typeof DOMPurify !== 'undefined')
+    ? DOMPurify.sanitize(rawHtml, {
+        ALLOWED_ATTR: ['class', 'id', 'href', 'src', 'alt', 'title',
+                       'data-file', 'data-line', 'data-highlighted',
+                       'target', 'rel', 'width', 'height', 'style'],
+        FORBID_TAGS: ['script', 'style', 'iframe', 'object', 'embed'],
+        FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover'],
+      })
+    : rawHtml; // DOMPurify 未加载时降级（不阻断渲染）
   container.innerHTML = `<div class="md-body">${html}</div>`;
 
   // Mermaid — 不在这里重复 initialize（会重置内部状态导致 .then() 不触发）
