@@ -221,6 +221,10 @@ export type {
 } from './types/command.js'
 export { getCommandName, isCommandEnabled } from './types/command.js'
 
+// INTERNAL_ONLY_COMMANDS：仅在 ant（内部）构建中可见的命令集合。
+// 这些命令在外部发布版本中通过构建时 DCE（Dead Code Elimination）被移除，
+// 不会出现在用户可见的命令列表中。
+// 典型用途：内部调试工具、实验性功能、CI 辅助命令等。
 // Commands that get eliminated from the external build
 export const INTERNAL_ONLY_COMMANDS = [
   backfillSessions,
@@ -478,6 +482,16 @@ const loadAllCommands = memoize(async (cwd: string): Promise<Command[]> => {
  * memoized, but availability and isEnabled checks run fresh every call so
  * auth changes (e.g. /login) take effect immediately.
  */
+// getCommands() 是命令集合的对外入口，供 REPL/SDK/QueryEngine 调用。
+// 命令来源优先级（从高到低）：
+//   1. bundledSkills    — 内置 skill（随二进制打包）
+//   2. builtinPluginSkills — 内置插件提供的 skill
+//   3. skillDirCommands — 用户 ~/.claude/skills/ 目录下的 skill
+//   4. workflowCommands — WORKFLOW_SCRIPTS 特性下的工作流命令
+//   5. pluginCommands   — 已安装插件提供的命令
+//   6. pluginSkills     — 已安装插件提供的 skill
+//   7. COMMANDS()       — 内建 slash 命令（/clear /compact /model 等）
+// 动态 skill（文件操作中发现的）在最后插入，位于内建命令之前。
 export async function getCommands(cwd: string): Promise<Command[]> {
   const allCommands = await loadAllCommands(cwd)
 

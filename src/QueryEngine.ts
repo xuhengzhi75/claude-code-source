@@ -127,6 +127,21 @@ const snipProjection = feature('HISTORY_SNIP')
   : null
 /* eslint-enable @typescript-eslint/no-require-imports */
 
+// QueryEngineConfig：QueryEngine 的完整配置契约。
+// 关键字段说明：
+//   cwd              — 工作目录，每次 submitMessage 时通过 setCwd 同步到 Shell
+//   tools            — 本次会话可用的工具集（含 MCP 工具）
+//   commands         — 可用的 slash 命令列表
+//   canUseTool       — 工具权限检查回调（QueryEngine 会包装它以追踪 denial）
+//   getAppState/setAppState — AppState 读写接口（工具执行时可更新权限/文件历史等）
+//   initialMessages  — 会话初始消息（用于 --resume 场景）
+//   readFileCache    — 文件状态缓存（跨 turn 持久化，避免重复读取）
+//   customSystemPrompt / appendSystemPrompt — 自定义 system prompt 注入点
+//   maxTurns         — agentic 循环硬上限（透传给 query()）
+//   maxBudgetUsd     — 费用预算上限（超出后终止）
+//   taskBudget       — API 级 token 预算（透传给 query()）
+//   jsonSchema       — 结构化输出 schema（触发 SyntheticOutputTool 注册）
+//   snipReplay       — HISTORY_SNIP 特性的 snip 边界回调（SDK 专用）
 export type QueryEngineConfig = {
   cwd: string
   tools: Tools
@@ -185,6 +200,16 @@ export type QueryEngineConfig = {
  * starts a new turn on the same session timeline, so message history,
  * file-state cache, and accounting persist across turns.
  */
+// QueryEngine 是"会话编排层"，负责跨 turn 的持久化与 SDK 事件映射。
+// 架构分层：
+//   QueryEngine（会话级）→ submitMessage（turn 级）→ query()（推理-工具循环）
+// 私有字段说明：
+//   mutableMessages    — 会话消息历史，跨 turn 累积（含 compact 边界）
+//   abortController    — 会话级中断控制器，interrupt() 触发后所有工具调用中止
+//   permissionDenials  — 本会话所有被拒绝的工具调用记录（SDK result 中上报）
+//   totalUsage         — 累计 token 用量（跨 turn 累加）
+//   readFileState      — 文件状态缓存（跨 turn 持久化，避免重复读取）
+//   discoveredSkillNames — turn 级 skill 发现追踪（每次 submitMessage 清空）
 export class QueryEngine {
   private config: QueryEngineConfig
   private mutableMessages: Message[]
@@ -1198,6 +1223,14 @@ export class QueryEngine {
  *
  * Convenience wrapper around QueryEngine for one-shot usage.
  */
+// ask() 是 QueryEngine 的单次调用便捷封装，适用于：
+//   - 子 agent 调用（AgentTool 内部）
+//   - 后台任务（compact / session_memory / task_summary 等）
+//   - 测试场景（不需要维护多轮会话状态）
+// 与直接使用 QueryEngine 的区别：
+//   - 每次调用创建新的 QueryEngine 实例（无跨 turn 状态）
+//   - 通过 getReadFileCache/setReadFileCache 回调在调用方与 engine 之间同步文件缓存
+//   - HISTORY_SNIP 特性通过 snipReplay 回调注入（保持 QueryEngine 对特性无感知）
 export async function* ask({
   commands,
   prompt,

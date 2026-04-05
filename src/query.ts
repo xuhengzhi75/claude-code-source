@@ -178,6 +178,18 @@ function isWithheldMaxOutputTokens(
   return msg?.type === 'assistant' && msg.apiError === 'max_output_tokens'
 }
 
+// QueryParams：query() 函数的完整入参契约。
+// - messages：当前会话的消息历史（含 compact 边界标记）
+// - systemPrompt / userContext / systemContext：三层 prompt 组装原料
+// - canUseTool：运行时权限检查回调，决定某工具是否可被调用
+// - toolUseContext：工具执行上下文（工具列表、abort 信号、AppState 访问器等）
+// - fallbackModel：主模型不可用时的备用模型（如 FallbackTriggeredError 触发）
+// - querySource：调用来源标识（repl_main_thread / agent:xxx / compact 等），
+//   影响 compact 跳过逻辑、持久化策略和 subagent 路由
+// - maxTurns：agentic 循环的硬上限，超出后 yield max_turns_reached 并终止
+// - taskBudget：API 级别的 token 预算（与 tokenBudget 续跑特性不同），
+//   跨 compact 边界累计扣减
+// - deps：可注入的依赖（测试时替换 callModel / autocompact 等）
 export type QueryParams = {
   messages: Message[]
   systemPrompt: SystemPrompt
@@ -203,6 +215,20 @@ export type QueryParams = {
 // Mutable state carried between loop iterations. Keep this shape focused on
 // runtime continuity concerns only: message evolution, compaction/recovery
 // bookkeeping, tool-result summarization, and turn-to-turn transition cause.
+// State 是 queryLoop while(true) 状态机的"帧"：
+// 每次 continue 都整体替换 state，而不是逐字段更新，
+// 这样新增恢复路径时不会遗漏字段初始化，也便于测试断言 transition.reason。
+// 字段说明：
+//   messages          — 当前迭代的消息历史（含 compact 后的 postCompactMessages）
+//   toolUseContext    — 工具执行上下文，可在工具调用后被 update.newContext 替换
+//   autoCompactTracking — compact 轮次计数器，用于 post-compact 分析
+//   maxOutputTokensRecoveryCount — max_output_tokens 多轮恢复计数（上限 3）
+//   hasAttemptedReactiveCompact  — 防止 reactive compact 死循环的单次标志
+//   maxOutputTokensOverride      — 升级重试时临时覆盖的 max_tokens 值
+//   pendingToolUseSummary        — 上一轮工具调用的 Haiku 摘要 Promise
+//   stopHookActive               — stop hook 是否已触发过（防止重复注入）
+//   turnCount                    — 当前 agentic turn 计数（用于 maxTurns 检查）
+//   transition                   — 本次 continue 的原因（测试可断言恢复路径）
 type State = {
   messages: Message[]
   toolUseContext: ToolUseContext
@@ -218,6 +244,12 @@ type State = {
   transition: Continue | undefined
 }
 
+// query() 是对外暴露的公共入口（AsyncGenerator）。
+// 它本身只做两件事：
+//   1. 委托给 queryLoop 执行真正的状态机逻辑
+//   2. 在 queryLoop 正常返回后，通知所有已消费命令的生命周期为 'completed'
+// 注意：throw / .return() 路径不会执行 notifyCommandLifecycle，
+// 这与 print.ts 的 drainCommandQueue 保持一致的"非对称信号"语义。
 export async function* query(
   params: QueryParams,
 ): AsyncGenerator<
@@ -240,6 +272,20 @@ export async function* query(
   return terminal
 }
 
+// queryLoop() 是 agentic turn 的核心状态机，采用 while(true) + 显式 continue/return 风格。
+// 每次迭代代表一次"模型调用 → 工具执行 → 附件注入"的完整循环。
+// 六条 continue 路径（恢复/续跑）：
+//   1. collapse_drain_retry      — 上下文折叠后重试（prompt-too-long 恢复第一阶段）
+//   2. reactive_compact_retry    — reactive compact 后重试（prompt-too-long 恢复第二阶段）
+//   3. max_output_tokens_escalate — 升级 max_tokens 到 64k 重试（单次）
+//   4. max_output_tokens_recovery — 注入续写提示后重试（最多 3 次）
+//   5. stop_hook_blocking        — stop hook 注入阻断消息后重试
+//   6. token_budget_continuation — token 预算续跑（注入 nudge 消息后重试）
+//   7. next_turn                 — 正常工具调用后进入下一轮
+// 四条 return 路径（终态）：
+//   blocking_limit / prompt_too_long / image_error / model_error /
+//   aborted_streaming / aborted_tools / hook_stopped / stop_hook_prevented /
+//   max_turns / completed
 async function* queryLoop(
   params: QueryParams,
   consumedCommandUuids: string[],
@@ -1371,6 +1417,12 @@ async function* queryLoop(
       return { reason: 'completed' }
     }
 
+    // needsFollowUp=true 分支：本轮 assistant 产生了 tool_use，需要执行工具并继续。
+    // 工具执行有两种模式：
+    //   - streamingToolExecutor：流式并发执行（模型流式输出时即开始执行工具）
+    //   - runTools：批量顺序执行（等模型输出完毕后统一执行）
+    // 执行完毕后，toolResults 收集所有 tool_result 消息，
+    // updatedToolUseContext 可能被工具执行结果更新（如 AgentTool 注册新 agent）。
     let shouldPreventContinuation = false
     let updatedToolUseContext = toolUseContext
 
@@ -1726,6 +1778,10 @@ async function* queryLoop(
       return { reason: 'max_turns', turnCount: nextTurnCount }
     }
 
+    // next_turn：正常工具调用完成后，将本轮所有消息合并进 state，
+    // 重置恢复计数器（maxOutputTokensRecoveryCount / hasAttemptedReactiveCompact），
+    // 携带 nextPendingToolUseSummary（Haiku 摘要 Promise）进入下一迭代。
+    // 这是 while(true) 循环中唯一的"正常续跑"路径。
     queryCheckpoint('query_recursive_call')
     const next: State = {
       messages: [...messagesForQuery, ...assistantMessages, ...toolResults],

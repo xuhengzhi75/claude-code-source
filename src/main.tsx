@@ -385,6 +385,18 @@ function prefetchSystemContextIfSafe(): void {
  * spawning during the critical startup path.
  * Call this after the REPL has been rendered.
  */
+// startDeferredPrefetches() 是"首次渲染后"的延迟预取入口。
+// 设计原则：所有不影响首屏渲染的初始化工作都推迟到这里，
+// 以减少启动关键路径上的事件循环竞争和子进程 spawn 开销。
+// 包含的预取项：
+//   - initUser / getUserContext：用户信息（用于 system prompt 组装）
+//   - prefetchSystemContextIfSafe：git 状态等系统上下文（需信任后才安全执行）
+//   - getRelevantTips：启动提示（非阻塞）
+//   - AWS/GCP 凭证预取（Bedrock/Vertex 模式）
+//   - countFilesRoundedRg：文件数量统计（用于 context 提示）
+//   - initializeAnalyticsGates / prefetchOfficialMcpUrls / refreshModelCapabilities
+//   - settingsChangeDetector / skillChangeDetector：文件变更监听
+// 注意：--bare 模式跳过所有预取（脚本调用无需 REPL 响应性优化）。
 export function startDeferredPrefetches(): void {
   // This function runs after first render, so it doesn't block the initial paint.
   // However, the spawned processes and async work still contend for CPU and event
@@ -582,6 +594,18 @@ const _pendingSSH: PendingSSH | undefined = feature('SSH_REMOTE') ? {
   local: false,
   extraCliArgs: []
 } : undefined;
+// main() 是完整 CLI 的主入口，由 cli.tsx 在所有 fast-path 均未命中时调用。
+// 职责概览（按执行顺序）：
+//   1. 安全初始化（Windows PATH 防劫持、SIGINT 处理）
+//   2. 早期 argv 解析（deep link / cc:// URL / SSH / assistant 等特殊模式）
+//   3. 配置加载（settings / migrations / MDM / 权限模式）
+//   4. 认证与信任对话框（首次运行时）
+//   5. MCP 服务器初始化（并行连接）
+//   6. 工具/命令集合装配
+//   7. 分支到交互模式（REPL）或非交互模式（-p/--print）
+//   8. 延迟预取（startDeferredPrefetches，在首次渲染后触发）
+// 注意：main.tsx 是整个代码库中最大的文件（4600+ 行），
+// 包含了大量启动逻辑、CLI 参数解析和模式分支。
 export async function main() {
   profileCheckpoint('main_function_start');
 
