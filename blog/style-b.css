@@ -454,6 +454,45 @@ body {
   letter-spacing: 0.06em;
 }
 
+/* 代码块复制按钮 */
+.code-copy-btn {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  color: var(--text-muted);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s, color 0.15s, background 0.15s, border-color 0.15s;
+}
+
+pre:hover .code-copy-btn {
+  opacity: 1;
+}
+
+.code-copy-btn:hover {
+  color: var(--text);
+  background: var(--bg-secondary);
+  border-color: var(--border);
+}
+
+.code-copy-btn.copied {
+  color: #22863a;
+  opacity: 1;
+}
+
+[data-theme="dark"] .code-copy-btn.copied {
+  color: #aff5b4;
+}
+
 .md-body blockquote {
   border-left: 3px solid var(--accent);
   margin: 24px 0;
@@ -1456,7 +1495,7 @@ body {
 }
 
 .code-block .code-lang-label {
-  right: 14px;
+  right: 44px; /* 为复制按钮留出空间 */
   top: 10px;
 }
 
