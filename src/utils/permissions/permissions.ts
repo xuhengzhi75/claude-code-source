@@ -1,3 +1,20 @@
+// utils/permissions/permissions.ts — 工具权限决策引擎
+// 职责：决定每次工具调用是否需要用户确认，以及如何处理权限请求。
+// 这是 Claude Code 安全模型的核心实现。
+//
+// 权限决策流程：
+//   1. 检查 permissionMode（auto/ask/bypassPermissions）
+//   2. 匹配 allowedTools/deniedTools 规则（支持 glob 模式）
+//   3. 沙箱检测：shouldUseSandbox() 决定是否在沙箱中执行
+//   4. 用户交互：需要确认时通过 CanUseToolFn 弹出权限对话框
+//
+// 权限规则优先级（从高到低）：
+//   bypassPermissions > 沙箱自动允许 > deniedTools 拒绝 > allowedTools 允许 > 询问用户
+//
+// 关键类型：
+//   - PermissionDecision：allow / deny / ask 三种决策
+//   - PermissionResult：包含决策 + 原因 + 规则来源
+//   - PermissionMode：auto（默认）/ ask（总是询问）/ bypassPermissions（跳过所有检查）
 import { feature } from 'bun:bundle'
 import { APIUserAbortError } from '@anthropic-ai/sdk'
 import type { CanUseToolFn } from '../../hooks/useCanUseTool.js'

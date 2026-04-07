@@ -1,3 +1,18 @@
+// state/AppStateStore.ts — 应用全局状态类型定义与默认值
+// 职责：定义 AppState 接口（所有 UI 可见状态的完整类型），
+// 以及 getDefaultAppState() 初始值工厂函数。
+//
+// AppState 包含的主要状态域：
+//   - messages：当前会话的消息历史（Message[]）
+//   - tools / toolPermissionContext：当前可用工具集和权限上下文
+//   - permissionMode：auto / ask / bypassPermissions
+//   - isLoading / isStreaming：API 调用状态
+//   - mcpServers / mcpResources：MCP 服务器连接状态
+//   - taskStates：后台任务（Agent/Shell）状态映射
+//   - todoList：当前 Todo 列表
+//   - settings：用户设置（从 config.json 加载）
+//   - speculationState：预测性 UI 状态（打字时预渲染）
+//   - attributionState：代码归因追踪状态
 import type { Notification } from 'src/context/notifications.js'
 import type { TodoList } from 'src/utils/todo/types.js'
 import type { BridgePermissionCallbacks } from '../bridge/bridgePermissionCallbacks.js'

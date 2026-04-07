@@ -1,3 +1,14 @@
+// FileWriteTool.ts — 文件全量写入工具
+// 职责：将完整内容写入文件（新建或覆盖），与 FileEditTool 的局部替换互补。
+// 适用场景：创建新文件、完全重写文件内容。
+//
+// 关键特性：
+//   - 目录自动创建：写入前确保父目录存在（mkdir -p 语义）
+//   - 行尾检测：保留或推断文件行尾风格（CRLF/LF）
+//   - LSP 集成：写入后通知 LSP 服务器刷新诊断
+//   - 文件历史：fileHistoryTrackEdit() 记录写入操作，支持 rewind
+//   - 团队密钥检查：checkTeamMemSecrets() 防止写入敏感信息
+//   - Skill 发现：写入文件时触发 discoverSkillDirsForPaths()
 import { dirname, sep } from 'path'
 import { logEvent } from 'src/services/analytics/index.js'
 import { z } from 'zod/v4'

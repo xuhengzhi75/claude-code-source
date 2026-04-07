@@ -1,3 +1,16 @@
+// BashTool.tsx — Bash 命令执行工具
+// 职责：在用户工作目录中执行 shell 命令，是 Claude Code 最核心的工具之一。
+//
+// 关键特性：
+//   - 权限检查：bashToolHasPermission() 对比 allowedTools/deniedTools 规则
+//   - 沙箱支持：shouldUseSandbox() 决定是否通过 SandboxManager 隔离执行
+//   - 超时控制：默认 120s，最大 600s，可通过 timeout 参数覆盖
+//   - 后台任务：长时间命令（>15s）在 assistant 模式下自动转为后台 LocalShellTask
+//   - 输出截断：超出 TOOL_SUMMARY_MAX_LENGTH 的输出通过 toolResultStorage 存储，
+//     返回预览 + 文件路径引用
+//   - 图片输出：检测 base64 图片输出并转为 image content block
+//   - cd 追踪：commandHasAnyCd() 检测 cd 命令，更新 cwd 状态
+//   - 安全解析：parseForSecurity() 检测危险命令模式（rm -rf / 等）
 import { feature } from 'bun:bundle';
 import type { ToolResultBlockParam } from '@anthropic-ai/sdk/resources/index.mjs';
 import { copyFile, stat as fsStat, truncate as fsTruncate, link } from 'fs/promises';

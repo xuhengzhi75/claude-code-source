@@ -1,3 +1,11 @@
+// ink.ts — Ink 渲染层统一入口（含主题注入）
+// 职责：对外暴露 render() 和 createRoot() 两个渲染函数，
+// 自动将所有渲染树包裹在 ThemeProvider 中，
+// 使 ThemedBox/ThemedText 等主题组件无需每个调用点手动挂载 Provider。
+//
+// 同时作为 Ink 生态组件（Box/Text/Button/Link 等）和事件系统
+// （InputEvent/ClickEvent/EventEmitter）的统一 re-export 入口，
+// 避免业务代码直接依赖 ink 内部路径。
 import { createElement, type ReactNode } from 'react'
 import { ThemeProvider } from './components/design-system/ThemeProvider.js'
 import inkRender, {

@@ -1,3 +1,13 @@
+// utils/tokens.ts — Token 用量提取与估算工具
+// 职责：从消息对象中提取 token 用量信息，并提供上下文窗口使用率计算。
+//
+// 核心函数：
+//   - getTokenUsage()：从 AssistantMessage 中提取 BetaUsage（含 cache 统计）
+//   - getContextWindowUsage()：计算当前消息列表的 token 总量（用于压缩触发判断）
+//   - getAssistantMessageContentLength()：估算 assistant 消息的 token 数
+//
+// 注意：合成消息（SYNTHETIC_MESSAGES）不计入 token 统计，
+// 避免内部系统消息污染用量数据。
 import type { BetaUsage as Usage } from '@anthropic-ai/sdk/resources/beta/messages/messages.mjs'
 import { roughTokenCountEstimationForMessages } from '../services/tokenEstimation.js'
 import type { AssistantMessage, Message } from '../types/message.js'

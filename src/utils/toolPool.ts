@@ -1,3 +1,11 @@
+// utils/toolPool.ts — 工具池过滤与合并工具
+// 职责：提供工具集合的过滤、合并、去重操作，
+// 是 tools.ts 中 assembleToolPool() 的底层支撑。
+//
+// 核心函数：
+//   - filterToolsForCoordinatorMode()：coordinator 模式下只保留允许的工具子集
+//   - mergeAndFilterTools()：合并 base 工具 + MCP 工具，去重并按模式过滤
+//   - isPrActivitySubscriptionTool()：识别 PR 活动订阅工具（coordinator 专用）
 import { feature } from 'bun:bundle'
 import partition from 'lodash-es/partition.js'
 import uniqBy from 'lodash-es/uniqBy.js'

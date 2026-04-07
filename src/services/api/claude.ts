@@ -1,3 +1,19 @@
+// services/api/claude.ts — Anthropic API 调用核心层
+// 职责：封装所有与 Anthropic Claude API 的通信，是 query.ts 状态机的底层 I/O 驱动。
+//
+// 核心函数：
+//   - queryModelWithStreaming()：流式调用 API，逐块处理 SSE 事件
+//   - queryModelWithRetry()：带指数退避重试的 API 调用包装器
+//   - buildApiRequest()：将内部消息格式转换为 API 请求参数
+//
+// 关键特性：
+//   - 流式处理：通过 AsyncGenerator 逐块 yield content block，
+//     支持 thinking / text / tool_use 三种 block 类型
+//   - 重试策略：429/529 限流、网络错误自动重试，最多 3 次
+//   - 多 Provider 支持：getAPIProvider() 路由到 Anthropic / Bedrock / Vertex
+//   - Token 计数：每次响应后更新 bootstrap/state 中的 token 计数器
+//   - 提示缓存：自动注入 cache_control 标记，优化长对话成本
+//   - 工具序列化：将 Tool[] 转换为 API 的 BetaToolUnion[] 格式
 import type {
   BetaContentBlock,
   BetaContentBlockParam,

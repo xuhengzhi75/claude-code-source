@@ -327,6 +327,12 @@ export function filterToolProgressMessages(
   )
 }
 
+// ToolResult<T>：工具调用的返回值结构。
+// - data：工具的主要输出，由 mapToolResultToToolResultBlockParam 序列化为 API 消息
+// - newMessages：工具执行过程中产生的额外消息（如 AgentTool 的子 agent 消息流）
+// - contextModifier：仅对非并发安全工具有效，用于在工具执行后更新 ToolUseContext
+//   （如 AgentTool 注册新 agent、EnterPlanMode 切换权限模式）
+// - mcpMeta：MCP 协议元数据透传（structuredContent / _meta），供 SDK 消费者使用
 export type ToolResult<T> = {
   data: T
   newMessages?: (
@@ -798,6 +804,12 @@ type ToolDefaults = typeof TOOL_DEFAULTS
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyToolDef = ToolDef<any, any, any>
 
+// buildTool() 是所有工具定义的工厂函数。
+// 使用方式：export const MyTool = buildTool({ name: 'my_tool', ... })
+// 它做两件事：
+//   1. 将 TOOL_DEFAULTS 中的安全兜底值合并进工具定义
+//   2. 将 userFacingName 默认设为工具名（可被具体工具覆盖）
+// 所有 60+ 个工具都通过 buildTool 导出，确保默认值集中管理、类型安全。
 export function buildTool<D extends AnyToolDef>(def: D): BuiltTool<D> {
   // The runtime spread is straightforward; the `as` bridges the gap between
   // the structural-any constraint and the precise BuiltTool<D> return. The

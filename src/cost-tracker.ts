@@ -1,3 +1,15 @@
+// cost-tracker.ts — 会话费用与 Token 用量追踪器
+// 职责：
+//   - 累计每次 API 调用的 token 用量（input/output/cache read/cache write）和 USD 费用
+//   - 按模型分组统计，支持多模型混用场景（如 advisor 子模型）
+//   - 将费用快照持久化到 project config（lastCost/lastSessionId），
+//     供下次 resume 时恢复（restoreCostStateForSession）
+//   - formatTotalCost() 生成会话结束时的费用摘要字符串
+//
+// 数据流：
+//   addToTotalSessionCost() <- query.ts 每次 API 响应后调用
+//   saveCurrentSessionCosts() <- costHook.ts 在 process.exit 时调用
+//   restoreCostStateForSession() <- main.tsx resume 路径调用
 import type { BetaUsage as Usage } from '@anthropic-ai/sdk/resources/beta/messages/messages.mjs'
 import chalk from 'chalk'
 import {

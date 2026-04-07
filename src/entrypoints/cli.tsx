@@ -30,6 +30,27 @@ if (feature('ABLATION_BASELINE') && process.env.CLAUDE_CODE_ABLATION_BASELINE) {
  * All imports are dynamic to minimize module evaluation for fast paths.
  * Fast-path for --version has zero imports beyond this file.
  */
+// cli.tsx 是 Claude Code 的 bootstrap 入口（最先被执行的文件）。
+// 设计目标：在进入完整 CLI 之前，尽可能早地分流特殊模式，
+// 避免加载不必要的模块，保护冷启动延迟和内存占用。
+//
+// Fast-path 分流顺序（从上到下，命中即返回）：
+//   1. --version / -v / -V     — 零模块加载，直接打印版本号
+//   2. --dump-system-prompt    — ant 内部专用，输出 system prompt 后退出
+//   3. --claude-in-chrome-mcp  — Chrome 扩展 MCP 服务器模式
+//   4. --chrome-native-host    — Chrome 原生消息主机模式
+//   5. --computer-use-mcp      — 计算机使用 MCP 服务器模式（CHICAGO_MCP）
+//   6. --daemon-worker         — daemon 工作进程（DAEMON 特性）
+//   7. remote-control / rc     — 远程控制桥接模式（BRIDGE_MODE）
+//   8. daemon                  — 长运行 supervisor（DAEMON 特性）
+//   9. ps/logs/attach/kill/--bg — 后台会话管理（BG_SESSIONS）
+//  10. new/list/reply           — 模板任务命令（TEMPLATES）
+//  11. environment-runner       — 无头 BYOC 运行器
+//  12. self-hosted-runner       — 自托管运行器
+//  13. --worktree --tmux        — tmux worktree 快速路径
+//  14. --update / --upgrade     — 重定向到 update 子命令
+//  15. --bare                   — 设置 CLAUDE_CODE_SIMPLE 环境变量
+//  16. （默认）                  — 加载完整 CLI（main.tsx）
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
 

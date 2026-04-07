@@ -1,3 +1,20 @@
+// state/AppState.tsx — React 应用状态 Provider 与 Hooks
+// 职责：将 AppStateStore（纯 JS 状态机）桥接到 React 组件树，
+// 提供 useAppState() / useSetAppState() 等 hooks 供组件消费。
+//
+// 架构：
+//   - AppStateStore（store.ts）：纯 JS 可观察状态容器，不依赖 React
+//   - AppState.tsx：React Provider + useSyncExternalStore 桥接层
+//   - AppStoreContext：全局 Context，传递 store 实例
+//
+// 关键 hooks：
+//   - useAppState()：订阅完整 AppState，组件随状态变化重渲染
+//   - useAppStateStore()：获取 store 实例（用于命令式更新）
+//   - useSetAppState()：获取状态更新函数
+//
+// 副作用：
+//   - useSettingsChange()：监听设置变更，自动应用到 AppState
+//   - isBypassPermissionsModeDisabled()：检测权限模式是否被策略禁用
 import { c as _c } from "react/compiler-runtime";
 import { feature } from 'bun:bundle';
 import React, { useContext, useEffect, useEffectEvent, useState, useSyncExternalStore } from 'react';

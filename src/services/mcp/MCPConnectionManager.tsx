@@ -1,3 +1,14 @@
+// services/mcp/MCPConnectionManager.tsx — MCP 连接管理器 React Context
+// 职责：通过 React Context 向组件树提供 MCP（Model Context Protocol）服务器连接管理能力。
+//
+// 提供的能力：
+//   - reconnectMcpServer()：重新连接指定 MCP 服务器，返回新的工具/命令/资源列表
+//   - toggleMcpServer()：启用/禁用指定 MCP 服务器
+//
+// 架构：
+//   - MCPConnectionContext 作为全局 Provider，包裹整个应用
+//   - useManageMCPConnections() hook 管理实际连接状态
+//   - useMcpReconnect() 供子组件消费连接管理能力
 import { c as _c } from "react/compiler-runtime";
 import React, { createContext, type ReactNode, useContext, useMemo } from 'react';
 import type { Command } from '../../commands.js';

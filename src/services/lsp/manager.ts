@@ -1,3 +1,16 @@
+// services/lsp/manager.ts — LSP 服务器管理器单例
+// 职责：管理 Language Server Protocol 服务器的生命周期，
+// 为 FileEditTool/FileWriteTool 提供实时诊断（错误/警告）反馈。
+//
+// 架构：
+//   - 全局单例 lspManagerInstance，在 Claude Code 启动时初始化
+//   - LSPServerManager 管理多个语言服务器实例（TypeScript/Python/Rust 等）
+//   - 编辑文件后通过 notifyVscodeFileUpdated() 触发诊断刷新
+//   - --bare 模式下跳过 LSP 初始化（无 UI，不需要诊断）
+//
+// 诊断流程：
+//   文件编辑 → clearDeliveredDiagnosticsForFile() → LSP 重新分析 → 
+//   LSPDiagnosticRegistry 收集 → 下次工具调用时注入诊断信息
 import { logForDebugging } from '../../utils/debug.js'
 import { isBareMode } from '../../utils/envUtils.js'
 import { errorMessage } from '../../utils/errors.js'

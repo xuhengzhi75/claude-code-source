@@ -1,3 +1,12 @@
+// TodoWriteTool.ts — 任务清单管理工具
+// 职责：创建和更新结构化 Todo 列表，帮助模型追踪多步骤任务的执行进度。
+//
+// 关键特性：
+//   - 支持 merge 模式（增量更新）和 replace 模式（全量替换）
+//   - Todo 状态：pending / in_progress / completed / cancelled
+//   - 每次写入触发 UI 刷新，实时展示任务进度
+//   - isTodoV2Enabled() 控制新版 Todo 格式（含 activeForm 字段）
+//   - 与 VerificationAgent 集成：completed 状态可触发验证子 Agent
 import { feature } from 'bun:bundle'
 import { z } from 'zod/v4'
 import { getSessionId } from '../../bootstrap/state.js'

@@ -1,3 +1,17 @@
+// utils/messages.ts — 消息格式转换与操作工具库
+// 职责：提供 Claude API 消息格式（Message[]）的创建、转换、规范化操作，
+// 是整个消息管道的基础工具层。
+//
+// 核心功能：
+//   - createUserMessage() / createAssistantMessage()：构造标准消息对象
+//   - normalizeMessages()：将原始 API 消息规范化为内部 Message 类型
+//   - extractTextContent()：从 content block 数组中提取纯文本
+//   - isSyntheticMessage()：识别系统内部合成消息（非真实 API 响应）
+//   - SYNTHETIC_MESSAGES / SYNTHETIC_MODEL：合成消息标记集合
+//
+// 消息类型层次：
+//   Message = UserMessage | AssistantMessage | ToolResultMessage
+//   NormalizedUserMessage = 规范化后的用户消息（含 pastedContents 展开）
 import { feature } from 'bun:bundle'
 import type { BetaUsage as Usage } from '@anthropic-ai/sdk/resources/beta/messages/messages.mjs'
 import type {

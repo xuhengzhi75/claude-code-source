@@ -1,3 +1,13 @@
+// GrepTool.ts — 文件内容正则搜索工具（基于 ripgrep）
+// 职责：在文件或目录中按正则表达式搜索匹配内容，返回文件路径 + 行号 + 匹配行。
+// 底层使用 ripgrep（rg）实现，速度远超原生 grep。
+//
+// 关键特性：
+//   - 支持完整正则语法（Rust regex 引擎）
+//   - include/exclude glob 过滤（--glob 参数）
+//   - 大小写不敏感选项（-i）
+//   - 结果按文件修改时间排序，最近修改的文件优先
+//   - 超出结果数量上限时截断并提示使用更精确的模式
 import { z } from 'zod/v4'
 import type { ValidationResult } from '../../Tool.js'
 import { buildTool, type ToolDef } from '../../Tool.js'

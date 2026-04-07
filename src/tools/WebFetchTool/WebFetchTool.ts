@@ -1,3 +1,12 @@
+// WebFetchTool.ts — 网页内容抓取工具
+// 职责：通过 HTTP/HTTPS 获取网页内容，将 HTML 转换为 Markdown 后返回给模型。
+//
+// 关键特性：
+//   - HTML → Markdown 转换：去除导航/广告等噪音，保留正文结构
+//   - 预批准域名：isPreapprovedHost() 对已知安全域名跳过权限确认
+//   - 内容截断：超出 token 限制时截断并提示
+//   - 权限规则：getRuleByContentsForTool() 支持基于 URL 模式的细粒度权限控制
+//   - 重定向跟随：自动处理 HTTP 重定向
 import { z } from 'zod/v4'
 import { buildTool, type ToolDef } from '../../Tool.js'
 import type { PermissionUpdate } from '../../types/permissions.js'

@@ -1,3 +1,17 @@
+// services/compact/compact.ts — 对话历史压缩服务
+// 职责：当对话历史接近 context window 上限时，通过摘要压缩减少 token 消耗，
+// 同时保留关键信息供后续对话使用。
+//
+// 压缩策略：
+//   - 完整压缩（compact）：调用模型生成对话摘要，替换历史消息
+//   - 微压缩（microCompact）：仅压缩最旧的几轮对话，保留近期上下文
+//   - 自动压缩（autoCompact）：在 token 使用率超过阈值时自动触发
+//
+// 关键特性：
+//   - 文件内容去重：uniqBy() 合并重复的文件读取结果
+//   - Skill 感知：压缩时保留已激活 skill 的上下文
+//   - 会话转录：KAIROS 特性下通过 sessionTranscript 持久化压缩历史
+//   - 压缩后清理：postCompactCleanup() 重置相关状态
 import { feature } from 'bun:bundle'
 import type { UUID } from 'crypto'
 import uniqBy from 'lodash-es/uniqBy.js'

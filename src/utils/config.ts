@@ -1,3 +1,17 @@
+// utils/config.ts — 配置文件读写管理器
+// 职责：管理 Claude Code 的全局配置（~/.claude/config.json）和
+// 项目级配置（.claude/settings.json），提供类型安全的读写接口。
+//
+// 配置层次：
+//   - 全局配置（GlobalConfig）：用户级别，存储 API key、模型偏好、权限规则等
+//   - 项目配置（ProjectConfig）：项目级别，存储上次会话费用、worktree 状态等
+//   - 本地配置（LocalConfig）：本地覆盖，不提交到 git
+//
+// 关键特性：
+//   - memoize 缓存：避免重复读取磁盘，通过 clearConfigCache() 失效
+//   - 文件监听：watchFile() 监听配置变更，支持热重载
+//   - 原子写入：通过临时文件 + rename 保证写入原子性
+//   - 类型安全：所有配置字段均有 TypeScript 类型定义
 import { feature } from 'bun:bundle'
 import { randomBytes } from 'crypto'
 import { unwatchFile, watchFile } from 'fs'

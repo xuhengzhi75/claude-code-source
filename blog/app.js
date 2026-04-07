@@ -77,8 +77,22 @@ function setTheme(theme) {
     ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>'
     : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
   // hljs 主题通过 CSS [data-theme="dark"] 选择器自动切换，无需 JS 操作
-  // 主题切换时重新 initialize mermaid，下次渲染时生效
-  mermaid.initialize({ startOnLoad: false, theme: theme === 'dark' ? 'dark' : 'default', securityLevel: 'loose', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' });
+  // 主题切换时重新 initialize mermaid，并对已渲染的 SVG 重新渲染
+  const mermaidTheme = theme === 'dark' ? 'dark' : 'default';
+  mermaid.initialize({ startOnLoad: false, theme: mermaidTheme, securityLevel: 'strict', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' });
+  // 重新渲染当前页面中已有的 mermaid 图表（用 data-mermaid-src 保存的原始源码）
+  const mermaidEls = document.querySelectorAll('.mermaid');
+  if (mermaidEls.length > 0) {
+    mermaidEls.forEach(el => {
+      const src = el.dataset.mermaidSrc; // 由 renderMarkdown 在初次渲染前保存
+      if (src && src.trim()) {
+        el.removeAttribute('data-processed');
+        el.innerHTML = escapeHtml(src); // 恢复原始文本，mermaid.run 会重新解析
+      }
+    });
+    mermaid.run({ nodes: Array.from(mermaidEls) })
+      .catch(err => console.warn('Mermaid re-render error:', err));
+  }
 }
 
 function toggleTheme() {
@@ -104,13 +118,16 @@ function sharePage() {
     showShareToast(toast, '已复制链接');
   }).catch(() => {
     // clipboard API 不可用时降级：execCommand
-    const ta = document.createElement('textarea');
-    ta.value = url;
-    ta.style.cssText = 'position:fixed;opacity:0';
-    document.body.appendChild(ta);
-    ta.select();
-    document.execCommand('copy');
-    document.body.removeChild(ta);
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = url;
+      ta.style.cssText = 'position:fixed;opacity:0';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    } catch (e) { /* ignore */ }
+    // 无论复制是否成功都显示 toast（非 HTTPS 环境下 clipboard 受限）
     showShareToast(toast, '已复制链接');
   });
 }
@@ -120,6 +137,38 @@ function showShareToast(el, msg) {
   el.textContent = msg;
   el.classList.add('show');
   setTimeout(() => el.classList.remove('show'), 2000);
+}
+
+// ===== 代码块复制 =====
+function copyCodeBlock(btn) {
+  const pre = btn.closest('pre');
+  if (!pre) return;
+  const code = pre.querySelector('code');
+  if (!code) return;
+  // 提取纯文本（去掉行号 span，只取 line-content）
+  const lines = Array.from(code.querySelectorAll('.line-content'));
+  const text = lines.length > 0
+    ? lines.map(l => l.textContent).join('\n')
+    : code.textContent;
+
+  const succeed = () => {
+    btn.classList.add('copied');
+    btn.title = '已复制！';
+    setTimeout(() => { btn.classList.remove('copied'); btn.title = '复制代码'; }, 2000);
+  };
+
+  navigator.clipboard.writeText(text).then(succeed).catch(() => {
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.cssText = 'position:fixed;opacity:0';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    } catch (e) { /* ignore */ }
+    succeed();
+  });
 }
 
 // ===== Build TOC =====
@@ -464,6 +513,24 @@ function setupMarked() {
 
   // 行内代码：检测源码锚点格式 `file.ts#L76`
   // marked v9 调用签名：renderer.codespan(text)
+  // 链接拦截：把通俗版底部的 ../chapters/chXX-xxx.md 转换为 #chXX hash 路由
+  renderer.link = function(href, title, text) {
+    // 匹配 ../chapters/chXX- 或 chapters/chXX- 格式
+    const chapterMatch = href && href.match(/(?:\.\.\/)?chapters\/(ch\d+)-[^.]*\.md/);
+    if (chapterMatch) {
+      const chId = chapterMatch[1]; // e.g. "ch01"
+      const titleAttr = title ? ` title="${escapeHtml(title)}"` : '';
+      return `<a href="#${chId}"${titleAttr}>${text}</a>`;
+    }
+    // 外部链接加 target=_blank
+    if (href && (href.startsWith('http://') || href.startsWith('https://'))) {
+      const titleAttr = title ? ` title="${escapeHtml(title)}"` : '';
+      return `<a href="${escapeHtml(href)}" target="_blank" rel="noopener"${titleAttr}>${text}</a>`;
+    }
+    const titleAttr = title ? ` title="${escapeHtml(title)}"` : '';
+    return `<a href="${escapeHtml(href || '')}"${titleAttr}>${text}</a>`;
+  };
+
   renderer.codespan = function(code) {
     // 匹配 filename.ext#L数字 格式
     const anchorMatch = code.match(/^([\w./-]+\.(?:ts|js|tsx|jsx|py|go|rs|java|md))#(L\d+(?:-L\d+)?)$/);
@@ -482,19 +549,51 @@ function setupMermaid() {
   mermaid.initialize({
     startOnLoad: false,
     theme: document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default',
-    securityLevel: 'loose',
+    // securityLevel 从 'loose' 收紧为 'strict'。
+    // 已盘点全部图表（ch01/ch03/ch06/ch07/ch08/ch20），均为纯 flowchart/sequenceDiagram，
+    // 无 click 事件、href 链接、内联 HTML，不依赖 loose 模式。
+    // strict 模式下 SVG 输出经过 DOMPurify 清洗，消除 XSS 风险。
+    securityLevel: 'strict',
     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
   });
 }
 
 function renderMarkdown(md, container) {
-  const html = marked.parse(md);
+  const rawHtml = marked.parse(md);
+  // DOMPurify 清洗层：防止 markdown 内容中的恶意 HTML/XSS 注入。
+  // 保留代码高亮所需的 class 属性，允许 data-* 属性（源码锚点用）。
+  // 不允许 script、on* 事件属性、javascript: 协议。
+  const html = (typeof DOMPurify !== 'undefined')
+    ? DOMPurify.sanitize(rawHtml, {
+        ALLOWED_ATTR: ['class', 'id', 'href', 'src', 'alt', 'title',
+                       'data-file', 'data-line', 'data-highlighted',
+                       'target', 'rel', 'width', 'height', 'style'],
+        FORBID_TAGS: ['script', 'style', 'iframe', 'object', 'embed'],
+        FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover'],
+      })
+    : rawHtml; // DOMPurify 未加载时降级（不阻断渲染）
   container.innerHTML = `<div class="md-body">${html}</div>`;
+
+  // 动态插入复制按钮（在 DOMPurify 清洗之后用 JS 创建，绕开白名单限制）
+  container.querySelectorAll('pre.code-block').forEach(pre => {
+    const btn = document.createElement('button');
+    btn.className = 'code-copy-btn';
+    btn.title = '复制代码';
+    btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>';
+    btn.addEventListener('click', () => copyCodeBlock(btn));
+    pre.insertBefore(btn, pre.firstChild);
+  });
 
   // Mermaid — 不在这里重复 initialize（会重置内部状态导致 .then() 不触发）
   // initialize 只在 setupMermaid() 和主题切换时调用
   const mermaidEls = Array.from(container.querySelectorAll('.mermaid'));
   if (mermaidEls.length > 0) {
+    // 在渲染前保存原始源码，供主题切换时重新渲染使用
+    mermaidEls.forEach(el => {
+      if (!el.dataset.mermaidSrc) {
+        el.dataset.mermaidSrc = el.textContent.trim();
+      }
+    });
     // 用 MutationObserver 监听 SVG 插入，比 mermaid.run().then() 更可靠
     // mermaid.run().then() 在某些版本/场景下不 resolve（已渲染节点、多图等）
     let rendered = 0;
@@ -679,6 +778,16 @@ function closeSidebar() {
   document.getElementById('overlay').classList.remove('show');
 }
 
+// Escape 键关闭侧边栏
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    const sidebar = document.getElementById('sidebar');
+    if (sidebar && sidebar.classList.contains('open')) {
+      closeSidebar();
+    }
+  }
+});
+
 // ===== 阅读进度条 =====
 function initReadProgress() {
   const bar = document.getElementById('read-progress');
@@ -779,14 +888,31 @@ function closeAnchorPanel(anchorEl) {
 }
 
 function positionPanel(panel, anchorEl) {
-  const PANEL_WIDTH = 520;
   const OFFSET_Y = 8;
   const MARGIN = 12; // 距视口边缘最小间距
+  const isMobile = window.innerWidth <= 768;
 
   const rect = anchorEl.getBoundingClientRect();
   const vw = window.innerWidth;
   const vh = window.innerHeight;
 
+  // 手机端：面板全宽铺满，固定在屏幕底部或锚点下方
+  if (isMobile) {
+    const panelW = vw - MARGIN * 2;
+    panel.style.width = `${panelW}px`;
+    panel.style.left  = `${MARGIN}px`;
+    // 手机端优先显示在锚点正下方，若超出底部则贴底
+    const panelH = panel.offsetHeight > 0 ? panel.offsetHeight : 260;
+    let top = rect.bottom + OFFSET_Y;
+    if (top + panelH > vh - MARGIN) {
+      top = Math.max(MARGIN, vh - panelH - MARGIN);
+    }
+    panel.style.top = `${top}px`;
+    return;
+  }
+
+  // 桌面端：固定宽度 520px
+  const PANEL_WIDTH = 520;
   // 水平：优先左对齐锚点，超出右边界则右对齐
   let left = rect.left;
   if (left + PANEL_WIDTH > vw - MARGIN) {
@@ -923,7 +1049,10 @@ async function loadFileForPanel(panel, anchorEl, file, line) {
     const body = panel.querySelector('.ap-body');
     if (body) {
       body.className = 'ap-body ap-error';
-      body.innerHTML = `<span>无法加载：${escapeHtml(err.message)}</span>`;
+      const isNetworkErr = err.message.includes('fetch') || err.message.includes('network') || err.message.includes('Failed');
+      body.innerHTML = isNetworkErr
+        ? `<span>代码预览需要网络连接，请点击右上角 <svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor" style="vertical-align:-1px"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg> 在 GitHub 查看源码</span>`
+        : `<span>无法加载：${escapeHtml(err.message)}</span>`;
     }
     return;
   }

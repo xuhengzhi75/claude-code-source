@@ -1,3 +1,15 @@
+// utils/systemPrompt.ts — System Prompt 组装工具
+// 职责：将各来源的 system prompt 片段组装为最终发送给 API 的完整 system prompt。
+//
+// 组装来源（优先级从高到低）：
+//   1. 内置 system prompt（constants/prompts.ts）
+//   2. Agent 定义中的自定义 system prompt
+//   3. PROACTIVE/KAIROS 特性注入的额外指令
+//   4. 用户通过 --system-prompt 参数传入的覆盖内容
+//
+// buildEffectiveSystemPrompt()：
+//   - 合并所有来源，返回 SystemPrompt 类型（带类型标记的字符串）
+//   - 子 Agent 调用时传入 AgentDefinition，覆盖部分默认指令
 import { feature } from 'bun:bundle'
 import {
   type AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS,

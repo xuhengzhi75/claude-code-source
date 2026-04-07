@@ -1,3 +1,19 @@
+// components/PromptInput/PromptInput.tsx — 用户输入框核心组件
+// 职责：渲染并管理 Claude Code 的主输入区域，是用户与 AI 交互的主要界面。
+//
+// 核心功能：
+//   - 多行文本输入（支持 Shift+Enter 换行）
+//   - 命令自动补全（/ 触发，hasCommand() 匹配）
+//   - @ 提及（文件/目录/IDE 内容注入）
+//   - 粘贴内容处理（图片/大段文本转为 PastedContent）
+//   - 历史记录导航（Up/Down 箭头，ctrl+r 搜索）
+//   - 消息队列管理（useCommandQueue，支持批量提交）
+//   - Buddy 通知（findBuddyTriggerPositions 检测触发词）
+//   - 快速模式切换（FastModePicker）
+//
+// 状态管理：
+//   - 本地 useState 管理输入文本、光标位置、补全状态
+//   - useAppState() 读取全局应用状态（isLoading / permissionMode 等）
 import { feature } from 'bun:bundle';
 import chalk from 'chalk';
 import * as path from 'path';

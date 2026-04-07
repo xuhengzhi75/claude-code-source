@@ -1,3 +1,12 @@
+// WebSearchTool.ts — 网络搜索工具
+// 职责：通过 Anthropic API 的内置 web_search 能力执行实时网络搜索，
+// 将搜索结果作为 content block 返回给模型。
+//
+// 关键特性：
+//   - 使用 BetaWebSearchTool20250305 API（server-side 搜索，无需客户端代理）
+//   - 搜索结果以结构化 content block 形式返回，包含标题、URL、摘要
+//   - 权限控制：需要用户明确授权才能执行搜索
+//   - 与 WebFetchTool 互补：搜索发现 URL，抓取获取完整内容
 import type {
   BetaContentBlock,
   BetaWebSearchTool20250305,

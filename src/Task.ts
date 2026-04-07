@@ -3,6 +3,14 @@ import type { AppState } from './state/AppState.js'
 import type { AgentId } from './types/ids.js'
 import { getTaskOutputPath } from './utils/task/diskOutput.js'
 
+// TaskType：后台任务的类型枚举。
+// - local_bash         — 本地 shell 命令（BashTool 触发的后台任务）
+// - local_agent        — 本地子 agent（AgentTool 在本进程内 fork 的 agent）
+// - remote_agent       — 远程 agent（CCR/bridge 环境下的远端执行）
+// - in_process_teammate — 同进程内的 teammate（coordinator 模式下的协作 agent）
+// - local_workflow     — 本地工作流（WORKFLOW_SCRIPTS 特性）
+// - monitor_mcp        — MCP 监控任务（MONITOR_TOOL 特性）
+// - dream              — 后台推理任务（PROACTIVE/KAIROS 特性）
 export type TaskType =
   | 'local_bash'
   | 'local_agent'
@@ -41,6 +49,20 @@ export type TaskContext = {
   setAppState: SetAppState
 }
 
+// TaskStateBase：所有任务状态的公共基础字段。
+// 这些字段由 createTaskStateBase() 初始化，并在 AppState.tasks 中持久化。
+// 字段说明：
+//   id          — 任务唯一标识（前缀 + 8 位随机字符，如 a1b2c3d4e5f6g7h8）
+//   type        — 任务类型（见 TaskType）
+//   status      — 任务状态（pending/running/completed/failed/killed）
+//   description — 任务描述（用于 `claude ps` 显示）
+//   toolUseId   — 触发该任务的 tool_use block ID（用于关联 tool_result）
+//   startTime   — 任务启动时间戳（ms）
+//   endTime     — 任务结束时间戳（ms，终态时设置）
+//   totalPausedMs — 任务暂停总时长（ms，用于计算实际运行时间）
+//   outputFile  — 任务输出文件路径（磁盘持久化，用于 `claude logs` 查看）
+//   outputOffset — 已读取的输出偏移量（用于增量读取）
+//   notified    — 是否已发送完成通知（防止重复通知）
 // Base fields shared by all task states
 export type TaskStateBase = {
   id: string
@@ -69,6 +91,10 @@ export type LocalShellSpawnInput = {
 // What getTaskByType dispatches for: kill. spawn/render were never
 // called polymorphically (removed in #22546). All six kill implementations
 // use only setAppState — getAppState/abortController were dead weight.
+// Task 接口是任务调度器的"能力契约"（精简版）。
+// 历史上曾有 spawn/render 方法，但它们从未被多态调用，已在 #22546 中移除。
+// 现在 Task 接口只保留 kill()，用于 getTaskByType 分发终止操作。
+// 各任务类型的 kill 实现都只需要 setAppState，因此接口也只暴露这一依赖。
 export type Task = {
   name: string
   type: TaskType

@@ -274,8 +274,16 @@ export function filterToolsByDenyRules<
   return tools.filter(tool => !getDenyRuleForTool(permissionContext, tool))
 }
 
+// getTools() 是"运行态可见工具集"的核心入口，供 REPL/SDK/coordinator 调用。
+// 三阶段裁剪（顺序不可互换）：
+//   阶段 1 — 模式裁剪：根据 CLAUDE_CODE_SIMPLE / REPL / coordinator 等模式
+//             选择工具子集（如 simple 模式只保留 Bash/Read/Edit）
+//   阶段 2 — deny 规则裁剪：filterToolsByDenyRules 在模型看到工具之前先过滤，
+//             减少模型对受限能力的可见性（前置安全门）
+//   阶段 3 — isEnabled 裁剪：每个工具自身的运行时开关（如 feature gate / env var）
+// 注意：MCP 工具不在此函数中，需通过 assembleToolPool 合并。
 export const getTools = (permissionContext: ToolPermissionContext): Tools => {
-  // getTools 是“运行态可见工具集”入口：
+  // getTools 是"运行态可见工具集"入口：
   // 1) 先按模式（simple/repl/coordinator 等）做装配裁剪
   // 2) 再按 deny 规则做安全裁剪
   // 3) 最后执行每个工具自身 isEnabled

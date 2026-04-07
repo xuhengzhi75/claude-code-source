@@ -1,3 +1,16 @@
+// services/SessionMemory/sessionMemory.ts — 会话记忆自动维护服务
+// 职责：在后台定期运行子 Agent，从对话历史中提取关键信息，
+// 写入 CLAUDE.md 风格的 markdown 文件，供后续会话复用。
+//
+// 工作机制：
+//   - 每隔 N 轮对话（可配置）触发一次后台摘要 Agent
+//   - 摘要 Agent 读取当前对话历史，提取：决策、代码变更、待办事项等
+//   - 结果写入 ~/.claude/memory/<project-hash>.md
+//   - 下次会话启动时，getUserContext() 自动读取并注入到 user prompt
+//
+// 设计原则：
+//   - 完全后台运行，不阻塞主对话流
+//   - 远程模式（CCR）下禁用，避免重复写入
 /**
  * Session Memory automatically maintains a markdown file with notes about the current conversation.
  * It runs periodically in the background using a forked subagent to extract key information
