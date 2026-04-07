@@ -29,6 +29,8 @@
 - **证据锚点**：注释中标注对应的书稿章节编号（如 `// → ch07`），方便在源码与书稿之间双向跳转
 - **疑问标记**：尚未确认的推断用 `// ?:` 前缀标出，区分"已验证结论"与"待深挖假设"
 
+目前已完成注解的模块覆盖 `src/tools/`（AgentTool/BashTool/FileEditTool/FileReadTool/FileWriteTool/GlobTool/GrepTool/WebFetchTool/WebSearchTool/shared）、`src/services/`、`src/utils/`、`src/bridge/`、`src/cli/`、`src/commands/`、`src/tasks/` 等核心目录，共 260+ 个文件。注解进度详见 [`code-annotation-roadmap.md`](code-annotation-roadmap.md)。
+
 如果你习惯"边看代码边理解"，可以直接从 `src/` 开始读，注解会引导你走完整条主干链路。
 
 > **声明**：本仓库为非官方整理版，基于公开 npm 发布包与 source map 分析还原，仅供研究使用，不代表 Anthropic 官方立场。
@@ -78,7 +80,7 @@
 
 ```
 claude-code-source/
-├── src/                          # Recovered source（核心研究对象）
+├── src/                          # Recovered source（核心研究对象，含系统性中文注解）
 │   ├── entrypoints/cli.tsx       # 入口分流
 │   ├── main.tsx                  # 完整初始化与能力装配
 │   ├── QueryEngine.ts            # 会话编排
@@ -102,6 +104,7 @@ claude-code-source/
 ├── meta/                         # 方法论沉淀
 │   ├── articles/                 # 经验分享文章
 │   └── skills/                   # 可复用 Agent Skill
+├── code-annotation-roadmap.md    # 中文注解进度路线图
 └── COMMIT-CONVENTIONS.md         # 提交规范
 ```
 
@@ -154,6 +157,8 @@ src/tasks/*                    sessionStorage / compact / memory
 3. `src/QueryEngine.ts` — 会话编排与持久化
 4. `src/query.ts` — 运行时状态机：tool_use、budget、compact、recovery
 5. `src/Task.ts` + `src/tasks/` — 长任务为什么要独立建模
+6. `src/tools/AgentTool/` — 子 Agent 派发与内置 Agent 体系
+7. `src/tools/BashTool/` — 命令执行的安全/权限/沙箱全链路
 
 ### 想看架构笔记
 
