@@ -1,3 +1,24 @@
+// services/analytics/datadog.ts — Datadog 埋点上报
+// 职责：将 Claude Code 的使用事件批量上报到 Datadog 日志服务，
+// 支持事件白名单过滤、批量聚合和隐私保护（用户 ID 哈希）。
+//
+// 核心函数：
+//   - trackDatadogEvent()：将单个事件加入批次队列
+//   - flushDatadogEvents()：批量上报到 Datadog Logs API
+//   - initDatadogFlush()：启动定时刷新（每 15s 一次）
+//
+// 事件白名单（DATADOG_ALLOWED_EVENTS）：
+//   - 仅允许预定义的 tengu_* 和 chrome_bridge_* 事件上报
+//   - 防止意外上报含 PII 的自定义事件
+//
+// 隐私保护：
+//   - 用户 ID 通过 SHA-256 哈希后上报，不暴露原始 ID
+//   - 模型名称通过 getCanonicalName() 规范化，避免泄露自定义模型名
+//
+// 批量策略：
+//   - MAX_BATCH_SIZE=100：单批最多 100 条事件
+//   - DEFAULT_FLUSH_INTERVAL_MS=15000：每 15s 自动刷新
+//   - NETWORK_TIMEOUT_MS=5000：网络超时 5s，失败静默丢弃
 import axios from 'axios'
 import { createHash } from 'crypto'
 import memoize from 'lodash-es/memoize.js'

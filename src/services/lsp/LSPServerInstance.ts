@@ -1,3 +1,32 @@
+// services/lsp/LSPServerInstance.ts — 单个 LSP 服务器实例管理
+// 职责：管理单个 Language Server 的完整生命周期，包含状态机转换、
+// 健康检测、请求转发和崩溃重启逻辑。
+//
+// 核心类型：
+//   - LSPServerInstance：单实例接口（start/stop/restart/isHealthy/sendRequest 等）
+//   - LspServerState：状态枚举（stopped/starting/running/stopping/error）
+//
+// 核心函数：
+//   - createLSPServerInstance()：工厂函数，返回 LSPServerInstance（闭包封装状态）
+//
+// 状态机转换：
+//   stopped → starting → running
+//   running → stopping → stopped
+//   any     → error（启动/请求失败）
+//   error   → starting（重试）
+//
+// 重试策略：
+//   - MAX_RETRIES_FOR_TRANSIENT_ERRORS=3：瞬态错误（content modified）最多重试 3 次
+//   - RETRY_BASE_DELAY_MS=500：指数退避基础延迟（500ms/1000ms/2000ms）
+//   - LSP_ERROR_CONTENT_MODIFIED=-32801：服务器仍在索引时的瞬态错误码
+//
+// 崩溃恢复：
+//   - onCrash 回调：服务器意外退出时标记为 crashed 状态
+//   - restartCount：记录重启次数，防止无限重启循环
+//
+// 关键设计：
+//   - 工厂函数 + 闭包模式（避免 class，与 LSPClient/LSPServerManager 保持一致）
+//   - isHealthy()：检查服务器是否处于 running 状态且无错误
 import * as path from 'path'
 import { pathToFileURL } from 'url'
 import type { InitializeParams } from 'vscode-languageserver-protocol'

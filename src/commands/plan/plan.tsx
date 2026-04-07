@@ -1,4 +1,17 @@
 import { c as _c } from "react/compiler-runtime";
+// commands/plan/plan.tsx — /plan 斜杠命令
+// 职责：进入或退出 Plan Mode（计划模式），在该模式下 Claude 只生成计划
+// 而不直接执行工具调用，用户审批后再执行。
+//
+// Plan Mode 流程：
+//   1. 调用 prepareContextForPlanMode() 准备权限上下文
+//   2. 渲染 PlanDisplay 组件，显示当前计划内容
+//   3. 用户可在外部编辑器中编辑计划（editFileInEditor）
+//   4. 调用 handlePlanModeTransition() 切换模式状态
+//   5. 通过 applyPermissionUpdate() 更新权限规则
+//
+// 计划文件：存储在 getPlanFilePath() 返回的路径，通过 getPlan() 读取
+
 import * as React from 'react';
 import { handlePlanModeTransition } from '../../bootstrap/state.js';
 import type { LocalJSXCommandContext } from '../../commands.js';

@@ -1,3 +1,26 @@
+// utils/attachments.ts — 附件消息系统（@-mention 文件注入）
+// 职责：处理用户通过 @-mention 语法引用的文件/URL/图片，
+// 将其内容读取并注入到对话上下文中作为附件消息。
+//
+// 核心功能：
+//   - 解析 @-mention：从用户消息中提取 @file、@url、@image 引用
+//   - 文件读取：通过 FileReadTool 读取文件内容（含 token 预算控制）
+//   - 图片处理：readImageWithTokenBudget() 处理图片附件
+//   - 附件消息创建：createAttachmentMessage() 生成 AttachmentMessage 类型消息
+//
+// 附件类型：
+//   - 文件（@path/to/file）：读取文件内容，注入为文本 block
+//   - 图片（@path/to/image.png）：读取图片，注入为 image content block
+//   - URL（@https://...）：通过 WebFetchTool 抓取内容
+//
+// Token 预算：
+//   - 每个附件有独立的 token 预算（readImageWithTokenBudget）
+//   - 超出预算时截断并提示
+//   - MaxFileReadTokenExceededError / FileTooLargeError：超限错误类型
+//
+// 关键设计：
+//   - 附件消息不进入主消息历史，以 AttachmentMessage 形式单独存储
+//   - 支持 ANT-ONLY 特性（通过 biome-ignore 标记保护 import 顺序）
 // biome-ignore-all assist/source/organizeImports: ANT-ONLY import markers must not be reordered
 import {
   logEvent,

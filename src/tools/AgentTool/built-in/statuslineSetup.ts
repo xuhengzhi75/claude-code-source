@@ -1,3 +1,21 @@
+// tools/AgentTool/built-in/statuslineSetup.ts — 状态栏设置 Agent
+// 职责：定义"Statusline Setup Agent"的系统提示词和配置，
+// 专门用于帮助用户配置 Claude Code 的状态栏（statusLine）命令。
+//
+// Agent 特点：
+//   - 读取用户 shell 配置文件（~/.zshrc / ~/.bashrc 等）
+//   - 解析 PS1 环境变量，转换为 Claude Code statusLine 格式
+//   - 将配置写入 Claude Code 设置文件
+//
+// PS1 转换规则：
+//   \u → $(whoami)
+//   \h → $(hostname)
+//   \w → $(pwd)
+//   等 shell 转义序列 → 对应 shell 命令
+//
+// 关联：
+//   - builtInAgents.ts：注册此 Agent 定义
+//   - loadAgentsDir.ts：BuiltInAgentDefinition 类型
 import type { BuiltInAgentDefinition } from '../loadAgentsDir.js'
 
 const STATUSLINE_SYSTEM_PROMPT = `You are a status line setup agent for Claude Code. Your job is to create or update the statusLine command in the user's Claude Code settings.

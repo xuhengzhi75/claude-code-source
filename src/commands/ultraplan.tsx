@@ -1,3 +1,20 @@
+// commands/ultraplan.tsx — /ultraplan 斜杠命令
+// 职责：启动 Ultraplan 云端多 Agent 探索会话，在远端并行探索多条解决路径，
+// 最终生成一份经过深度分析的执行计划供用户审批。
+//
+// 执行流程：
+//   1. 检查资格（checkRemoteAgentEligibility）和 GrowthBook 开关
+//   2. 通过 teleportToRemote() 在云端启动 Agent 会话
+//   3. 本地轮询 pollForApprovedExitPlanMode()，等待用户审批计划（最长 30 分钟）
+//   4. 用户批准后，将计划内容注入本地会话继续执行
+//
+// 关键约束：
+//   - 使用第一方 API 的规范模型 ID（非 Bedrock ARN / Vertex ID）
+//   - OAuth token 可能在 30 分钟轮询期间过期（TODO: 需要刷新机制）
+//   - 会话结束后调用 archiveRemoteSession() 归档
+//
+// ultraplanPhase 状态机：running → plan_ready（等待审批）→ approved（继续执行）
+
 import { readFileSync } from 'fs';
 import { REMOTE_CONTROL_DISCONNECTED_MSG } from '../bridge/types.js';
 import type { Command } from '../commands.js';

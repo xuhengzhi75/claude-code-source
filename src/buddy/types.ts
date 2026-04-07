@@ -1,3 +1,22 @@
+// =============================================================================
+// src/buddy/types.ts — Companion（宠物伴侣）类型定义
+//
+// 【模块职责】
+//   定义 Claude Code "Buddy" 功能的全部类型常量：
+//   - 稀有度（Rarity）：common → legendary，5 档，带权重
+//   - 物种（Species）：18 种 ASCII 小动物，字符串用 charCode 构造以绕过
+//     excluded-strings.txt 的 canary 检测
+//   - 眼睛（Eye）/ 帽子（Hat）：外观配件
+//   - 属性（StatName）：DEBUGGING / PATIENCE / CHAOS / WISDOM / SNARK
+//   - CompanionBones：由 hash(userId) 确定性生成，不持久化
+//   - CompanionSoul：模型生成的名字+性格，存入 config
+//   - StoredCompanion：实际写入 config 的最小集合（Soul + hatchedAt）
+//
+// 【设计要点】
+//   Bones 与 Soul 分离：Bones 每次从 userId 哈希重新生成，防止用户通过
+//   编辑 config 伪造稀有度；Soul 持久化，保留宠物个性。
+// =============================================================================
+
 export const RARITIES = [
   'common',
   'uncommon',

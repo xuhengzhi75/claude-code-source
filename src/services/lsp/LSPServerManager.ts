@@ -1,3 +1,28 @@
+// services/lsp/LSPServerManager.ts — LSP 服务器管理器
+// 职责：管理多个 LSP 服务器实例，根据文件扩展名路由请求到对应的语言服务器，
+// 并同步文件的打开/修改/保存/关闭状态。
+//
+// 核心类型：
+//   - LSPServerManager：管理器接口（initialize/shutdown/getServerForFile/sendRequest 等）
+//
+// 核心函数：
+//   - createLSPServerManager()：工厂函数，返回 LSPServerManager 实例（闭包封装状态）
+//
+// 路由策略：
+//   - 根据文件扩展名（.ts/.py/.rs 等）匹配对应的 LSP 服务器配置
+//   - getAllLspServers() 从 config.ts 加载所有已配置的语言服务器
+//   - 同一文件扩展名可能对应多个服务器（按优先级选择）
+//
+// 文件同步（LSP textDocument 协议）：
+//   - openFile()：发送 textDocument/didOpen 通知
+//   - changeFile()：发送 textDocument/didChange 通知（增量更新）
+//   - saveFile()：发送 textDocument/didSave 通知
+//   - closeFile()：发送 textDocument/didClose 通知
+//
+// 关键设计：
+//   - 工厂函数 + 闭包模式（避免 class，与 LSPClient 保持一致）
+//   - ensureServerStarted()：懒启动，首次访问文件时才启动对应服务器
+//   - isFileOpen()：防止重复发送 didOpen 通知
 import * as path from 'path'
 import { pathToFileURL } from 'url'
 import { logForDebugging } from '../../utils/debug.js'

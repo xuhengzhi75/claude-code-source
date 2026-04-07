@@ -1,3 +1,31 @@
+// utils/settings/settings.ts — 设置系统核心读写层
+// 职责：读取、合并、持久化来自多个来源的用户/项目/企业设置，
+// 是 Claude Code 所有配置项的统一访问入口。
+//
+// 核心函数：
+//   - getInitialSettings()：启动时加载并合并所有来源的设置
+//   - getSettingsForSource()：获取指定来源（global/project/local）的设置
+//   - saveGlobalSettings() / saveProjectSettings()：持久化设置到对应文件
+//   - mergeSettings()：按优先级合并多来源设置（lodash mergeWith）
+//
+// 设置来源优先级（从高到低）：
+//   1. 命令行 --flag-settings（内联 JSON）
+//   2. 企业 MDM 托管设置（macOS HKCU / Windows Registry）
+//   3. 远程托管设置（remoteManagedSettings，云端下发）
+//   4. 项目级设置（.claude/settings.json）
+//   5. 本地覆盖（.claude/settings.local.json，不提交 git）
+//   6. 全局设置（~/.claude/settings.json）
+//   7. 插件设置（各插件的 settings.json）
+//
+// 缓存策略：
+//   - settingsCache.ts 提供内存缓存，避免重复读取文件
+//   - resetSettingsCache()：在设置变更后清除缓存
+//   - 会话级缓存（sessionSettingsCache）：仅在当前会话有效的临时设置
+//
+// 关键设计：
+//   - 原子写入：通过 writeFileSyncAndFlush_DEPRECATED 保证写入完整性
+//   - Zod 校验：所有设置通过 SettingsSchema 验证，无效项过滤而非报错
+//   - 插件隔离：插件设置通过 getPluginSettingsBase() 单独管理
 import { feature } from 'bun:bundle'
 import mergeWith from 'lodash-es/mergeWith.js'
 import { dirname, join, resolve } from 'path'

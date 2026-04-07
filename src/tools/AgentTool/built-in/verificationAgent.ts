@@ -1,3 +1,22 @@
+// tools/AgentTool/built-in/verificationAgent.ts — Verification 内置 Agent
+// 职责：定义"Verification Agent"的系统提示词和配置，
+// 专门用于验证代码实现的正确性，尝试发现 bug 和边界情况。
+//
+// Agent 特点：
+//   - 破坏性测试导向：目标是"破坏"实现，而非确认其工作
+//   - 严格禁止修改项目文件（只读验证）
+//   - 可在 /tmp 写入临时测试脚本（用后清理）
+//   - 防止两种常见失败模式：
+//     1. 验证回避：找借口不运行检查，只读代码就写 PASS
+//     2. 被前 80% 迷惑：看到漂亮 UI 就通过，忽略剩余 20% 的问题
+//
+// 工具集：
+//   Bash / FileRead / Glob / Grep / WebFetch / Agent
+//   禁用：FileEdit / FileWrite / NotebookEdit（不修改项目）
+//
+// 关联：
+//   - constants.ts：VERIFICATION_AGENT_TYPE
+//   - builtInAgents.ts：注册此 Agent 定义
 import { BASH_TOOL_NAME } from 'src/tools/BashTool/toolName.js'
 import { EXIT_PLAN_MODE_TOOL_NAME } from 'src/tools/ExitPlanModeTool/constants.js'
 import { FILE_EDIT_TOOL_NAME } from 'src/tools/FileEditTool/constants.js'

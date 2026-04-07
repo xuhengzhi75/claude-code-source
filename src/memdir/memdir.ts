@@ -1,3 +1,27 @@
+// =============================================================================
+// src/memdir/memdir.ts — 记忆目录（memdir）核心逻辑
+//
+// 【模块职责】
+//   构建并加载 Claude Code 持久化记忆系统的系统提示文本，管理记忆目录
+//   的创建与内容截断，是记忆功能的核心调度模块。
+//
+// 【三种运行模式】
+//   1. KAIROS 日志模式（feature('KAIROS') + getKairosActive()）
+//      长会话模式：追加写入日期命名日志文件，夜间 /dream 蒸馏为 MEMORY.md
+//   2. TEAMMEM 团队模式（feature('TEAMMEM') + isTeamMemoryEnabled()）
+//      双目录：私有 memory/ + 团队 memory/team/，共享项目级记忆
+//   3. 标准个人模式（isAutoMemoryEnabled()）
+//      单目录：~/.claude/projects/<slug>/memory/
+//
+// 【关键函数】
+//   truncateEntrypointContent  — MEMORY.md 内容截断（200行/25KB 双上限）
+//   buildMemoryLines           — 构建记忆行为指导文本（不含 MEMORY.md 内容）
+//   buildMemoryPrompt          — 构建完整记忆提示（含 MEMORY.md 内容）
+//   loadMemoryPrompt           — 异步加载并分发到对应模式的提示构建器
+//   ensureMemoryDirExists      — 幂等创建记忆目录（每次会话调用一次）
+//   buildSearchingPastContextSection — 历史上下文搜索指导（GrowthBook 门控）
+// =============================================================================
+
 import { feature } from 'bun:bundle'
 import { join } from 'path'
 import { getFsImplementation } from '../utils/fsOperations.js'

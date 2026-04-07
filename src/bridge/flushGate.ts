@@ -1,3 +1,13 @@
+// bridge/flushGate.ts — Bridge 初始 flush 期间的消息写入门控状态机
+// 职责：在 Bridge 会话启动时的历史消息 flush 阶段，
+// 阻塞新消息写入，防止 flush 与实时消息交错导致顺序混乱。
+//
+// 状态机：
+//   idle → flushing（开始 flush）→ done（flush 完成，解除阻塞）
+//
+// 使用场景：
+//   Bridge 会话恢复时，需要先将历史消息批量 POST 到服务器，
+//   在此期间新产生的消息必须等待 flush 完成后才能写入
 /**
  * State machine for gating message writes during an initial flush.
  *

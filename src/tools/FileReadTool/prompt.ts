@@ -1,3 +1,24 @@
+// tools/FileReadTool/prompt.ts — FileReadTool 工具描述与常量
+// 职责：定义 FileReadTool 的工具名称、描述文本和相关常量，
+// 同时作为 FILE_READ_TOOL_NAME 的权威来源（避免循环依赖）。
+//
+// 关键常量：
+//   - FILE_READ_TOOL_NAME = 'Read'：工具名称（其他模块引用此文件）
+//   - FILE_UNCHANGED_STUB：文件未变化时的存根消息
+//     当文件内容与上次读取相同时，返回此消息节省 token
+//   - MAX_LINES_TO_READ = 2000：单次读取最大行数
+//   - LINE_FORMAT_INSTRUCTION：行号格式说明（cat -n 格式）
+//   - OFFSET_INSTRUCTION_DEFAULT / OFFSET_INSTRUCTION_TARGETED：
+//     分段读取参数说明（offset/limit）
+//
+// PDF 支持：
+//   - isPDFSupported()：检测当前环境是否支持 PDF 读取
+//   - PDF 支持时在工具描述中添加 PDF 相关说明
+//
+// 关联：
+//   - FileReadTool.ts：调用此文件的常量和描述函数
+//   - FileEditTool/prompt.ts：引用 FILE_READ_TOOL_NAME
+//   - FileWriteTool/prompt.ts：引用 FILE_READ_TOOL_NAME
 import { isPDFSupported } from '../../utils/pdfUtils.js'
 import { BASH_TOOL_NAME } from '../BashTool/toolName.js'
 

@@ -1,3 +1,25 @@
+// tools/AgentTool/forkSubagent.ts — Fork 子 Agent 功能
+// 职责：实现"Fork 子 Agent"特性，允许内置 Agent 在对话中途
+// 动态派生出新的子 Agent 来处理特定子任务。
+//
+// Fork 机制：
+//   - 模型在回复中嵌入 FORK_DIRECTIVE_PREFIX 标记
+//   - forkSubagent.ts 检测并解析这些标记
+//   - 创建新的子 Agent 实例，继承父 Agent 的上下文
+//   - 子 Agent 完成后，结果合并回父 Agent 的对话流
+//
+// 关键常量：
+//   - FORK_BOILERPLATE_TAG：Fork 指令的 XML 标签
+//   - FORK_DIRECTIVE_PREFIX：Fork 指令的前缀标识符
+//
+// 特性门控：
+//   - isForkSubagentEnabled()：检查 Fork 功能是否启用
+//   - 非交互式会话（headless/SDK）中禁用
+//   - Coordinator 模式下禁用
+//
+// 关联：
+//   - AgentTool.tsx：调用 forkSubagent 处理 Fork 指令
+//   - loadAgentsDir.ts：BuiltInAgentDefinition 类型
 import { feature } from 'bun:bundle'
 import type { BetaToolUseBlock } from '@anthropic-ai/sdk/resources/beta/messages/messages.mjs'
 import { randomUUID } from 'crypto'

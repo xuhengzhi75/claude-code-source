@@ -1,3 +1,26 @@
+// =============================================================================
+// src/memdir/teamMemPaths.ts — 团队记忆目录路径管理与安全校验
+//
+// 【模块职责】
+//   管理团队记忆（TEAMMEM）功能的目录路径，提供路径安全校验、
+//   符号链接解析和团队记忆启用状态检测。
+//
+// 【团队记忆目录结构】
+//   auto memory:  ~/.claude/projects/<slug>/memory/
+//   team memory:  ~/.claude/projects/<slug>/memory/team/  （默认）
+//                 或通过符号链接指向共享网络目录（Cowork 场景）
+//
+// 【安全设计】
+//   PathTraversalError：检测并拒绝路径穿越攻击（null 字节/URL 编码/../等）
+//   validateTeamMemPath()：确保团队目录是 auto 目录的子目录，
+//     防止符号链接指向 ~/.ssh 等敏感位置
+//
+// 【关键函数】
+//   getTeamMemPath()        — 返回团队记忆目录路径（默认 auto/team/）
+//   isTeamMemoryEnabled()   — 检测团队记忆是否启用（GrowthBook + autoEnabled）
+//   resolveTeamMemLink()    — 解析符号链接，验证目标在安全边界内
+// =============================================================================
+
 import { lstat, realpath } from 'fs/promises'
 import { dirname, join, resolve, sep } from 'path'
 import { getFeatureValue_CACHED_MAY_BE_STALE } from '../services/analytics/growthbook.js'

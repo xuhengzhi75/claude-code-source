@@ -1,3 +1,29 @@
+// services/mcp/config.ts — MCP 服务器配置管理
+// 职责：读取、合并、持久化来自多个来源的 MCP 服务器配置，
+// 支持全局配置、项目配置、插件配置和 Claude.ai 托管配置的优先级合并。
+//
+// 核心函数：
+//   - getMcpServers()：合并所有来源的 MCP 配置，返回最终生效的服务器列表
+//   - addMcpServer() / removeMcpServer()：增删 MCP 服务器配置
+//   - getManagedMcpConfigPath()：获取托管配置文件路径
+//   - writeMcpConfig()：原子写入配置文件（rename 保证原子性）
+//
+// 配置来源优先级（从高到低）：
+//   1. 项目级配置（.claude/settings.json 的 mcpServers）
+//   2. 全局配置（~/.claude/settings.json 的 mcpServers）
+//   3. 插件提供的 MCP 服务器（pluginMcpIntegration）
+//   4. Claude.ai 托管配置（fetchClaudeAIMcpConfigsIfEligible）
+//
+// 配置类型（McpServerConfig）：
+//   - McpStdioServerConfig：本地进程（command + args + env）
+//   - McpSSEServerConfig：远程 SSE（url + headers）
+//   - McpHTTPServerConfig：HTTP 流式（url + headers）
+//   - McpWebSocketServerConfig：WebSocket（url）
+//
+// 关键设计：
+//   - 环境变量展开：expandEnvVarsInString() 支持 ${VAR} 语法
+//   - 插件隔离策略：isRestrictedToPluginOnly() 防止用户配置覆盖插件配置
+//   - 原子写入：write → rename 防止配置文件损坏
 import { feature } from 'bun:bundle'
 import { chmod, open, rename, stat, unlink } from 'fs/promises'
 import mapValues from 'lodash-es/mapValues.js'

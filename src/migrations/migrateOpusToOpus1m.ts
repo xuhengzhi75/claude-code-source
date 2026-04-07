@@ -1,3 +1,11 @@
+// =============================================================================
+// src/migrations/migrateOpusToOpus1m.ts — Opus → Opus[1m] 模型迁移
+//
+// 【迁移内容】
+//   当 isOpus1mMergeEnabled() 为 true 时，将用户设置的 opus 模型
+//   迁移到 opus[1m]（合并了 1M token 上下文窗口的新版本）。
+// =============================================================================
+
 import { logEvent } from '../services/analytics/index.js'
 import {
   getDefaultMainLoopModelSetting,

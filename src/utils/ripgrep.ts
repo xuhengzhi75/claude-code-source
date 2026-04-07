@@ -1,3 +1,25 @@
+// =============================================================================
+// src/utils/ripgrep.ts — ripgrep（rg）封装与管理
+//
+// 【模块职责】
+//   封装 ripgrep 二进制的查找、调用和结果解析，为 GrepTool 提供底层支持。
+//
+// 【关键功能】
+//   findRipgrepBinary()
+//     按优先级查找 rg 可执行文件：
+//     1. 捆绑模式（bundled）：使用内置 rg 二进制
+//     2. PATH 中的系统 rg
+//     3. 常见安装路径（Homebrew/cargo 等）
+//     memoized，避免重复文件系统查找
+//
+//   runRipgrep(args, options)
+//     → Promise<RipgrepResult>  执行 rg 命令，返回匹配结果
+//     支持超时控制、输出截断、进程清理
+//
+//   parseRipgrepOutput(output)
+//     → RipgrepMatch[]  解析 rg JSON 输出格式
+// =============================================================================
+
 import type { ChildProcess, ExecFileException } from 'child_process'
 import { execFile, spawn } from 'child_process'
 import memoize from 'lodash-es/memoize.js'

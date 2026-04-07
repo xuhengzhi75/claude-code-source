@@ -1,3 +1,13 @@
+// bridge/initReplBridge.ts — REPL 环境 Bridge 初始化包装器
+// 职责：在 initBridgeCore（bootstrap-free 核心）之上封装 REPL 环境特有的初始化逻辑，
+// 负责读取 bootstrap 状态并传递给核心层。
+//
+// 职责边界：
+//   - initReplBridge.ts（本文件）：读取 gates/cwd/sessionId/git/OAuth/title 等环境状态
+//   - initBridgeCore（replBridge.ts）：bootstrap-free 核心，不直接读取环境状态
+//
+// 拆分原因：sessionStorage import 会引入循环依赖，
+// 将环境读取隔离在此文件可避免 bridge.mjs 入口点的依赖污染
 /**
  * REPL-specific wrapper around initBridgeCore. Owns the parts that read
  * bootstrap state — gates, cwd, session ID, git context, OAuth, title

@@ -1,3 +1,13 @@
+// cli/structuredIO.ts — 结构化 I/O 处理器（MCP/SDK 协议）
+// 职责：处理 Claude Code 作为 MCP 服务器或 SDK 服务端时的结构化输入输出，
+// 实现 JSON-RPC 消息的读取、解析和响应。
+//
+// 使用场景：
+//   - MCP 服务器模式：通过 stdin/stdout 与 MCP 客户端通信
+//   - SDK 模式：通过结构化消息与 SDK 调用方通信
+//   - Elicitation：处理模型向用户请求额外信息的交互
+//
+// 协议：JSON-RPC 2.0 over NDJSON（每行一个 JSON 对象）
 import { feature } from 'bun:bundle'
 import type {
   ElicitResult,

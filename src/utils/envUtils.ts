@@ -1,3 +1,19 @@
+// =============================================================================
+// src/utils/envUtils.ts — 环境变量工具函数
+//
+// 【模块职责】
+//   提供环境变量读取、解析和路径计算的工具函数，是配置系统的基础层。
+//
+// 【关键函数】
+//   getClaudeConfigHomeDir()
+//     memoized，返回 Claude 配置目录（CLAUDE_CONFIG_DIR || ~/.claude）
+//     150+ 调用方，热路径缓存，按 CLAUDE_CONFIG_DIR 键控以支持测试覆盖
+//
+//   isEnvTruthy(val)   — 检测环境变量是否为真值（"1"/"true"/"yes"）
+//   isEnvDefinedFalsy(val) — 检测环境变量是否明确设为假值（"0"/"false"/"no"）
+//   getTeamsDir()      — 返回团队配置目录（~/.claude/teams/）
+// =============================================================================
+
 import memoize from 'lodash-es/memoize.js'
 import { homedir } from 'os'
 import { join } from 'path'

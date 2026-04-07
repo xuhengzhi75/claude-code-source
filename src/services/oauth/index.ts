@@ -1,3 +1,23 @@
+// services/oauth/index.ts — OAuth 授权流程编排
+// 职责：编排完整的 OAuth 2.0 授权码流程（含 PKCE），
+// 是用户登录 Claude.ai 账号的主入口。
+//
+// 两种授权码获取方式：
+//   1. 自动模式：打开浏览器 → 重定向到 localhost → AuthCodeListener 捕获授权码
+//   2. 手动模式：用户手动复制粘贴授权码（无浏览器环境，如 SSH 终端）
+//
+// 完整流程：
+//   startOAuthFlow()
+//     → generateCodeVerifier() + generateCodeChallenge()（PKCE）
+//     → openBrowser(authUrl)
+//     → AuthCodeListener.waitForCode() 或 promptUserForCode()
+//     → client.exchangeCodeForTokens(code, verifier)
+//     → 保存 tokens 到本地存储
+//
+// PKCE（Proof Key for Code Exchange）：
+//   - code_verifier：随机 32 字节，base64url 编码
+//   - code_challenge：SHA-256(verifier)，base64url 编码
+//   - 防止授权码拦截攻击（CSRF）
 import { logEvent } from 'src/services/analytics/index.js'
 import { openBrowser } from '../../utils/browser.js'
 import { AuthCodeListener } from './auth-code-listener.js'

@@ -1,3 +1,26 @@
+// utils/model/modelCapabilities.ts — 模型能力动态查询
+// 职责：从 Anthropic API 获取模型的实际能力参数（max_input_tokens/max_tokens），
+// 并缓存到本地文件，供 context window 计算使用。
+//
+// 核心函数：
+//   - fetchAndCacheModelCapabilities()：从 API 获取模型能力并写入缓存
+//   - getModelCapabilities()：读取缓存的模型能力（memoize 避免重复读取）
+//   - getCapabilityForModel()：按模型 ID 查找对应的能力参数
+//
+// 缓存策略：
+//   - 缓存路径：~/.claude/cache/model-capabilities.json
+//   - 缓存格式：{ models: ModelCapability[], timestamp: number }
+//   - memoize(getModelCapabilities)：同一进程内只读一次缓存文件
+//   - .strip()：写入时去除内部字段（mycro_deployments 等），防止泄露
+//
+// 适用范围（isModelCapabilitiesEligible）：
+//   - 仅 ANT 内部用户（USER_TYPE === 'ant'）
+//   - 仅 firstParty Provider（非 Bedrock/Vertex）
+//   - 仅官方 API URL（isFirstPartyAnthropicBaseUrl）
+//
+// 关键设计：
+//   - 最长 ID 优先匹配（sortForMatching）：确保子串匹配时优先选最具体的模型
+//   - 隐私保护：isEssentialTrafficOnly() 时跳过能力查询
 import { readFileSync } from 'fs'
 import { mkdir, writeFile } from 'fs/promises'
 import isEqual from 'lodash-es/isEqual.js'

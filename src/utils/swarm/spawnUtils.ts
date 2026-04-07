@@ -1,3 +1,24 @@
+// utils/swarm/spawnUtils.ts — Teammate 进程启动工具
+// 职责：提供跨后端（iTerm/Tmux/InProcess）的 Teammate 进程启动公共工具函数，
+// 负责构建继承父进程配置的 CLI 参数列表。
+//
+// 核心函数：
+//   - getTeammateCommand()：获取 Teammate 进程的可执行路径
+//     （优先 TEAMMATE_COMMAND_ENV_VAR，其次当前进程路径）
+//   - buildInheritedCliFlags()：构建从父进程继承的 CLI 参数
+//     （权限模式、模型选择、插件配置、flag-settings 路径等）
+//
+// 继承的配置项：
+//   - --permission-mode：权限模式（bypass/default/acceptEdits）
+//   - --model：主循环模型覆盖
+//   - --flag-settings：feature flag 配置文件路径
+//   - --inline-plugins：内联插件配置
+//   - --chrome-flag-override：Chrome 扩展标志覆盖
+//
+// 关键设计：
+//   - planModeRequired=true 时不继承 bypassPermissions，
+//     确保 Plan Mode 下 Teammate 仍需审批
+//   - 支持 bundled 模式（process.execPath）和开发模式（process.argv[1]）
 /**
  * Shared utilities for spawning teammates across different backends.
  */

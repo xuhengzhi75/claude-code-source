@@ -1,3 +1,21 @@
+// utils/model/providers.ts — API Provider 检测
+// 职责：根据环境变量检测当前使用的 API Provider，
+// 是所有 Provider 路由决策的单一来源。
+//
+// 核心函数：
+//   - getAPIProvider()：返回当前 Provider（firstParty/bedrock/vertex/foundry）
+//   - getAPIProviderForStatsig()：返回 Provider 字符串用于 Statsig 埋点
+//   - isFirstPartyAnthropicBaseUrl()：检测 ANTHROPIC_BASE_URL 是否指向官方 API
+//
+// Provider 检测逻辑（优先级从高到低）：
+//   1. CLAUDE_CODE_USE_BEDROCK=1  → 'bedrock'（AWS）
+//   2. CLAUDE_CODE_USE_VERTEX=1   → 'vertex'（GCP）
+//   3. CLAUDE_CODE_USE_FOUNDRY=1  → 'foundry'（Azure）
+//   4. 默认                        → 'firstParty'（直连 Anthropic API）
+//
+// 关键设计：
+//   - 此模块是叶子模块（无业务依赖），可被任何模块安全 import
+//   - isFirstPartyAnthropicBaseUrl() 用于判断是否可以使用 OAuth 等一方特性
 import type { AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS } from '../../services/analytics/index.js'
 import { isEnvTruthy } from '../envUtils.js'
 

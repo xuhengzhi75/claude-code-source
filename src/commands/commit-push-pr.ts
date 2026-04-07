@@ -1,3 +1,18 @@
+// commands/commit-push-pr.ts — /commit-push-pr 斜杠命令
+// 职责：一键完成 git commit + push + 创建 PR 的完整流程。
+//
+// 工具限制（allowedTools）：
+//   git checkout/add/status/push/commit + gh pr create/edit/view/merge
+//   严格限制工具范围，防止 Claude 在 PR 流程中执行无关操作
+//
+// 安全约束（写入 prompt）：
+//   - NEVER update the git config
+//   - NEVER skip hooks（--no-verify 等）
+//   - 不允许 force push to main/master
+//
+// 增强 PR 归因：getEnhancedPRAttribution() 在 PR 描述中注入来源信息
+// Undercover 模式：同 commit.ts，USER_TYPE=ant 时注入隐藏指令
+
 import type { Command } from '../commands.js'
 import {
   getAttributionTexts,

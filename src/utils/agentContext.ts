@@ -1,3 +1,20 @@
+// utils/agentContext.ts — Agent 上下文追踪（AsyncLocalStorage）
+// 职责：通过 AsyncLocalStorage 在异步操作链中追踪 Agent 身份，
+// 用于分析归因（analytics attribution），无需参数透传。
+//
+// 支持两种 Agent 类型：
+//   1. Subagent（Agent 工具）：进程内 fork，执行快速委托任务
+//      上下文：SubagentContext { agentType: 'subagent', agentId, parentSessionId }
+//   2. In-process Teammate：swarm 中的协作 Agent，有团队协调
+//      上下文：TeammateAgentContext { agentType: 'teammate', agentId, ... }
+//
+// 跨进程 Teammate（tmux/iTerm2）：
+//   使用环境变量代替：CLAUDE_CODE_AGENT_ID、CLAUDE_CODE_PARENT_SESSION_ID
+//
+// 为什么用 AsyncLocalStorage 而不是 AppState：
+//   当 Agent 被后台化（ctrl+b）时，多个 Agent 可在同一进程中并发运行。
+//   AppState 是单一共享状态，会被覆盖，导致 Agent A 的事件错误使用 Agent B 的上下文。
+//   AsyncLocalStorage 隔离每个异步执行链，并发 Agent 各自维护独立上下文。
 /**
  * Agent context for analytics attribution using AsyncLocalStorage.
  *

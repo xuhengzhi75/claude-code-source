@@ -1,3 +1,14 @@
+// bridge/inboundMessages.ts — 入站消息解析与转换
+// 职责：将从 Bridge 服务器接收到的原始消息（JSON）解析并转换为
+// Claude Code 内部的 Message 格式，供 QueryEngine 处理。
+//
+// 处理的消息类型：
+//   - 文本消息：直接转为 text content block
+//   - 图片消息：base64 解码后转为 image content block
+//   - 文件附件：通过 inboundAttachments.ts 解析 file_uuid 引用
+//   - 控制消息：ping / abort / config 更新等
+//
+// 数据流：Bridge 服务器 → inboundMessages → QueryEngine.submitMessage()
 import type {
   Base64ImageSource,
   ContentBlockParam,

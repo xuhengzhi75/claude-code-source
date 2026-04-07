@@ -1,3 +1,19 @@
+// tools/WebSearchTool/prompt.ts — WebSearchTool 工具名称与描述
+// 职责：定义 WebSearchTool 的工具名称和描述文本。
+//
+// 关键常量：
+//   - WEB_SEARCH_TOOL_NAME = 'WebSearch'：工具名称
+//   - getWebSearchPrompt()：动态生成工具描述（含当前月份年份）
+//
+// 描述要点：
+//   - 允许 Claude 搜索网络并使用结果
+//   - 提供最新信息（当前事件、近期数据）
+//   - 结果以搜索结果块形式返回（含 Markdown 超链接）
+//   - 注入当前月份年份（getLocalMonthYear）帮助模型判断信息时效性
+//
+// 关联：
+//   - WebSearchTool.ts：调用此文件的常量和描述函数注册工具
+//   - constants/common.ts：getLocalMonthYear 时间工具
 import { getLocalMonthYear } from 'src/constants/common.js'
 
 export const WEB_SEARCH_TOOL_NAME = 'WebSearch'

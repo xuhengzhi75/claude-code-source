@@ -1,3 +1,20 @@
+// utils/generators.ts — AsyncGenerator 工具函数集
+// 职责：提供操作 AsyncGenerator 的高阶工具函数，
+// 用于工具执行管道、查询循环等流式处理场景。
+//
+// 核心函数：
+//   - lastX(gen)：消费 AsyncGenerator，返回最后一个 yield 值
+//   - returnValue(gen)：消费 AsyncGenerator，返回 return 值（done 时的值）
+//   - all(gens)：并发执行多个 AsyncGenerator，按完成顺序 yield 结果
+//     → 工具并发执行的核心原语（toolOrchestration.ts 使用）
+//   - map(gen, fn)：对 AsyncGenerator 的每个值应用变换函数
+//   - filter(gen, pred)：过滤 AsyncGenerator 的值
+//   - merge(gens)：合并多个 AsyncGenerator 为一个（按时间顺序交错）
+//
+// 关键设计：
+//   - NO_VALUE Symbol：区分"未产生任何值"和"产生了 undefined"
+//   - all() 使用 Promise.race 实现真正的并发，不等待最慢的 generator
+//   - 这些工具函数是工具并发执行（toolOrchestration）的基础设施
 const NO_VALUE = Symbol('NO_VALUE')
 
 export async function lastX<A>(as: AsyncGenerator<A>): Promise<A> {

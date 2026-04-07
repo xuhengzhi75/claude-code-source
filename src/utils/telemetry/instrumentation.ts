@@ -1,3 +1,35 @@
+// utils/telemetry/instrumentation.ts — OpenTelemetry SDK 初始化与配置
+// 职责：启动并配置 OTel SDK 的三大信号（Traces/Metrics/Logs），
+// 是整个可观测性体系的"总开关"。
+//
+// 三大信号初始化：
+//   - Traces（链路追踪）：BasicTracerProvider + BatchSpanProcessor
+//     → 支持 OTLP/gRPC、OTLP/HTTP、Console 三种导出协议
+//   - Metrics（指标）：MeterProvider + PeriodicExportingMetricReader
+//     → 支持 OTLP/gRPC、OTLP/HTTP、Prometheus、Console 四种导出协议
+//   - Logs（日志）：LoggerProvider + BatchLogRecordProcessor
+//     → 支持 OTLP/gRPC、OTLP/HTTP、Console 三种导出协议
+//
+// 动态导入策略：
+//   - OTLP/Prometheus 导出器在协议分支内动态 import（懒加载）
+//   - 避免静态导入 6 个导出器包（~1.2MB）拖慢每次启动
+//
+// 资源检测：
+//   - envDetector：从环境变量读取 OTEL_RESOURCE_ATTRIBUTES
+//   - hostDetector：主机名/IP
+//   - osDetector：操作系统信息
+//   - 手动注入：service.name、service.version、host.arch 等
+//
+// 关键环境变量：
+//   - OTEL_EXPORTER_OTLP_ENDPOINT：OTLP 端点
+//   - OTEL_EXPORTER_OTLP_PROTOCOL：grpc | http/protobuf | http/json
+//   - OTEL_METRICS_EXPORTER：otlp | prometheus | console | none
+//   - OTEL_LOGS_EXPORTER：otlp | console | none
+//   - OTEL_TRACES_EXPORTER：otlp | console | none
+//
+// 生命周期：
+//   - initTelemetry()：在 bootstrap 阶段调用，注册 SDK 并设置全局 provider
+//   - shutdownTelemetry()：在进程退出前调用，flush 所有 pending 数据
 import { DiagLogLevel, diag, trace } from '@opentelemetry/api'
 import { logs } from '@opentelemetry/api-logs'
 // OTLP/Prometheus exporters are dynamically imported inside the protocol

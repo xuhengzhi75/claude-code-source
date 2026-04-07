@@ -1,3 +1,21 @@
+// =============================================================================
+// src/utils/fileRead.ts — 同步文件读取原语（从 file.ts 拆出的叶子模块）
+//
+// 【模块职责】
+//   提供同步文件读取的纯函数，不依赖 log.ts 等会引入循环依赖的模块。
+//
+// 【拆分原因】
+//   file.ts 通过 log.ts → types/logs.ts → types/message.ts → Tool.ts → commands.ts
+//   形成一个强连通分量（SCC）。任何需要 readFileSync 的模块如果导入 file.ts，
+//   都会拉入整个 SCC。此模块只依赖 fsOperations 和 debug（均终止于 Node 内置），
+//   打破了循环依赖。
+//
+// 【关键函数】
+//   detectEncodingForResolvedPath(path)  — 检测文件编码（UTF-8/Latin-1 等）
+//   detectLineEndingsForString(content)  — 检测行尾风格（CRLF/LF）
+//   readFileSyncWithMetadata(path)       — 同步读取文件，返回内容+编码+行尾元数据
+// =============================================================================
+
 /**
  * Sync file-read path, extracted from file.ts.
  *

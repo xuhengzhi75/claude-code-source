@@ -1,3 +1,23 @@
+// utils/abortController.ts — AbortController 工厂函数
+// 职责：提供预配置的 AbortController 创建工具，
+// 防止多监听器场景下的 MaxListenersExceededWarning。
+//
+// 核心函数：
+//   - createAbortController(maxListeners?)：创建 AbortController，
+//     预设 setMaxListeners(50) 防止警告
+//   - createChildAbortController(parentSignal, maxListeners?)：
+//     创建子 AbortController，当父 signal 中止时自动中止子 controller
+//     → 用于工具执行：父 Agent 中止时，所有子工具自动取消
+//
+// 为什么需要 setMaxListeners：
+//   Node.js 默认每个 EventEmitter 最多 10 个监听器，超出时打印警告。
+//   AbortSignal 在并发工具执行时可能有 50+ 个监听器（每个工具一个），
+//   预设上限避免误报。
+//
+// createChildAbortController 使用场景：
+//   - 工具执行：每个工具调用创建独立的子 controller
+//   - 子 Agent：父 Agent 中止时级联取消所有子 Agent
+//   - 重试循环：外层取消时内层立即响应
 import { setMaxListeners } from 'events'
 
 /**

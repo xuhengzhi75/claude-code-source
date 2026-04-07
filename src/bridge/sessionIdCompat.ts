@@ -1,3 +1,12 @@
+// bridge/sessionIdCompat.ts — CCR v2 会话 ID 兼容层转换工具
+// 职责：提供 CCR v2 兼容层的会话 ID 标签转换工具，
+// 独立文件以避免 bridge.mjs 入口点引入不必要的依赖。
+//
+// 核心函数：
+//   - toCompatSessionId()：将内部 SessionId 转换为 CCR v2 兼容格式
+//
+// 拆分原因：sessionHandle.ts 和 replBridgeTransport.ts（bridge.mjs 入口点）
+// 需要此函数，但不应捆绑 workSecret.ts 的完整依赖
 /**
  * Session ID tag translation helpers for the CCR v2 compat layer.
  *

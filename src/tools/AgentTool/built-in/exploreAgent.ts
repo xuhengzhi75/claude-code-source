@@ -1,3 +1,21 @@
+// tools/AgentTool/built-in/exploreAgent.ts — Explore 内置 Agent
+// 职责：定义"Explore Agent"的系统提示词和配置，
+// 专门用于只读代码库探索，不修改任何文件。
+//
+// Agent 特点：
+//   - 一次性 Agent（ONE_SHOT_BUILTIN_AGENT_TYPES 成员）
+//   - 严格只读：禁止创建/修改/删除文件
+//   - 专注于代码搜索、架构分析、模式识别
+//   - 支持嵌入式搜索工具（ant-native 构建用 find/grep 替代 Glob/Grep）
+//
+// 工具集（只读）：
+//   Bash（只读命令）/ FileRead / Glob / Grep / Agent
+//   禁用：FileEdit / FileWrite / NotebookEdit
+//
+// 关联：
+//   - planAgent.ts：Plan Agent 调用 Explore Agent 进行前期探索
+//   - constants.ts：ONE_SHOT_BUILTIN_AGENT_TYPES
+//   - builtInAgents.ts：注册此 Agent 定义
 import { BASH_TOOL_NAME } from 'src/tools/BashTool/toolName.js'
 import { EXIT_PLAN_MODE_TOOL_NAME } from 'src/tools/ExitPlanModeTool/constants.js'
 import { FILE_EDIT_TOOL_NAME } from 'src/tools/FileEditTool/constants.js'

@@ -1,3 +1,22 @@
+// tools/AgentTool/builtInAgents.ts — 内置 Agent 注册表
+// 职责：管理 Claude Code 内置的预定义 Agent，
+// 控制哪些内置 Agent 在当前环境下可用。
+//
+// 内置 Agent 列表：
+//   - GENERAL_PURPOSE_AGENT：通用目的 Agent（默认）
+//   - EXPLORE_AGENT：代码库探索 Agent（分析/理解代码结构）
+//   - PLAN_AGENT：任务规划 Agent（制定执行计划）
+//   - VERIFICATION_AGENT：验证 Agent（检查结果正确性）
+//   - CLAUDE_CODE_GUIDE_AGENT：Claude Code 使用指南 Agent
+//   - STATUSLINE_SETUP_AGENT：状态栏设置 Agent
+//
+// 特性开关：
+//   - areExplorePlanAgentsEnabled()：控制 Explore/Plan Agent 是否启用
+//     → 3P 默认 true（Bedrock/Vertex 保持启用）
+//     → A/B 测试通过 tengu_amber_stoat GrowthBook 特性控制
+//   - BUILTIN_EXPLORE_PLAN_AGENTS：构建时特性标志（ANT-ONLY）
+//
+// 关联：loadAgentsDir.ts（AgentDefinition 类型）
 import { feature } from 'bun:bundle'
 import { getIsNonInteractiveSession } from '../../bootstrap/state.js'
 import { getFeatureValue_CACHED_MAY_BE_STALE } from '../../services/analytics/growthbook.js'

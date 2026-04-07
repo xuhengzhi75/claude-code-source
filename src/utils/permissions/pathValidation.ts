@@ -1,3 +1,23 @@
+// utils/permissions/pathValidation.ts — 路径权限验证（工具层适配）
+// 职责：为各文件操作工具（FileRead/FileEdit/FileWrite）提供统一的路径权限验证接口，
+// 将 filesystem.ts 的底层检查封装为工具友好的 API。
+//
+// 核心函数：
+//   - checkPathPermission()：综合检查路径的读/写/创建权限
+//   - resolveAndValidatePath()：解析并验证路径（含符号链接展开）
+//   - formatDirectoryList()：格式化允许目录列表（用于错误提示）
+//
+// 与 filesystem.ts 的分工：
+//   - filesystem.ts：底层路径安全检查（工作目录、路径遍历、UNC 等）
+//   - pathValidation.ts：工具层适配，处理 glob 模式、相对路径解析、错误消息格式化
+//
+// 路径解析策略：
+//   - 相对路径：相对于当前 CWD 解析
+//   - 符号链接：safeResolvePath() 展开后再检查（防止符号链接逃逸）
+//   - glob 模式：GLOB_PATTERN_REGEX 检测，glob 路径不做符号链接展开
+//
+// 错误消息：
+//   - MAX_DIRS_TO_LIST=5：错误提示中最多列出 5 个允许目录
 import memoize from 'lodash-es/memoize.js'
 import { homedir } from 'os'
 import { dirname, isAbsolute, resolve } from 'path'

@@ -1,3 +1,26 @@
+// =============================================================================
+// src/voice/voiceModeEnabled.ts — 语音模式可用性检测
+//
+// 【模块职责】
+//   提供三个层次的语音模式可用性检测函数，供 UI 注册、配置页面和
+//   运行时路径分别调用：
+//
+//   isVoiceGrowthBookEnabled()
+//     GrowthBook kill-switch 检测：tengu_amber_quartz_disabled 标志为 true
+//     时关闭语音（紧急下线开关）。默认 false → 缺失/过期缓存视为"未关闭"，
+//     新安装无需等待 GrowthBook 初始化即可使用语音。
+//
+//   hasVoiceAuth()
+//     OAuth 令牌检测：语音模式需要 Anthropic OAuth（claude.ai voice_stream
+//     端点），不支持 API Key / Bedrock / Vertex / Foundry。
+//     调用 getClaudeAIOAuthTokens()（memoized，首次 ~20-50ms keychain 读取）。
+//
+//   isVoiceModeEnabled()
+//     完整运行时检测 = hasVoiceAuth() && isVoiceGrowthBookEnabled()。
+//     适用于命令注册、ConfigTool、VoiceModeNotice 等可接受 keychain 延迟的路径。
+//     React 渲染路径应使用 useVoiceEnabled()（缓存 auth 半部分）。
+// =============================================================================
+
 import { feature } from 'bun:bundle'
 import { getFeatureValue_CACHED_MAY_BE_STALE } from '../services/analytics/growthbook.js'
 import {

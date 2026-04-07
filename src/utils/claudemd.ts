@@ -1,3 +1,27 @@
+// =============================================================================
+// src/utils/claudemd.ts — CLAUDE.md 文件加载与解析
+//
+// 【模块职责】
+//   发现并加载 Claude Code 的指令文件（CLAUDE.md 及相关文件），
+//   构建注入系统提示的上下文内容。
+//
+// 【文件加载顺序（优先级从低到高）】
+//   1. 托管记忆（/etc/claude-code/CLAUDE.md）— 全局管理员指令
+//   2. 用户记忆（~/.claude/CLAUDE.md）— 用户私有全局指令
+//   3. 项目记忆（CLAUDE.md / .claude/CLAUDE.md / .claude/rules/*.md）— 提交到仓库的指令
+//   4. 本地记忆（CLAUDE.local.md）— 本地私有项目指令（不提交）
+//   越靠后加载的文件优先级越高（模型更关注后面的内容）
+//
+// 【@include 指令】
+//   支持 @path / @./relative / @~/home / @/absolute 语法引用其他文件，
+//   防止循环引用（visited set 追踪）
+//
+// 【关键函数】
+//   getMemoryFiles()    — 返回所有 CLAUDE.md 文件路径列表
+//   loadClaudeMd()      — 加载并合并所有指令文件内容
+//   resolveAtMention()  — 解析 @include 指令，递归加载引用文件
+// =============================================================================
+
 /**
  * Files are loaded in the following order:
  *

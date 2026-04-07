@@ -1,3 +1,27 @@
+// tools/BashTool/sedEditParser.ts — sed 编辑命令解析器
+// 职责：解析 `sed -i` 替换命令，提取文件路径和替换模式，
+// 使 BashTool 能以"文件编辑"风格渲染 sed 操作（显示 diff）。
+//
+// 解析目标：
+//   sed -i 's/old/new/g' file.txt
+//   → 提取：文件路径 = file.txt，模式 = s/old/new/g
+//
+// BRE→ERE 转换：
+//   sed 默认使用 BRE（基本正则），JavaScript 使用 ERE（扩展正则）
+//   转换规则（使用 null-byte 占位符避免冲突）：
+//     \+ → +    \? → ?    \| → |    \( → (    \) → )
+//   占位符常量：BACKSLASH_PLACEHOLDER / PLUS_PLACEHOLDER 等
+//
+// 关键函数：
+//   - parseSedEditCommand(cmd)：解析 sed 命令，返回文件路径和替换信息
+//   - convertBREtoERE(pattern)：将 BRE 正则转换为 ERE/JS 正则
+//   - tryParseShellCommand(cmd)：解析 shell 引号（来自 shellQuote.ts）
+//
+// 关联：
+//   - BashTool.tsx：调用此模块渲染 sed 操作的 diff 视图
+//   - sedValidation.ts：验证 sed 命令安全性（独立于解析）
+//   - utils/bash/shellQuote.ts：shell 引号解析
+
 /**
  * Parser for sed edit commands (-i flag substitutions)
  * Extracts file paths and substitution patterns to enable file-edit-style rendering

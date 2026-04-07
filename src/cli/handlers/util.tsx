@@ -1,4 +1,15 @@
 import { c as _c } from "react/compiler-runtime";
+// cli/handlers/util.tsx — 杂项子命令处理器（setup-token / doctor / install）
+// 职责：实现三个独立的 CLI 子命令，从 main.tsx 中提取以支持懒加载。
+//
+// 子命令：
+//   setup-token：引导用户完成 Console OAuth 授权流程，获取并保存 API token
+//   doctor：运行诊断检查，输出安装状态、配置问题和修复建议
+//   install：将 Claude Code 安装为 shell 集成（补全脚本、PATH 配置等）
+//
+// 懒加载：仅在对应命令执行时动态 import，避免影响主启动性能
+// UI 渲染：setup-token 使用 Ink（React）渲染交互式 OAuth 流程界面
+
 /**
  * Miscellaneous subcommand handlers — extracted from main.tsx for lazy loading.
  * setup-token, doctor, install

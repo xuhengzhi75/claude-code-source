@@ -1,3 +1,22 @@
+// =============================================================================
+// src/utils/errors.ts — 错误类型定义与错误处理工具函数
+//
+// 【模块职责】
+//   定义 Claude Code 的自定义错误类型，并提供错误检测、消息提取等工具函数。
+//
+// 【自定义错误类型】
+//   ClaudeError          — 基础错误类，name 自动设为构造函数名
+//   MalformedCommandError — 命令格式错误
+//   AbortError           — 用户中止操作
+//
+// 【关键工具函数】
+//   isAbortError(e)      — 检测是否为任意形式的中止错误
+//                          （AbortError / APIUserAbortError / DOMException AbortError）
+//   errorMessage(e)      — 安全提取错误消息字符串（处理非 Error 对象）
+//   getErrnoCode(e)      — 提取 Node.js 系统错误码（ENOENT/EACCES 等）
+//   isENOENT(e)          — 快捷检测文件不存在错误
+// =============================================================================
+
 import { APIUserAbortError } from '@anthropic-ai/sdk'
 
 export class ClaudeError extends Error {

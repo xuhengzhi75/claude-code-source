@@ -1,3 +1,19 @@
+// =============================================================================
+// src/memdir/memoryAge.ts — 记忆文件时效性计算
+//
+// 【模块职责】
+//   将记忆文件的 mtime（毫秒时间戳）转换为人类可读的时效描述，
+//   帮助模型判断记忆是否可能已过期。
+//
+// 【设计动机】
+//   模型对原始 ISO 时间戳的日期运算能力较弱，"47 days ago" 这样的
+//   自然语言描述比 "2025-02-18T10:30:00Z" 更能触发模型的过期推理。
+//
+// 【函数】
+//   memoryAgeDays(mtimeMs) → number  距今天数（向下取整，负值钳制为 0）
+//   memoryAge(mtimeMs)     → string  "today" / "yesterday" / "N days ago"
+// =============================================================================
+
 /**
  * Days elapsed since mtime.  Floor-rounded — 0 for today, 1 for
  * yesterday, 2+ for older.  Negative inputs (future mtime, clock skew)

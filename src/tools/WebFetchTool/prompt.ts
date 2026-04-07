@@ -1,3 +1,22 @@
+// tools/WebFetchTool/prompt.ts — WebFetchTool 工具名称与描述
+// 职责：定义 WebFetchTool 的工具名称、描述文本和二级模型提示词。
+//
+// 关键常量：
+//   - WEB_FETCH_TOOL_NAME = 'WebFetch'：工具名称
+//   - DESCRIPTION：工具描述，包含使用场景和注意事项
+//
+// 描述要点：
+//   - 抓取 URL 内容，HTML 转 Markdown
+//   - 使用小型快速模型处理内容（Claude Haiku）
+//   - 优先使用 MCP 提供的 web fetch 工具（限制更少）
+//   - HTTP 自动升级为 HTTPS
+//
+// makeSecondaryModelPrompt(url, prompt)：
+//   生成发送给 Haiku 的提示词，指导其从抓取内容中提取所需信息
+//
+// 关联：
+//   - WebFetchTool.ts：调用此文件的常量注册工具
+//   - utils.ts：调用 makeSecondaryModelPrompt 生成摘要提示词
 export const WEB_FETCH_TOOL_NAME = 'WebFetch'
 
 export const DESCRIPTION = `

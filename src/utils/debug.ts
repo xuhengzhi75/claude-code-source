@@ -1,3 +1,26 @@
+// =============================================================================
+// src/utils/debug.ts — 调试日志系统
+//
+// 【模块职责】
+//   提供 Claude Code 的调试日志写入能力，支持按级别过滤和文件输出。
+//
+// 【日志级别】
+//   verbose < debug < info < warn < error
+//   通过 CLAUDE_CODE_DEBUG 环境变量控制最低输出级别
+//
+// 【输出目标】
+//   - 调试模式（--debug）：写入 ~/.claude/logs/<session-id>.log
+//   - 符号链接：~/.claude/logs/latest.log → 最新会话日志
+//   - 使用 BufferedWriter 批量写入，减少 I/O 次数
+//
+// 【关键函数】
+//   logForDebugging(message, options?)
+//     仅在调试模式下写入日志，生产环境零开销
+//
+//   logForDiagnosticsNoPII(message)
+//     写入诊断日志（不含 PII），用于问题排查
+// =============================================================================
+
 import { appendFile, mkdir, symlink, unlink } from 'fs/promises'
 import memoize from 'lodash-es/memoize.js'
 import { dirname, join } from 'path'

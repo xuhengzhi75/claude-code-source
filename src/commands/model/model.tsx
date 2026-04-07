@@ -1,4 +1,17 @@
 import { c as _c } from "react/compiler-runtime";
+// commands/model/model.tsx — /model 斜杠命令
+// 职责：交互式切换当前会话使用的 AI 模型。
+//
+// 功能：
+//   - 渲染 ModelPicker 组件，列出可用模型
+//   - 支持模型别名（MODEL_ALIASES）
+//   - 检查 1M token 上下文访问权限（checkOpus1mAccess/checkSonnet1mAccess）
+//   - 支持 Fast Mode（isFastModeAvailable/isFastModeEnabled）
+//   - 支持 Effort Level 设置（EffortLevel）
+//   - 切换后记录分析事件
+//
+// 模型选择影响：主循环模型（main loop model）立即生效，下一轮对话使用新模型
+
 import chalk from 'chalk';
 import * as React from 'react';
 import type { CommandResultDisplay } from '../../commands.js';

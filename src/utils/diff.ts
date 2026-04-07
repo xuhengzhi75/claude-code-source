@@ -1,3 +1,26 @@
+// =============================================================================
+// src/utils/diff.ts — 文件差异计算与展示工具
+//
+// 【模块职责】
+//   基于 `diff` 库计算文件编辑前后的差异，生成用于 UI 展示和统计的
+//   结构化 patch 数据。
+//
+// 【关键函数】
+//   getPatchForDisplay(oldContent, newContent, filePath, options?)
+//     → StructuredPatchHunk[]  生成结构化 diff，用于 FileEditTool UI 展示
+//     支持行号偏移（readEditContext 场景）
+//
+//   countLinesChanged(oldContent, newContent)
+//     → { added, removed }  统计增删行数，用于 LOC 追踪和分析
+//
+//   adjustHunkLineNumbers(hunks, offset)
+//     → StructuredPatchHunk[]  将 hunk 行号从切片相对偏移转为文件绝对行号
+//
+// 【常量】
+//   CONTEXT_LINES = 3   diff 上下文行数
+//   DIFF_TIMEOUT_MS = 5000  diff 计算超时（防止超大文件卡死）
+// =============================================================================
+
 import { type StructuredPatchHunk, structuredPatch } from 'diff'
 import { logEvent } from 'src/services/analytics/index.js'
 import { getLocCounter } from '../bootstrap/state.js'

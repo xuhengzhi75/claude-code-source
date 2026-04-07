@@ -1,3 +1,18 @@
+// tasks/LocalMainSessionTask.ts — 主会话后台化任务
+// 职责：处理用户按 Ctrl+B 两次将当前主会话查询后台化的逻辑。
+//
+// 后台化流程：
+//   1. 用户按 Ctrl+B 两次，触发主会话后台化
+//   2. 当前查询继续在后台运行（不中断）
+//   3. UI 清空，显示新的输入提示符
+//   4. 查询完成后发送通知
+//
+// 实现细节：
+//   - 复用 LocalAgentTask 的状态结构（行为相似）
+//   - 通过 runWithAgentContext() 在独立的 Agent 上下文中运行
+//   - 支持 worktree 模式（在独立 git worktree 中执行）
+//   - 完成后通过 enqueuePendingNotification() 发送通知
+
 /**
  * LocalMainSessionTask - Handles backgrounding the main session query.
  *

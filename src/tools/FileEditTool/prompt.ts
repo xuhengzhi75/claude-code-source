@@ -1,3 +1,21 @@
+// tools/FileEditTool/prompt.ts — FileEditTool 工具描述生成器
+// 职责：生成 FileEditTool 的工具描述文本（tool description），
+// 告知模型如何正确使用 Edit 工具。
+//
+// 描述内容：
+//   1. 基础说明：精确字符串替换语义
+//   2. 前置读取要求（getPreReadInstruction）：
+//      必须先用 FileRead 读取文件，才能执行编辑
+//   3. 行号前缀格式（isCompactLinePrefixEnabled）：
+//      - compact 模式：行号 + tab
+//      - 标准模式：空格 + 行号 + 箭头
+//   4. 唯一性提示（USER_TYPE === 'ant'）：
+//      ant 内部用户获得额外提示：old_string 通常 2-4 行即可唯一定位
+//
+// 关联：
+//   - FileEditTool.ts：调用 getEditToolDescription() 注册工具
+//   - FileReadTool/prompt.ts：FILE_READ_TOOL_NAME 常量
+//   - utils/file.ts：isCompactLinePrefixEnabled 检测
 import { isCompactLinePrefixEnabled } from '../../utils/file.js'
 import { FILE_READ_TOOL_NAME } from '../FileReadTool/prompt.js'
 

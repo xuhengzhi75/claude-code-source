@@ -1,3 +1,14 @@
+// utils/uuid.ts — UUID 生成与验证工具
+// 职责：提供 UUID 的生成、验证和类型转换工具函数，
+// 用于会话 ID、Agent ID、消息 ID 等唯一标识符的管理。
+//
+// 核心函数：
+//   - generateUuid()：生成标准 UUID v4（基于 crypto.randomBytes）
+//   - validateUuid(value)：验证字符串是否为合法 UUID 格式，返回 UUID 类型或 null
+//   - generateAgentId()：生成 AgentId 类型的 UUID（类型安全包装）
+//
+// UUID 格式：8-4-4-4-12 十六进制字符（标准 RFC 4122 格式）
+// 正则：/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 import { randomBytes, type UUID } from 'crypto'
 import type { AgentId } from 'src/types/ids.js'
 

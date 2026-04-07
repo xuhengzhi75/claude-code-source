@@ -1,3 +1,16 @@
+// cli/transports/SerialBatchEventUploader.ts — 串行批量事件上传器
+// 职责：以严格串行、有序的方式将事件批量 POST 到服务端，
+// 提供背压控制、指数退避重试和优雅关闭能力。
+//
+// 核心特性：
+//   - 串行：同一时刻最多 1 个 POST 在途，保证事件顺序
+//   - 批量：每次 POST 最多携带 maxBatchSize 个事件，减少请求数
+//   - 背压：队列满时 enqueue() 阻塞，防止内存无限增长
+//   - 重试：失败时指数退避（可配置），支持 RetryableError 携带 Retry-After
+//   - flush()：等待所有待发事件上传完成
+//
+// 使用方：HybridTransport（写入 Session Ingress）、CCRClient（写入 CCR v2 事件流）
+
 import { jsonStringify } from '../../utils/slowOperations.js'
 
 /**

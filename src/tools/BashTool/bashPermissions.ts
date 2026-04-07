@@ -1,3 +1,28 @@
+// tools/BashTool/bashPermissions.ts — Bash 命令权限检查引擎
+// 职责：对 Bash 命令进行细粒度权限检查，是 BashTool 安全层的核心。
+// 结合 AST 解析和规则匹配，决定命令是否需要用户确认。
+//
+// 核心函数：
+//   - bashToolHasPermission(command, context)：主入口，返回 PermissionResult
+//     → allow：命令在白名单中，直接执行
+//     → deny：命令被明确拒绝
+//     → ask：需要用户确认（弹出权限对话框）
+//
+// 关键工具函数：
+//   - bashPermissionRule(command)：从命令中提取权限规则字符串
+//   - stripAllLeadingEnvVars(command)：剥离命令前的环境变量赋值
+//   - stripSafeWrappers(command)：剥离安全包装器（如 sudo -n、timeout 等）
+//   - matchWildcardPattern(pattern, command)：通配符规则匹配
+//   - BINARY_HIJACK_VARS：可能劫持二进制的环境变量列表（安全黑名单）
+//
+// 分类器集成：
+//   - yoloClassifier：auto mode 下通过 LLM 分类器替代人工确认
+//   - bashClassifier：ANT-ONLY 的 Bash 命令语义分类器
+//   - PendingClassifierCheck：异步分类器检查的挂起状态
+//
+// 遥测：
+//   - 权限决策结果上报 logEvent（allow/deny/ask 各自的事件）
+//   - GrowthBook 特性开关控制分类器行为
 import { feature } from 'bun:bundle'
 import { APIUserAbortError } from '@anthropic-ai/sdk'
 import type { z } from 'zod/v4'

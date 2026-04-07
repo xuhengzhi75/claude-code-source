@@ -1,3 +1,21 @@
+// tools/AgentTool/built-in/planAgent.ts — Plan 内置 Agent
+// 职责：定义"Plan Agent"的系统提示词和配置，
+// 专门用于制定代码修改计划（Plan Mode）。
+//
+// Agent 特点：
+//   - 一次性 Agent（ONE_SHOT_BUILTIN_AGENT_TYPES 成员）
+//   - 先用 Explore Agent 探索代码库，再制定修改计划
+//   - 通过 ExitPlanMode 工具提交最终计划
+//   - 支持嵌入式搜索工具（ant-native 构建）
+//
+// 工具集：
+//   Bash / FileEdit / FileWrite / FileRead / Glob / Grep
+//   NotebookEdit / ExitPlanMode / Agent（用于调用 Explore）
+//
+// 关联：
+//   - exploreAgent.ts：Plan Agent 内部调用 Explore Agent
+//   - constants.ts：ONE_SHOT_BUILTIN_AGENT_TYPES
+//   - builtInAgents.ts：注册此 Agent 定义
 import { BASH_TOOL_NAME } from 'src/tools/BashTool/toolName.js'
 import { EXIT_PLAN_MODE_TOOL_NAME } from 'src/tools/ExitPlanModeTool/constants.js'
 import { FILE_EDIT_TOOL_NAME } from 'src/tools/FileEditTool/constants.js'

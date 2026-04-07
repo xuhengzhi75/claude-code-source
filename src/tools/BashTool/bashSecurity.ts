@@ -1,3 +1,26 @@
+// =============================================================================
+// src/tools/BashTool/bashSecurity.ts — Bash 命令安全分析引擎
+//
+// 【模块职责】
+//   对 BashTool 接收到的 shell 命令进行多层安全分析，检测危险模式并
+//   决定是否需要用户确认或直接拒绝执行。
+//
+// 【检测层次】
+//   1. 危险模式检测（validateDangerousPatterns）
+//      - rm -rf /、chmod 777 /、dd if=/dev/zero 等破坏性命令
+//      - 反引号命令替换（`cmd`）、heredoc 注入（$(<< ）等注入向量
+//   2. Shell 引号解析（tryParseShellCommand / hasShellQuoteSingleQuoteBug）
+//      检测单引号 bug 和格式错误的 token
+//   3. Tree-sitter AST 分析（TreeSitterAnalysis）
+//      深度解析命令结构，识别管道/重定向/子命令等复杂模式
+//   4. Heredoc 提取（extractHeredocs）
+//      将 heredoc 内容从命令中分离，避免误判
+//
+// 【输出】
+//   PermissionResult：allow / ask（需确认）/ deny（直接拒绝）
+//   附带 reason 字段说明拒绝原因，用于 UI 展示和日志记录
+// =============================================================================
+
 import { logEvent } from 'src/services/analytics/index.js'
 import { extractHeredocs } from '../../utils/bash/heredoc.js'
 import { ParsedCommand } from '../../utils/bash/ParsedCommand.js'

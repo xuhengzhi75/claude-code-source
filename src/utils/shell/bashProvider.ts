@@ -1,3 +1,27 @@
+// utils/shell/bashProvider.ts — Bash Shell 提供者实现
+// 职责：实现 ShellProvider 接口的 Bash 版本，负责构建和执行 Bash 命令，
+// 包含安全加固（禁用 extglob）、环境变量注入和 tmux 集成。
+//
+// 核心函数：
+//   - createBashCommand()：构建完整的 Bash 执行命令（含安全前缀、环境变量、重定向）
+//   - executeBashCommand()：执行命令并捕获 stdout/stderr，处理超时和中止
+//   - getDisableExtglobCommand()：生成禁用扩展 glob 的 Shell 命令（安全加固）
+//
+// 安全加固：
+//   - 禁用 extglob（bash）和 EXTENDED_GLOB（zsh）：防止恶意文件名在安全校验后展开
+//   - CLAUDE_CODE_SHELL_PREFIX 场景：同时注入 bash 和 zsh 的禁用命令
+//
+// 环境变量注入：
+//   - getSessionEnvVars()：注入会话级环境变量（如 CLAUDE_SESSION_ID）
+//   - getSessionEnvironmentScript()：注入用户自定义的环境脚本
+//
+// tmux 集成：
+//   - hasTmuxToolBeenUsed()：检测是否在 tmux 会话中
+//   - getClaudeTmuxEnv()：获取 tmux 环境变量，确保命令在正确的 pane 执行
+//
+// 跨平台支持：
+//   - Windows：rewriteWindowsNullRedirect() 将 /dev/null 替换为 NUL
+//   - WSL：windowsPathToPosixPath() 转换路径格式
 import { feature } from 'bun:bundle'
 import { access } from 'fs/promises'
 import { tmpdir as osTmpdir } from 'os'

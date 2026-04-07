@@ -1,3 +1,12 @@
+// =============================================================================
+// src/migrations/resetProToOpusDefault.ts — Pro 用户默认模型重置为 Opus
+//
+// 【迁移内容】
+//   对 Pro 订阅用户，将默认模型重置为 Opus（而非 Sonnet），
+//   仅执行一次（通过 config.opusProMigrationComplete 标志防止重复）。
+//   用于 Pro 用户升级到可访问 Opus 后的首次默认模型切换。
+// =============================================================================
+
 import { logEvent } from 'src/services/analytics/index.js'
 import { isProSubscriber } from '../utils/auth.js'
 import { getGlobalConfig, saveGlobalConfig } from '../utils/config.js'

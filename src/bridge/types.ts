@@ -1,3 +1,15 @@
+// bridge/types.ts — Bridge 模块公共类型与常量定义
+// 职责：集中定义 Remote Control（远程桥接）模式下所有模块共享的类型、
+// 常量和错误消息，是 bridge/ 目录的类型基础层。
+//
+// 关键常量：
+//   - DEFAULT_SESSION_TIMEOUT_MS：会话默认超时 24 小时
+//   - BRIDGE_LOGIN_INSTRUCTION：未登录时的统一错误提示
+//   - WorkSecret：CCR v2 工作密钥类型（base64url 编码，含版本号）
+//
+// Bridge 模式说明：
+//   Remote Control 允许用户通过 claude.ai 网页端远程控制本地 Claude Code 实例，
+//   本地进程通过长轮询与 claude.ai 服务器保持连接，接收指令并回传结果。
 /** Default per-session timeout (24 hours). */
 export const DEFAULT_SESSION_TIMEOUT_MS = 24 * 60 * 60 * 1000
 

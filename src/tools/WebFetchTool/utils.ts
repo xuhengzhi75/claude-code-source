@@ -1,3 +1,26 @@
+// tools/WebFetchTool/utils.ts — WebFetch 核心抓取工具函数
+// 职责：实现网页内容抓取、HTML→Markdown 转换、
+// 二进制内容处理和 AI 摘要等核心功能。
+//
+// 核心功能：
+//   1. HTTP 抓取（axios）
+//      - 自定义 User-Agent（getWebFetchUserAgent）
+//      - LRU 缓存：避免短时间内重复抓取同一 URL
+//      - 域名阻断：检测并拒绝被阻断的域名
+//   2. HTML → Markdown 转换
+//      - 去除导航栏、广告、脚本等噪音
+//      - 保留正文结构（标题、列表、代码块）
+//   3. 二进制内容处理（isBinaryContentType / persistBinaryContent）
+//      - 图片/PDF 等二进制内容存储到临时文件
+//      - 返回文件路径而非内联内容
+//   4. AI 摘要（queryHaiku / makeSecondaryModelPrompt）
+//      - 使用 Claude Haiku 对抓取内容进行摘要
+//      - 减少传递给主模型的 token 数量
+//
+// 关联：
+//   - WebFetchTool.ts：调用此文件的抓取函数
+//   - preapproved.ts：isPreapprovedHost 域名白名单
+//   - utils/http.ts：getWebFetchUserAgent
 import axios, { type AxiosResponse } from 'axios'
 import { LRUCache } from 'lru-cache'
 import {

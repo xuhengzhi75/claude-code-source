@@ -1,3 +1,21 @@
+// tools/BashTool/shouldUseSandbox.ts — 沙箱执行决策
+// 职责：决定 Bash 命令是否应该在沙箱（SandboxManager）中执行，
+// 而不是直接在宿主系统上运行。
+//
+// 决策逻辑：
+//   1. 检查 GrowthBook 特性开关（sandbox 功能是否启用）
+//   2. 检查用户设置（dangerouslyDisableSandbox）
+//   3. 检查命令是否在沙箱排除列表中（excludedCommands）
+//   4. 检查命令是否包含 BINARY_HIJACK_VARS（环境变量劫持风险）
+//
+// 重要安全说明：
+//   - excludedCommands 是用户便利功能，不是安全边界
+//   - 绕过 excludedCommands 不是安全漏洞
+//   - 真正的安全控制是沙箱权限系统（会提示用户确认）
+//
+// 关键函数：
+//   - shouldUseSandbox(input, context)：返回 boolean，决定是否使用沙箱
+//   - SandboxManager：沙箱适配器，封装底层沙箱实现（macOS sandbox-exec 等）
 import { getFeatureValue_CACHED_MAY_BE_STALE } from 'src/services/analytics/growthbook.js'
 import { splitCommand_DEPRECATED } from '../../utils/bash/commands.js'
 import { SandboxManager } from '../../utils/sandbox/sandbox-adapter.js'

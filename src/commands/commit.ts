@@ -1,3 +1,18 @@
+// commands/commit.ts — /commit 斜杠命令
+// 职责：生成并执行 git commit，让 Claude 自动分析当前变更并撰写提交信息。
+//
+// 工具限制（allowedTools）：
+//   仅允许 git add / git status / git commit，防止 Claude 在提交过程中
+//   执行其他危险操作（如修改文件、推送等）
+//
+// 安全约束（写入 prompt）：
+//   - NEVER update the git config
+//   - NEVER skip hooks（--no-verify 等）
+//   - 不允许 force push
+//
+// Undercover 模式：USER_TYPE=ant 且 isUndercover() 时，在 prompt 前注入
+// 特殊指令，隐藏内部身份信息（用于 Anthropic 内部测试场景）
+
 import type { Command } from '../commands.js'
 import { getAttributionTexts } from '../utils/attribution.js'
 import { executeShellCommandsInPrompt } from '../utils/promptShellExecution.js'

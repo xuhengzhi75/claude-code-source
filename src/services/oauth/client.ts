@@ -1,3 +1,26 @@
+// services/oauth/client.ts — OAuth 认证客户端
+// 职责：实现与 Claude.ai 服务的 OAuth 2.0 授权码流程（含 PKCE），
+// 处理 token 交换、刷新和账号信息获取。
+//
+// 核心函数：
+//   - exchangeCodeForTokens(code, verifier)：用授权码换取 access/refresh token
+//   - refreshAccessToken(refreshToken)：刷新过期的 access token
+//   - revokeToken(token)：撤销 token（登出）
+//   - getAccountInfo(accessToken)：获取账号信息（订阅类型/速率限制等）
+//
+// OAuth 流程：
+//   1. 生成 PKCE code_verifier + code_challenge（crypto.ts）
+//   2. 打开浏览器跳转授权页（index.ts）
+//   3. 本地监听回调（auth-code-listener.ts）
+//   4. 用授权码换取 token（此文件）
+//   5. 保存 token 到 keychain/便携式存储（auth.ts）
+//
+// Scope 管理：
+//   - ALL_OAUTH_SCOPES：完整权限集（含 profile）
+//   - CLAUDE_AI_OAUTH_SCOPES：标准权限集
+//   - CLAUDE_AI_INFERENCE_SCOPE：仅推理权限（最小权限）
+//
+// 遥测：token 交换成功/失败均上报 logEvent
 // OAuth client for handling authentication flows with Claude services
 import axios from 'axios'
 import {

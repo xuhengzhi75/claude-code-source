@@ -1,3 +1,16 @@
+// cli/update.ts — `claude update` 命令实现
+// 职责：检测当前安装方式，从 npm registry 或 native installer 拉取最新版本并升级。
+//
+// 支持的安装方式及对应更新策略：
+//   - native：调用 nativeInstaller.installLatest()，支持锁文件防并发
+//   - npm-local：调用 installOrUpdateClaudePackage()（~/.claude/local）
+//   - npm-global：调用 installGlobalPackage()（全局 npm）
+//   - package-manager（homebrew/winget/apk）：仅提示用户手动执行包管理器命令
+//   - development：拒绝更新，提示为开发构建
+//
+// 更新频道：由 settings.autoUpdatesChannel 控制（latest / stable）
+// 诊断：更新前运行 getDoctorDiagnostic() 检测多版本冲突和配置不一致
+
 import chalk from 'chalk'
 import { logEvent } from 'src/services/analytics/index.js'
 import {

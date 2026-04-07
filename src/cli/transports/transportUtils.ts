@@ -1,3 +1,14 @@
+// cli/transports/transportUtils.ts — 传输层工厂函数
+// 职责：根据环境变量和 URL 协议，选择并实例化合适的传输实现。
+//
+// 选择优先级（高→低）：
+//   1. CLAUDE_CODE_USE_CCR_V2=1 → SSETransport（CCR v2，SSE 读 + POST 写）
+//      URL 从 ws(s):// 转换为 http(s)://，路径追加 /worker/events/stream
+//   2. CLAUDE_CODE_POST_FOR_SESSION_INGRESS_V2=1 → HybridTransport（WS 读 + POST 写）
+//   3. 默认 → WebSocketTransport（WS 双向）
+//
+// 注意：非 ws/wss 协议（如 http/https）在非 CCR v2 模式下会抛出错误
+
 import { URL } from 'url'
 import { isEnvTruthy } from '../../utils/envUtils.js'
 import { HybridTransport } from './HybridTransport.js'

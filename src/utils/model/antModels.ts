@@ -1,3 +1,20 @@
+// utils/model/antModels.ts — ANT 内部模型配置（GrowthBook 动态下发）
+// 职责：通过 GrowthBook feature flag 动态获取 ANT 内部专用模型列表，
+// 支持在不发版的情况下向内部用户推送新模型。
+//
+// 核心类型：
+//   - AntModel：ANT 内部模型描述（alias/model/label/contextWindow/defaultEffortLevel 等）
+//   - AntModelOverrideConfig：完整的 ANT 模型覆盖配置（含默认模型、系统提示词后缀等）
+//
+// 核心函数：
+//   - getAntModelOverrideConfig()：从 GrowthBook 获取 ANT 模型覆盖配置
+//   - getAntModels()：获取 ANT 专用模型列表（非 ANT 用户返回空数组）
+//
+// 关键设计：
+//   - 仅 USER_TYPE === 'ant' 时生效，外部用户始终返回 null/[]
+//   - 通过 GrowthBook feature flag 'tengu_ant_model_override' 动态下发
+//   - @[MODEL LAUNCH] 注释标记：新 ANT 模型发布时需更新此 feature flag
+//   - alwaysOnThinking：标记默认开启 adaptive thinking 的模型
 import { getFeatureValue_CACHED_MAY_BE_STALE } from 'src/services/analytics/growthbook.js'
 import type { EffortLevel } from '../effort.js'
 

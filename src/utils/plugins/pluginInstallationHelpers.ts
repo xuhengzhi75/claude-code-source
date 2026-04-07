@@ -1,3 +1,30 @@
+// utils/plugins/pluginInstallationHelpers.ts — 插件安装公共工具
+// 职责：提供插件安装流程中的公共工具函数，
+// 减少 marketplaceManager/pluginLoader 等模块的代码重复。
+//
+// 核心函数：
+//   - installPlugin()：执行完整的插件安装流程（下载→验证→缓存→注册）
+//   - uninstallPlugin()：卸载插件（从 settings 移除，清理缓存）
+//   - enablePlugin() / disablePlugin()：启用/禁用已安装的插件
+//   - resolveDependencyClosure()：解析插件依赖闭包（含传递依赖）
+//
+// 安装流程：
+//   1. 解析插件标识符（plugin@marketplace 格式）
+//   2. 从市场获取插件元数据
+//   3. 检查策略限制（isPluginBlockedByPolicy）
+//   4. 下载并缓存插件（cachePlugin）
+//   5. 解析依赖闭包（resolveDependencyClosure）
+//   6. 更新 settings 中的插件列表
+//   7. 记录安装事件（logEvent）
+//
+// 依赖管理：
+//   - resolveDependencyClosure()：递归解析所有传递依赖
+//   - formatDependencyCountSuffix()：格式化依赖数量提示（"+ 3 dependencies"）
+//
+// 关键设计：
+//   - 原子安装：使用随机临时目录 + rename 保证安装原子性
+//   - 策略检查：isPluginBlockedByPolicy() 防止安装被企业策略禁止的插件
+//   - 埋点：安装/卸载事件通过 buildPluginTelemetryFields() 上报
 /**
  * Shared helper functions for plugin installation
  *

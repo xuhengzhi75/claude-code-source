@@ -1,3 +1,28 @@
+// utils/telemetry/betaSessionTracing.ts — Beta 会话追踪（详细模式）
+// 职责：在 Beta 追踪模式下，将完整的会话内容（含系统提示词、模型输出、工具调用）
+// 上报到指定端点，用于深度调试和分析。
+//
+// 启用条件：
+//   - ENABLE_BETA_TRACING_DETAILED=1 且 BETA_TRACING_ENDPOINT 已设置
+//   - 外部用户：SDK/headless 模式，或 org 在 tengu_trace_lantern GrowthBook 白名单中
+//   - Ant 内部用户：所有模式均启用
+//
+// 内容可见性规则（外部 vs Ant）：
+//   | 内容类型         | 外部用户 | Ant 用户 |
+//   |-----------------|---------|---------|
+//   | 系统提示词       | ✅      | ✅      |
+//   | 模型输出         | ✅      | ✅      |
+//   | Thinking 输出   | ❌      | ✅      |
+//   | 工具调用         | ✅      | ✅      |
+//   | new_context     | ✅      | ✅      |
+//
+// 与 sessionTracing.ts 的区别：
+//   - sessionTracing.ts：标准追踪，仅记录结构化元数据（token 数、工具名等）
+//   - betaSessionTracing.ts：详细追踪，记录完整内容（含提示词原文、模型回复原文）
+//
+// 隐私保护：
+//   - Thinking 内容对外部用户不可见（可能含敏感推理过程）
+//   - 通过 GrowthBook 特性门控（tengu_trace_lantern）控制外部用户访问
 /**
  * Beta Session Tracing for Claude Code
  *

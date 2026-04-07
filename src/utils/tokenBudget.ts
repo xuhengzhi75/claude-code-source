@@ -1,3 +1,22 @@
+// =============================================================================
+// src/utils/tokenBudget.ts — Token 预算解析与续跑消息生成
+//
+// 【模块职责】
+//   解析用户在提示中指定的 token 预算（如 "+500k"、"use 2M tokens"），
+//   并生成模型接近预算上限时的续跑提示消息。
+//
+// 【预算语法支持】
+//   简写（行首/行尾）：+500k / +2m / +1b
+//   详细写法（任意位置）：use 2M tokens / spend 500k tokens
+//
+// 【关键函数】
+//   parseBudgetFromText(text)
+//     → number | null  从用户消息中提取 token 预算数值
+//
+//   getBudgetContinuationMessage(budget, usedTokens)
+//     → string  生成续跑提示，告知模型已用 token 数和剩余预算
+// =============================================================================
+
 // Shorthand (+500k) anchored to start/end to avoid false positives in natural language.
 // Verbose (use/spend 2M tokens) matches anywhere.
 const SHORTHAND_START_RE = /^\s*\+(\d+(?:\.\d+)?)\s*(k|m|b)\b/i

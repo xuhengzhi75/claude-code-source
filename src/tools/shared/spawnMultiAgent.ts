@@ -1,3 +1,26 @@
+// tools/shared/spawnMultiAgent.ts — 多 Agent 生成共享模块
+// 职责：提供创建 Teammate（进程内子 Agent）的共享逻辑，
+// 从 TeammateTool 中提取以供 AgentTool 复用。
+//
+// 核心功能：
+//   - spawnInProcessTeammate(...)：在当前进程内生成新的 Teammate Agent
+//     · 继承父 Agent 的权限模式（bypassPermissions）
+//     · 传递 flag 设置、插件、模型覆盖等配置
+//     · 生成唯一 agentId 和 taskId
+//   - 与 fork 模式的区别：
+//     · fork：独立进程，隔离性强
+//     · in-process：共享内存，通信开销低
+//
+// 关键依赖：
+//   - bootstrap/state.ts：获取会话配置（sessionId/bypassPermissions 等）
+//   - Task.ts：createTaskStateBase / generateTaskId
+//   - tasks/InProcessTeammateTask：Teammate 任务状态类型
+//   - utils/agentId.ts：formatAgentId 生成 Agent ID
+//
+// 关联：
+//   - AgentTool.tsx：调用此模块生成 in-process Teammate
+//   - TeamCreateTool.ts：原始来源，已重构到此共享模块
+
 /**
  * Shared spawn module for teammate creation.
  * Extracted from TeammateTool to allow reuse by AgentTool.

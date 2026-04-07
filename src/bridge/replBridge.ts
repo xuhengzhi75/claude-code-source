@@ -1,3 +1,16 @@
+// bridge/replBridge.ts — Env-based Bridge 核心实现（CCR v2 协议）
+// 职责：实现基于 Environments API 的 Bridge 连接核心逻辑，
+// 是 Remote Control 的主要执行路径（env-based path）。
+//
+// 与 remoteBridgeCore.ts 的区别：
+//   - replBridge：通过 Environments API 管理会话，支持 CCR v2 /worker/* 传输协议
+//   - remoteBridgeCore：直接 HTTP 轮询，不依赖 Environments API（env-less path）
+//
+// 核心职责：
+//   - initBridgeCore()：初始化 Bridge 连接，建立长轮询循环
+//   - 消息路由：将入站消息分发给 QueryEngine，将结果流式回传
+//   - 会话管理：处理会话创建、续接、超时
+//   - 传输切换：SSE → WebSocket 升级（replBridgeTransport.ts）
 // biome-ignore-all assist/source/organizeImports: ANT-ONLY import markers must not be reordered
 import { randomUUID } from 'crypto'
 import {

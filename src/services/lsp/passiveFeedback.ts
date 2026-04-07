@@ -1,3 +1,25 @@
+// services/lsp/passiveFeedback.ts — LSP 诊断被动反馈处理
+// 职责：处理 LSP 服务器主动推送的 textDocument/publishDiagnostics 通知，
+// 将诊断结果格式化后存入 LSPDiagnosticRegistry，供下一轮对话注入。
+//
+// 核心函数：
+//   - setupPassiveFeedback()：为 LSP 服务器注册 publishDiagnostics 通知处理器
+//   - formatDiagnosticsForAttachment()：将 LSP 诊断格式转换为 Claude 的 DiagnosticFile[]
+//   - mapLSPSeverity()：将 LSP 严重级别数字映射为 Claude 的字符串（Error/Warning/Info/Hint）
+//
+// 工作流程：
+//   1. LSP 服务器在文件保存/修改后推送 publishDiagnostics 通知
+//   2. setupPassiveFeedback() 注册的处理器接收通知
+//   3. formatDiagnosticsForAttachment() 转换格式
+//   4. registerPendingLSPDiagnostic() 存入注册表
+//   5. 下一轮 query 时 LSPDiagnosticRegistry 将诊断注入对话
+//
+// LSP 严重级别映射：
+//   1=Error / 2=Warning / 3=Information→Info / 4=Hint / undefined→Error
+//
+// 关键设计：
+//   - "被动"反馈：不主动请求诊断，而是等待服务器推送（publishDiagnostics 是服务器主动发送的）
+//   - URI 处理：支持 file:// URI 和普通路径两种格式
 import { fileURLToPath } from 'url'
 import type { PublishDiagnosticsParams } from 'vscode-languageserver-protocol'
 import { logForDebugging } from '../../utils/debug.js'

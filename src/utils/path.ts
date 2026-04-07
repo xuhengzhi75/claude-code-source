@@ -1,3 +1,24 @@
+// =============================================================================
+// src/utils/path.ts — 路径处理工具函数
+//
+// 【模块职责】
+//   提供跨平台路径处理工具，包括 tilde 展开、路径规范化、
+//   相对路径解析和 Windows/POSIX 路径转换。
+//
+// 【关键函数】
+//   expandPath(path, baseDir?)
+//     展开 ~ 为 home 目录，处理相对路径，Windows 上自动转换 POSIX 路径
+//
+//   sanitizePath(path)
+//     将路径转换为安全的文件系统键（替换特殊字符），用于生成存储目录名
+//
+//   isSubPath(parent, child)
+//     检测 child 是否在 parent 目录下（防路径穿越）
+//
+//   resolveToAbsolute(path, cwd?)
+//     将相对路径解析为绝对路径（相对于 cwd 或当前工作目录）
+// =============================================================================
+
 import { homedir } from 'os'
 import { dirname, isAbsolute, join, normalize, relative, resolve } from 'path'
 import { getCwd } from './cwd.js'

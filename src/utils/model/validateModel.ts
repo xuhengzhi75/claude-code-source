@@ -1,3 +1,26 @@
+// utils/model/validateModel.ts — 模型有效性验证
+// 职责：验证用户指定的模型名称是否有效，
+// 通过白名单检查和实际 API 调用两步验证。
+//
+// 核心函数：
+//   - validateModel()：验证模型名称（白名单检查 + API 探测）
+//
+// 验证流程：
+//   1. 空字符串检查
+//   2. availableModels 白名单检查（isModelAllowed）
+//   3. 别名检查（MODEL_ALIASES 中的别名始终有效）
+//   4. ANTHROPIC_CUSTOM_MODEL_OPTION 环境变量检查（用户预验证的自定义模型）
+//   5. 内存缓存检查（validModelCache，避免重复 API 调用）
+//   6. 实际 API 调用验证（sideQuery 发送最小请求）
+//
+// 错误分类：
+//   - NotFoundError：模型不存在
+//   - AuthenticationError：认证失败（不是模型问题，视为有效）
+//   - APIConnectionError：网络问题（视为有效，避免误报）
+//
+// 关键设计：
+//   - validModelCache：Map<string, boolean>，进程内缓存避免重复验证
+//   - 网络错误时保守处理（返回 valid=true），避免因网络问题误拒合法模型
 // biome-ignore-all assist/source/organizeImports: ANT-ONLY import markers must not be reordered
 import { MODEL_ALIASES } from './aliases.js'
 import { isModelAllowed } from './modelAllowlist.js'

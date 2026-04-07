@@ -1,3 +1,11 @@
+// =============================================================================
+// src/migrations/migrateSonnet1mToSonnet45.ts — Sonnet[1m] → Sonnet 4.5 迁移
+//
+// 【迁移内容】
+//   将用户设置的 sonnet[1m] 模型别名迁移到 claude-sonnet-4-5，
+//   同时更新 globalConfig 和 mainLoopModelOverride（运行时状态）。
+// =============================================================================
+
 import {
   getMainLoopModelOverride,
   setMainLoopModelOverride,

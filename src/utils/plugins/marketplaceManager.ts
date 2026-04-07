@@ -1,3 +1,31 @@
+// utils/plugins/marketplaceManager.ts — 插件市场管理器
+// 职责：管理 Claude Code 插件市场的配置、缓存和插件安装，
+// 支持 URL、GitHub 仓库、npm 包、本地文件四种市场来源。
+//
+// 核心函数：
+//   - getMarketplace()：获取指定市场的插件列表（含网络请求）
+//   - getMarketplaceCacheOnly()：仅从本地缓存获取市场数据（离线模式）
+//   - getPluginById()：按 ID 查找插件（跨所有已知市场）
+//   - addMarketplace() / removeMarketplace()：增删市场来源
+//   - refreshMarketplace()：刷新市场缓存
+//
+// 市场来源类型：
+//   - URL：直接下载 marketplace.json（axios 请求）
+//   - GitHub：git clone 仓库，读取 .claude-plugin/marketplace.json
+//   - npm：通过 npm pack 下载包，解压后读取 marketplace.json
+//   - local：直接读取本地文件系统路径
+//
+// 文件结构：
+//   ~/.claude/plugins/
+//   ├── known_marketplaces.json    # 所有已知市场的配置
+//   └── marketplaces/              # 市场数据缓存目录
+//       ├── my-marketplace.json    # URL 来源的缓存
+//       └── github-marketplace/    # GitHub 来源的克隆仓库
+//
+// 关键设计：
+//   - memoize(getMarketplace)：同一会话内市场数据只请求一次
+//   - 离线优先：getMarketplaceCacheOnly() 供启动时快速加载
+//   - 错误分类：classifyFetchError() 区分网络错误和配置错误
 /**
  * Marketplace manager for Claude Code plugins
  *

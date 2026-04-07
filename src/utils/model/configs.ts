@@ -1,3 +1,24 @@
+// utils/model/configs.ts — 模型配置常量表
+// 职责：维护所有已知 Claude 模型在各 Provider 下的完整 ID 映射表，
+// 是模型字符串解析的静态数据源。
+//
+// 核心类型：
+//   - ModelConfig：Record<APIProvider, ModelName>，每个模型在四个 Provider 下的 ID
+//   - ModelKey：所有模型配置的键名联合类型（如 'sonnet37'/'haiku35' 等）
+//   - CanonicalModelId：firstParty Provider 下的标准模型 ID
+//
+// 核心常量：
+//   - CLAUDE_*_CONFIG：各模型的四 Provider ID 映射（firstParty/bedrock/vertex/foundry）
+//   - ALL_MODEL_CONFIGS：所有模型配置的聚合对象
+//   - CANONICAL_ID_TO_KEY：从 firstParty ID 反查 ModelKey 的映射
+//
+// 使用方式：
+//   - modelStrings.ts 通过 ALL_MODEL_CONFIGS[key][provider] 获取当前 Provider 的模型 ID
+//   - @[MODEL LAUNCH] 注释标记：新模型发布时在此添加新的 CLAUDE_*_CONFIG 常量
+//
+// 关键设计：
+//   - satisfies ModelConfig：TypeScript 类型检查确保每个配置包含所有 Provider
+//   - as const：确保模型 ID 字符串为字面量类型，支持精确类型推断
 import type { ModelName } from './model.js'
 import type { APIProvider } from './providers.js'
 

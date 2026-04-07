@@ -1,3 +1,20 @@
+// tools/BashTool/modeValidation.ts — 权限模式下的命令验证
+// 职责：根据当前权限模式（acceptEdits/readOnly 等）验证 Bash 命令是否被允许执行。
+//
+// 权限模式验证：
+//   - acceptEdits 模式：只允许文件系统操作命令（mkdir/touch/rm/mv/cp/sed）
+//     → ACCEPT_EDITS_ALLOWED_COMMANDS 白名单
+//   - readOnly 模式：只允许只读命令（cat/ls/grep 等）
+//     → 通过 readOnlyValidation.ts 验证
+//
+// 核心函数：
+//   - validateCommandForMode(command, context)：根据权限模式验证命令
+//     → 返回 PermissionResult（allow/deny）
+//   - isFilesystemCommand(command)：检查是否为允许的文件系统命令
+//
+// ACCEPT_EDITS_ALLOWED_COMMANDS：
+//   ['mkdir', 'touch', 'rm', 'rmdir', 'mv', 'cp', 'sed']
+//   → 这些命令在 acceptEdits 模式下无需额外确认
 import type { z } from 'zod/v4'
 import type { ToolPermissionContext } from '../../Tool.js'
 import { splitCommand_DEPRECATED } from '../../utils/bash/commands.js'

@@ -1,3 +1,25 @@
+// =============================================================================
+// src/memdir/memoryTypes.ts — 记忆类型分类体系与提示文本
+//
+// 【模块职责】
+//   定义 Claude Code 持久化记忆系统的四种类型分类，并导出各模式下
+//   注入系统提示的文本常量。
+//
+// 【四种记忆类型】
+//   user      — 用户角色/目标/偏好（始终私有）
+//   feedback  — 用户对 AI 行为的纠正与确认（默认私有，项目级约定可团队共享）
+//   project   — 项目进行中的工作/目标/决策（强烈建议团队共享）
+//   reference — 外部系统指针（Linear/Grafana/Slack 等，通常团队共享）
+//
+// 【导出常量】
+//   TYPES_SECTION_COMBINED   — 含 <scope> 标签的团队+私有双目录模式提示
+//   TYPES_SECTION_INDIVIDUAL — 单目录模式提示（无 scope 标签）
+//   WHAT_NOT_TO_SAVE_SECTION — 明确禁止保存的内容（代码模式/git 历史等）
+//   WHEN_TO_ACCESS_SECTION   — 何时读取记忆的指导
+//   TRUSTING_RECALL_SECTION  — 如何验证记忆准确性（防止过期记忆误导）
+//   MEMORY_FRONTMATTER_EXAMPLE — 记忆文件 frontmatter 格式示例
+// =============================================================================
+
 /**
  * Memory type taxonomy.
  *

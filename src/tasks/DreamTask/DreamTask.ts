@@ -1,3 +1,20 @@
+// tasks/DreamTask/DreamTask.ts — 自动记忆整合（Auto-Dream）任务
+// 职责：将 auto-dream 记忆整合子 Agent 注册为可见的后台任务，
+// 使其出现在底部 Pill 和 Shift+Down 对话框中。
+//
+// Auto-Dream 机制：
+//   - 在会话空闲时自动触发，运行记忆整合子 Agent
+//   - 子 Agent 执行 4 阶段流程：orient / gather / consolidate / prune
+//   - 本文件不解析阶段，仅在第一个 Edit/Write 工具调用时从 'starting' 切换到 'updating'
+//
+// 状态字段：
+//   phase：'starting'（初始）| 'updating'（已有文件修改）
+//   sessionsReviewing：正在审查的会话数
+//   filesTouched：观察到的文件修改路径（不完整，仅工具调用可见部分）
+//   turns：最近 30 轮助手响应（工具调用折叠为计数）
+//
+// 注意：这是纯 UI 层封装，dream agent 本身的逻辑不在此文件中
+
 // Background task entry for auto-dream (memory consolidation subagent).
 // Makes the otherwise-invisible forked agent visible in the footer pill and
 // Shift+Down dialog. The dream agent itself is unchanged — this is pure UI

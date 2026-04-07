@@ -1,3 +1,19 @@
+// cli/handlers/plugins.ts — `claude plugin` 子命令处理器
+// 职责：实现插件（Plugin）的安装、卸载、启用、禁用和市场浏览命令。
+//
+// 子命令：
+//   install：从市场或本地路径安装插件
+//   uninstall：卸载已安装的插件
+//   enable / disable：启用或禁用单个插件
+//   disable-all：禁用所有插件
+//   list：列出已安装插件及其状态
+//   marketplace list：浏览市场中的可用插件
+//   marketplace add-source / remove-source：管理市场来源
+//   marketplace refresh：刷新市场缓存
+//
+// 插件作用域：project（项目级）/ user（用户级）/ global（全局）
+// 懒加载：仅在 `claude plugin *` 命令执行时动态 import
+
 /**
  * Plugin and marketplace subcommand handlers — extracted from main.tsx for lazy loading.
  * These are dynamically imported only when `claude plugin *` or `claude plugin marketplace *` runs.

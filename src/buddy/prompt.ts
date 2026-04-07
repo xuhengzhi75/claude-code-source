@@ -1,3 +1,23 @@
+// =============================================================================
+// src/buddy/prompt.ts — Companion 系统提示注入
+//
+// 【模块职责】
+//   在对话开始时将 Companion 信息注入为 attachment，让主模型知晓宠物的
+//   存在，从而在用户直接呼叫宠物名字时保持克制（不抢答）。
+//
+// 【关键函数】
+//   companionIntroText(name, species)
+//     生成注入到系统提示的介绍文本，明确告知模型：
+//     - 宠物是独立的旁观者，不是模型本身
+//     - 用户直接呼叫宠物时，模型只需一行内回应或保持沉默
+//
+//   getCompanionIntroAttachment(messages)
+//     检查当前对话是否已注入过同名宠物的 intro attachment，
+//     避免重复注入（幂等）。
+//     - 功能门控：feature('BUDDY') 关闭时返回空数组
+//     - 静音门控：config.companionMuted 为 true 时跳过
+// =============================================================================
+
 import { feature } from 'bun:bundle'
 import type { Message } from '../types/message.js'
 import type { Attachment } from '../utils/attachments.js'

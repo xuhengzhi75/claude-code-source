@@ -1,3 +1,15 @@
+// =============================================================================
+// src/migrations/migrateFennecToOpus.ts — Fennec 模型别名迁移
+//
+// 【迁移内容】
+//   将已废弃的 fennec 模型别名迁移到对应的 Opus 4.6 别名：
+//   fennec-latest → opus，fennec-latest[1m] → opus[1m]，
+//   fennec-fast-latest / opus-4-5-fast → opus[1m] + fastMode: true
+//
+// 【仅限 Anthropic 内部用户】
+//   process.env.USER_TYPE !== 'ant' 时直接返回（外部用户无 fennec 别名）
+// =============================================================================
+
 import {
   getSettingsForSource,
   updateSettingsForSource,

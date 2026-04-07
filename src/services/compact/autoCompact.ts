@@ -1,3 +1,28 @@
+// services/compact/autoCompact.ts — 自动压缩触发器
+// 职责：监控 token 使用率，在接近 context window 上限时自动触发对话历史压缩，
+// 防止因 prompt_too_long 错误导致对话中断。
+//
+// 核心函数：
+//   - shouldAutoCompact()：判断当前 token 使用率是否超过阈值（默认 95%）
+//   - runAutoCompact()：执行自动压缩，调用 compactConversation() 并清理状态
+//   - getEffectiveContextWindowSize()：计算有效上下文窗口（总窗口 - 输出预留）
+//
+// 触发条件：
+//   - token 使用率 > AUTO_COMPACT_THRESHOLD（可通过 CLAUDE_CODE_AUTO_COMPACT_WINDOW 覆盖）
+//   - 连续失败次数 < 熔断阈值（consecutiveFailures 作为熔断器）
+//
+// 压缩流程：
+//   1. 检测 token 使用率超阈值
+//   2. 调用 compactConversation() 生成摘要
+//   3. 调用 runPostCompactCleanup() 重置相关状态
+//   4. 通知 promptCacheBreakDetection 缓存已失效
+//
+// 熔断机制：
+//   - consecutiveFailures 记录连续失败次数
+//   - 超过阈值后停止重试（防止 prompt_too_long 无限循环）
+//
+// Session Memory 集成：
+//   - trySessionMemoryCompaction()：在普通压缩前尝试 session memory 压缩
 import { feature } from 'bun:bundle'
 import { markPostCompaction } from 'src/bootstrap/state.js'
 import { getSdkBetas } from '../../bootstrap/state.js'

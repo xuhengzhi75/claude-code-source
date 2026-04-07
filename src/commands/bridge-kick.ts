@@ -1,3 +1,18 @@
+// commands/bridge-kick.ts — /bridge-kick 调试命令（仅限 Ant 内部）
+// 职责：向 Bridge 连接注入人工故障状态，用于手动测试 Bridge 恢复路径。
+//
+// 支持的故障注入类型：
+//   close <code>          — 触发 WebSocket 关闭（1002/1006 等错误码）
+//   poll <status>         — 下次轮询抛出指定 HTTP 状态码错误
+//   register fail [n]     — 下次（或 n 次）注册请求瞬时失败
+//   register fatal        — 下次注册请求 403 永久失败
+//   reconnect-session fail — POST /bridge/reconnect 失败（触发 Strategy 2）
+//   heartbeat 401         — 下次心跳 401（JWT 过期）
+//   reconnect             — 直接调用 doReconnect（等同 SIGUSR2）
+//   status                — 打印当前 Bridge 状态
+//
+// 安全：仅在 USER_TYPE=ant 时可用，生产环境不暴露此命令
+
 import { getBridgeDebugHandle } from '../bridge/bridgeDebug.js'
 import type { Command } from '../commands.js'
 import type { LocalCommandCall } from '../types/command.js'

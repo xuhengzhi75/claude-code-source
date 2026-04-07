@@ -1,3 +1,29 @@
+// utils/swarm/inProcessRunner.ts — 进程内 Teammate 运行器
+// 职责：在同一进程内运行 Teammate（子智能体），通过 AsyncLocalStorage 实现
+// 上下文隔离，使多个 Teammate 可以并发运行而不互相干扰。
+//
+// 核心函数：
+//   - runInProcessTeammate()：启动进程内 Teammate，包装 runAgent() 调用
+//   - runWithTeammateContext()：通过 AsyncLocalStorage 隔离 Teammate 上下文
+//   - handleTeammateCompletion()：Teammate 完成后通知 Leader 并清理状态
+//
+// 与外部进程 Teammate 的区别：
+//   - 进程内（InProcess）：共享内存，通过 AsyncLocalStorage 隔离上下文，延迟低
+//   - 外部进程（iTerm/Tmux）：独立进程，通过 mailbox 通信，支持可视化终端
+//
+// 上下文隔离机制：
+//   - AsyncLocalStorage<TeammateContext> 为每个 Teammate 维护独立的上下文
+//   - 包括：agentId、taskState、permissionCallback、progressTracker 等
+//   - 避免多 Teammate 并发时的状态污染
+//
+// 权限流程：
+//   - Teammate 的工具调用权限通过 mailbox 发送给 Leader 审批
+//   - registerPermissionCallback() 注册回调，等待 Leader 的 processMailboxPermissionResponse()
+//   - Plan Mode 下：Teammate 需要 Leader 批准计划后才能执行
+//
+// 压缩集成：
+//   - Teammate 独立维护自己的对话历史，支持独立的 autoCompact
+//   - 压缩后通过 buildPostCompactMessages() 重建消息列表
 /**
  * In-process teammate runner
  *

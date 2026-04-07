@@ -1,3 +1,25 @@
+// utils/permissions/shellRuleMatching.ts — Shell 权限规则匹配引擎
+// 职责：实现 Shell 工具（Bash/PowerShell）的权限规则解析和命令匹配逻辑，
+// 支持精确匹配、前缀匹配和通配符匹配三种规则类型。
+//
+// 核心函数：
+//   - parseShellPermissionRule()：将规则字符串解析为 ShellPermissionRule 判别联合类型
+//   - matchesShellRule()：检查命令是否匹配指定规则
+//   - findMatchingShellRule()：在规则列表中查找第一个匹配的规则
+//   - buildPermissionSuggestion()：根据命令生成建议的权限规则字符串
+//
+// 规则类型（ShellPermissionRule）：
+//   - exact：精确匹配（如 "git status"）
+//   - prefix：前缀匹配（如 "git commit:"，匹配所有以 "git commit" 开头的命令）
+//   - wildcard：通配符匹配（如 "npm * install"，支持 * 和 ? 通配符）
+//
+// 规则语法：
+//   - "git status"：精确匹配
+//   - "git commit:*"：前缀匹配（旧语法，: 后跟 *）
+//   - "npm * install"：通配符匹配
+//
+// 性能优化：
+//   - 通配符占位符（ESCAPED_STAR_PLACEHOLDER）在模块级编译，避免每次权限检查重新编译 RegExp
 /**
  * Shared permission rule matching utilities for shell tools.
  *

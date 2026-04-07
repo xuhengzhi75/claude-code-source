@@ -1,3 +1,16 @@
+// commands/init-verifiers.ts — /init-verifiers 斜杠命令
+// 职责：为当前项目创建 Verifier Skill，供 Verify Agent 自动验证代码变更。
+//
+// Verifier Skill 用途：
+//   - 定义项目特定的验证规则（测试、lint、构建等）
+//   - Verify Agent 在每次代码变更后自动运行这些验证
+//   - 支持多个 Verifier（如 web UI 和 API 分别有不同验证逻辑）
+//
+// 执行流程：
+//   1. 用 TodoWrite 工具追踪多步骤任务进度
+//   2. 分析项目结构，确定需要哪些验证
+//   3. 创建对应的 Verifier Skill 文件
+
 import type { Command } from '../commands.js'
 
 const command = {

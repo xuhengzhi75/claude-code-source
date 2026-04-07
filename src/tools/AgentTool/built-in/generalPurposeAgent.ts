@@ -1,3 +1,20 @@
+// tools/AgentTool/built-in/generalPurposeAgent.ts — 通用目的内置 Agent
+// 职责：定义"通用目的 Agent"的系统提示词和配置，
+// 这是 Claude Code 中最常用的内置 Agent，处理各类代码任务。
+//
+// Agent 特点：
+//   - 完整工具集访问权限（无特殊限制）
+//   - 适合代码搜索、分析、多文件研究等任务
+//   - 完成任务后返回简洁报告给父 Agent
+//
+// 系统提示词结构：
+//   - SHARED_PREFIX：通用前缀（所有内置 Agent 共享）
+//   - SHARED_GUIDELINES：通用指导原则（文件操作、搜索策略等）
+//   - getGeneralPurposeSystemPrompt()：完整提示词生成函数
+//
+// 关联：
+//   - builtInAgents.ts：注册此 Agent 定义
+//   - loadAgentsDir.ts：BuiltInAgentDefinition 类型
 import type { BuiltInAgentDefinition } from '../loadAgentsDir.js'
 
 const SHARED_PREFIX = `You are an agent for Claude Code, Anthropic's official CLI for Claude. Given the user's message, you should use the tools available to complete the task. Complete the task fully—don't gold-plate, but don't leave it half-done.`

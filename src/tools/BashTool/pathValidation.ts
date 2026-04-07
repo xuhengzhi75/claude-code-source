@@ -1,3 +1,27 @@
+// tools/BashTool/pathValidation.ts — Bash 命令路径验证
+// 职责：验证 Bash 命令中涉及的文件路径是否在允许的工作目录范围内，
+// 防止命令越权访问工作区外的文件系统。
+//
+// 核心逻辑：
+//   1. 提取命令中的输出重定向路径（extractOutputRedirections）
+//   2. 解析 shell 引号，获取实际路径参数（tryParseShellCommand）
+//   3. 展开 ~ 为 home 目录（expandTilde）
+//   4. 检查路径是否在允许的工作目录列表中（allWorkingDirectories）
+//   5. 检测危险删除路径（isDangerousRemovalPath）
+//
+// 权限结果：
+//   - allow：路径在允许范围内
+//   - ask：路径超出范围，需用户确认并可能添加规则
+//   - deny：路径为危险系统路径（如 /、/etc、/usr）
+//
+// 关键函数：
+//   - validatePathsInCommand(cmd, ctx)：主验证入口
+//   - formatDirectoryList(dirs)：格式化目录列表用于提示
+//   - createReadRuleSuggestion(path)：生成添加路径规则的建议
+//
+// 关联：
+//   - bashPermissions.ts：调用此模块进行路径权限检查
+//   - utils/permissions/filesystem.ts：allWorkingDirectories
 import { homedir } from 'os'
 import { isAbsolute, resolve } from 'path'
 import type { z } from 'zod/v4'

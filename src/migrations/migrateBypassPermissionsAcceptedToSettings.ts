@@ -1,3 +1,13 @@
+// =============================================================================
+// src/migrations/migrateBypassPermissionsAcceptedToSettings.ts
+// — 危险模式权限接受状态迁移
+//
+// 【迁移内容】
+//   将 globalConfig.bypassPermissionsModeAccepted 迁移到
+//   userSettings 的 hasSkipDangerousModePermissionPrompt 标志，
+//   并从 globalConfig 中删除旧字段。
+// =============================================================================
+
 import { logEvent } from 'src/services/analytics/index.js'
 import { getGlobalConfig, saveGlobalConfig } from '../utils/config.js'
 import { logError } from '../utils/log.js'

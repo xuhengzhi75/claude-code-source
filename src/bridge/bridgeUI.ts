@@ -1,3 +1,16 @@
+// bridge/bridgeUI.ts — Bridge 模式终端 UI 渲染
+// 职责：渲染 Remote Control 模式下的终端界面，
+// 包括连接状态、QR 码、会话 URL 等用户可见信息。
+//
+// 渲染内容：
+//   - 连接中：spinner 动画 + 状态文字
+//   - 已就绪：QR 码 + 会话 URL（供手机扫码连接）
+//   - 失败：错误信息 + 重试提示
+//
+// 关键常量：
+//   - BRIDGE_READY_INDICATOR：就绪状态标识符（供自动化测试检测）
+//   - BRIDGE_FAILED_INDICATOR：失败状态标识符
+//   - BRIDGE_SPINNER_FRAMES：spinner 动画帧序列
 import chalk from 'chalk'
 import { toString as qrToString } from 'qrcode'
 import {

@@ -1,3 +1,29 @@
+// services/tools/StreamingToolExecutor.ts — 流式工具执行器
+// 职责：在流式响应模式下管理工具调用的并发执行，
+// 是 Claude Code 工具执行管道的核心调度器。
+//
+// 核心类：StreamingToolExecutor
+//   - 维护工具调用队列（queued → executing → completed/yielded）
+//   - 支持并发执行多个工具（受 isConcurrencySafe 约束）
+//   - 处理工具执行结果的流式返回
+//
+// 工具状态机：
+//   queued → executing → completed（成功）
+//                      → yielded（被中断/取消）
+//
+// 关键方法：
+//   - enqueue()：将工具调用加入队列
+//   - execute()：启动工具执行（调用 runToolUse）
+//   - getResults()：AsyncGenerator，按序产出工具结果
+//
+// 与 toolOrchestration.ts 的关系：
+//   - toolOrchestration.ts（runTools）：高层编排，决定哪些工具可并发
+//   - StreamingToolExecutor：低层执行，管理单批工具的并发执行状态
+//
+// 特殊处理：
+//   - BASH_TOOL_NAME：bash 工具需要特殊的内存修正提示（withMemoryCorrectionHint）
+//   - REJECT_MESSAGE：用户拒绝时的标准拒绝消息
+//   - createChildAbortController：为每个工具创建独立的 abort 控制器
 import type { ToolUseBlock } from '@anthropic-ai/sdk/resources/index.mjs'
 import {
   createUserMessage,

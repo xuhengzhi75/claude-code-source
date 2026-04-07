@@ -1,3 +1,15 @@
+// commands/createMovedToPluginCommand.ts — 命令迁移到插件的过渡工厂函数
+// 职责：为已迁移到插件市场的内置命令创建过渡期命令对象。
+//
+// 背景：部分内置命令（如 /security-review、/insights 等）已迁移到插件市场，
+// 但为了向后兼容，仍保留原命令入口，通过此工厂函数生成过渡命令。
+//
+// 行为逻辑：
+//   - USER_TYPE=ant（内部用户）：提示安装插件的具体步骤
+//   - 外部用户（市场未公开期间）：执行 getPromptWhileMarketplaceIsPrivate 提供的备用 prompt
+//
+// 使用方：security-review.ts、insights.ts 等已迁移命令
+
 import type { ContentBlockParam } from '@anthropic-ai/sdk/resources/messages.js'
 import type { Command } from '../commands.js'
 import type { ToolUseContext } from '../Tool.js'

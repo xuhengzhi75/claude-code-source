@@ -1,3 +1,24 @@
+// tools/BashTool/utils.ts — BashTool 输出处理工具函数
+// 职责：处理 BashTool 命令执行后的输出内容，包括
+// 文本截断、图片处理、工作目录同步等后处理逻辑。
+//
+// 核心功能：
+//   1. 输出截断（getMaxOutputLength）
+//      - 超长输出按字符数截断，避免 token 超限
+//      - 截断时附加提示信息（"... [truncated N chars]"）
+//   2. 图片输出处理（maybeResizeAndDownsampleImageBuffer）
+//      - 命令输出图片文件时，自动缩放/降采样
+//      - 转换为 Base64 内联到 ToolResultBlockParam
+//   3. 工作目录同步（setCwd / shouldMaintainProjectWorkingDir）
+//      - 检测 cd 命令后的目录变化
+//      - 同步更新 Claude Code 的当前工作目录
+//   4. 路径权限检查（pathInAllowedWorkingPath）
+//      - 验证输出文件路径是否在允许范围内
+//
+// 关联：
+//   - BashTool.tsx：调用此文件的工具函数处理命令输出
+//   - utils/shell/outputLimits.ts：输出长度限制配置
+//   - utils/imageResizer.ts：图片缩放工具
 import type {
   Base64ImageSource,
   ContentBlockParam,

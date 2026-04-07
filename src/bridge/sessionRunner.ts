@@ -1,3 +1,15 @@
+// bridge/sessionRunner.ts — Bridge 子进程会话运行器
+// 职责：在独立子进程中运行 Claude Code 会话，
+// 实现 Bridge 模式下的进程隔离与生命周期管理。
+//
+// 工作机制：
+//   - spawn() 启动子进程，通过 stdin/stdout 与父进程通信（NDJSON 协议）
+//   - 子进程输出写入临时日志文件，便于调试和错误追踪
+//   - 父进程监听子进程退出，处理崩溃重启逻辑
+//
+// 使用场景：
+//   Bridge 服务器（daemon 模式）为每个远程会话 fork 独立子进程，
+//   避免多会话间的状态污染，同时支持并发处理多个远程用户
 import { type ChildProcess, spawn } from 'child_process'
 import { createWriteStream, type WriteStream } from 'fs'
 import { tmpdir } from 'os'

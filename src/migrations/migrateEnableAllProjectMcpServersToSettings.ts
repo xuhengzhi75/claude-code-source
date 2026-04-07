@@ -1,3 +1,13 @@
+// =============================================================================
+// src/migrations/migrateEnableAllProjectMcpServersToSettings.ts
+// — 项目 MCP 服务器全启用状态迁移
+//
+// 【迁移内容】
+//   将 projectConfig.enableAllProjectMcpServers 迁移到
+//   projectSettings（.claude/settings.json）的对应字段，
+//   并从 projectConfig 中删除旧字段。
+// =============================================================================
+
 import { logEvent } from 'src/services/analytics/index.js'
 import {
   getCurrentProjectConfig,

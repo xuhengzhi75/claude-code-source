@@ -1,3 +1,16 @@
+// cli/ndjsonSafeStringify.ts — NDJSON 安全序列化工具
+// 职责：对 JSON 序列化结果进行后处理，转义 JavaScript 行终止符
+// U+2028（LINE SEPARATOR）和 U+2029（PARAGRAPH SEPARATOR），
+// 确保单行 NDJSON 消息不会被任何行分割接收方截断。
+//
+// 背景：
+//   - JSON 规范（ECMA-404）允许字符串中包含 U+2028/U+2029 原始字节
+//   - 但 JavaScript 语言规范（ECMA-262 §11.3）将这两个字符视为行终止符
+//   - 若接收方用 JS 语义分割行，会把一条 JSON 消息切成两行，导致解析失败
+//   - 转义为 \u2028/\u2029 后，JSON 语义不变，但不再触发行分割
+//
+// 使用场景：所有通过 stdin/stdout/WebSocket/SSE 传输的 NDJSON 消息
+
 import { jsonStringify } from '../utils/slowOperations.js'
 
 // JSON.stringify emits U+2028/U+2029 raw (valid per ECMA-404). When the

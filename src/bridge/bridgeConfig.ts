@@ -1,3 +1,15 @@
+// bridge/bridgeConfig.ts — Bridge 认证与 URL 配置中心
+// 职责：统一管理 Bridge 模式的认证信息和服务器 URL 解析，
+// 消除原先散落在十几个文件中的重复配置逻辑。
+//
+// 两层配置：
+//   - *Override()：读取 ant 内部 CLAUDE_BRIDGE_* 环境变量（开发调试用）
+//   - *()：正式路径，从 OAuth config 或 Growthbook 动态配置读取
+//
+// 覆盖的配置项：
+//   - Bridge 服务器 base URL
+//   - OAuth token 获取方式
+//   - 会话 ID 前缀
 /**
  * Shared bridge auth/URL resolution. Consolidates the ant-only
  * CLAUDE_BRIDGE_* dev overrides that were previously copy-pasted across

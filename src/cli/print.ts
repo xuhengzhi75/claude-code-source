@@ -1,3 +1,16 @@
+// cli/print.ts — --print 模式（非交互式）输出处理器
+// 职责：实现 `claude --print` 的非交互式输出模式，
+// 将模型响应直接打印到 stdout，不渲染 Ink UI。
+//
+// 使用场景：
+//   - 脚本调用：`echo "问题" | claude --print`
+//   - 管道集成：将 Claude 输出传递给其他命令
+//   - CI/CD：在自动化流程中调用 Claude
+//
+// 与交互模式的区别：
+//   - 不启动 React/Ink 渲染循环
+//   - 直接写入 process.stdout（支持 NDJSON 格式）
+//   - 支持 --output-format json/text/stream-json 参数
 // biome-ignore-all assist/source/organizeImports: ANT-ONLY import markers must not be reordered
 import { feature } from 'bun:bundle'
 import { readFile, stat } from 'fs/promises'

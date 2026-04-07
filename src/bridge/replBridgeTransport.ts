@@ -1,3 +1,13 @@
+// bridge/replBridgeTransport.ts — Bridge 传输层适配器
+// 职责：为 Bridge 连接提供传输层抽象，支持 SSE 和 WebSocket 两种传输方式。
+//
+// 传输升级流程：
+//   1. 初始连接使用 SSETransport（Server-Sent Events，单向流）
+//   2. 服务器支持时升级到 WebSocket（双向全双工）
+//   3. CCRClient 封装 CCR v2 /worker/* 协议的底层通信
+//
+// HybridTransport：
+//   统一封装 SSE 和 WebSocket，对上层（replBridge.ts）透明
 import type { StdoutMessage } from 'src/entrypoints/sdk/controlTypes.js'
 import { CCRClient } from '../cli/transports/ccrClient.js'
 import type { HybridTransport } from '../cli/transports/HybridTransport.js'

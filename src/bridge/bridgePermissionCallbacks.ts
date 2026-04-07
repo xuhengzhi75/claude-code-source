@@ -1,3 +1,11 @@
+// bridge/bridgePermissionCallbacks.ts — Bridge 模式权限回调类型定义
+// 职责：定义 Bridge 模式下权限请求的回调接口，
+// 允许远程用户（通过 claude.ai 网页端）响应本地工具的权限请求。
+//
+// 工作流程：
+//   本地工具需要权限 → Bridge 将权限请求发送给远程用户
+//   → 远程用户在网页端点击允许/拒绝 → Bridge 回调通知本地
+//   → BridgePermissionResponse 携带决策（allow/deny）和可选的输入修改
 import type { PermissionUpdate } from '../utils/permissions/PermissionUpdateSchema.js'
 
 type BridgePermissionResponse = {

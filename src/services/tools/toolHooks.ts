@@ -1,3 +1,24 @@
+// services/tools/toolHooks.ts — 工具 Hook 执行集成层
+// 职责：在工具调用的关键节点（调用前/调用后/失败后）执行用户配置的 Hook 脚本，
+// 并将 Hook 的输出注入到工具执行流程中。
+//
+// Hook 执行时机：
+//   - PreToolUse Hook：工具调用前执行
+//     → 可返回 "block"（阻止工具调用）或修改工具输入
+//   - PostToolUse Hook：工具调用成功后执行
+//     → 可修改工具输出（追加内容到结果）
+//   - PostToolUseFailure Hook：工具调用失败后执行
+//     → 用于错误处理和清理
+//
+// 与 hooks.ts 的关系：
+//   - utils/hooks.ts：底层 Hook 执行引擎（spawn 子进程、读取 stdout）
+//   - services/tools/toolHooks.ts：工具层集成，将 Hook 结果转换为工具消息格式
+//
+// 关键设计：
+//   - Hook 输出以 AttachmentMessage 形式注入，不污染主消息历史
+//   - HookProgress 类型：实时上报 Hook 执行进度给 UI
+//   - sanitizeToolNameForAnalytics：Hook 遥测中的工具名脱敏
+//   - PermissionDecision：PreToolUse Hook 可返回权限决策（allow/block）
 import {
   type AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS,
   logEvent,

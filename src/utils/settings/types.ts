@@ -1,3 +1,23 @@
+// utils/settings/types.ts — 设置系统类型定义与 Zod Schema
+// 职责：定义 Claude Code 所有配置项的 TypeScript 类型和 Zod 校验 Schema，
+// 是设置系统的类型基础，供 settings.ts / validation.ts 使用。
+//
+// 核心类型：
+//   - SettingsJson：完整设置对象的 TypeScript 类型
+//   - SettingsSchema：Zod Schema，用于解析和校验 settings.json
+//   - PermissionsSchema：权限规则（allow/deny/ask + defaultMode）
+//   - HooksSchema：Hook 配置（PreToolUse/PostToolUse/Stop 等）
+//   - McpServerConfig 系列：MCP 服务器配置类型（Stdio/SSE/HTTP/WebSocket）
+//
+// 权限模式（defaultMode）：
+//   - 'default'：交互式确认
+//   - 'acceptEdits'：自动接受文件编辑
+//   - 'bypassPermissions'：跳过所有权限检查（危险模式）
+//
+// 关键设计：
+//   - lazySchema()：延迟初始化 Zod Schema，避免循环依赖导致的初始化顺序问题
+//   - Re-export hooks 类型：从 schemas/hooks.ts 统一导出，保持向后兼容
+//   - 环境变量 Schema：EnvironmentVariablesSchema 支持 record<string, string>
 import { feature } from 'bun:bundle'
 import { z } from 'zod/v4'
 import { SandboxSettingsSchema } from '../../entrypoints/sandboxTypes.js'

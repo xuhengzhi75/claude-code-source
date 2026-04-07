@@ -1,3 +1,31 @@
+// services/mcp/client.ts — MCP 客户端连接与工具发现
+// 职责：建立与 MCP 服务器的连接，发现并注册工具/命令/资源，
+// 是 Claude Code 与外部 MCP 服务器交互的核心适配层。
+//
+// 核心函数：
+//   - connectToMcpServer()：建立连接，返回 MCPServerConnection（含工具/命令/资源列表）
+//   - getMcpTools()：将 MCP 工具描述转换为 Claude Code 的 Tool[] 格式
+//   - getMcpCommands()：将 MCP prompt 转换为 slash 命令
+//   - getMcpResources()：获取 MCP 服务器暴露的资源列表
+//
+// 传输层三模式（与 bridge/transport 对应）：
+//   - StdioClientTransport：本地进程（stdio 管道）
+//   - SSEClientTransport：远程 HTTP SSE 流
+//   - StreamableHTTPClientTransport：HTTP 流式传输（新协议）
+//   - WebSocket：通过 mcpWebSocketTransport 适配
+//
+// 工具转换流程：
+//   MCP ListToolsResult → MCPTool（Tool 子类）→ 注入 AppState → 可被 query.ts 调用
+//
+// 认证支持：
+//   - OAuth 2.0：通过 auth.ts 处理 MCP 服务器的 OAuth 授权流程
+//   - API Key：通过 headers 注入
+//   - XAA（内部 IdP）：xaaIdpLogin.ts 处理企业 SSO
+//
+// 关键设计：
+//   - memoize(connectToMcpServer)：相同配置的连接复用，避免重复握手
+//   - pMap 并发连接多个服务器，提升启动速度
+//   - Elicitation 支持：处理服务器主动向用户请求信息的场景
 import { feature } from 'bun:bundle'
 import type {
   Base64ImageSource,

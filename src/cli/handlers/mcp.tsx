@@ -1,3 +1,19 @@
+// cli/handlers/mcp.tsx — `claude mcp` 子命令处理器
+// 职责：实现 MCP（Model Context Protocol）服务器的管理命令集。
+//
+// 子命令：
+//   serve：以 MCP 服务器模式启动 Claude Code，通过 stdin/stdout 接受 MCP 客户端连接
+//   add：添加 MCP 服务器配置（支持 stdio/sse/http 三种传输类型）
+//   remove：删除 MCP 服务器配置
+//   list：列出所有已配置的 MCP 服务器及其状态
+//   get：查看单个 MCP 服务器的详细配置
+//   add-json：通过 JSON 字符串批量添加配置
+//   reset-project-choices：重置项目级别的 MCP 服务器选择
+//   import-desktop：从 Claude Desktop 导入 MCP 配置（交互式 UI）
+//
+// 配置作用域：local（项目级）/ user（用户级）/ global（全局）
+// 懒加载：仅在对应命令执行时动态 import，避免影响主启动性能
+
 /**
  * MCP subcommand handlers — extracted from main.tsx for lazy loading.
  * These are dynamically imported only when the corresponding `claude mcp *` command runs.

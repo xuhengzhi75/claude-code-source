@@ -1,3 +1,11 @@
+// =============================================================================
+// src/migrations/migrateSonnet45ToSonnet46.ts — Sonnet 4.5 → Sonnet 4.6 迁移
+//
+// 【迁移内容】
+//   将用户设置的 claude-sonnet-4-5 迁移到 claude-sonnet-4-6，
+//   仅对 Pro/Max/TeamPremium 订阅用户执行（这些用户有权访问 4.6）。
+// =============================================================================
+
 import {
   type AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS,
   logEvent,

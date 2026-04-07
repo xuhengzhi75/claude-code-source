@@ -1,3 +1,24 @@
+// services/api/errors.ts — API 错误分类与用户消息生成
+// 职责：将 Anthropic SDK 抛出的各类错误转换为用户可读的 AssistantMessage，
+// 并提供错误分类工具函数供 withRetry.ts 和 query.ts 使用。
+//
+// 核心函数：
+//   - getAssistantMessageFromError()：将 APIError 转换为 AssistantMessage（含 isApiErrorMessage 标记）
+//   - classifyAPIError()：将错误分类为 rate_limit / overloaded / auth / prompt_too_long 等
+//   - isPromptTooLongMessage()：检测是否为 prompt_too_long 错误（触发压缩）
+//   - getPromptTooLongTokenGap()：解析超出 token 数量（供 reactive compact 跳过多组）
+//   - isMediaSizeError()：检测图片/PDF 超限错误（触发 stripImages 重试）
+//
+// 错误处理策略：
+//   - 429 Rate Limit：提取 retry-after 头，生成含等待时间的提示
+//   - 529 Overloaded：区分 foreground（重试）vs background（立即失败）
+//   - 401 Auth：引导用户执行 /login
+//   - prompt_too_long：触发 autoCompact 压缩流程
+//   - PDF/图片超限：触发 stripImagesFromMessages 后重试
+//
+// 关键常量：
+//   - API_ERROR_MESSAGE_PREFIX：用于识别 API 错误消息的前缀字符串
+//   - REPEATED_529_ERROR_MESSAGE：连续 529 后的最终错误提示
 import {
   APIConnectionError,
   APIConnectionTimeoutError,

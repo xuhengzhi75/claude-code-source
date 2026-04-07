@@ -1,3 +1,28 @@
+// =============================================================================
+// src/utils/auth.ts — 认证与订阅状态管理
+//
+// 【模块职责】
+//   管理 Claude Code 的所有认证方式和订阅状态检测，是认证系统的核心模块。
+//
+// 【支持的认证方式】
+//   1. Anthropic OAuth（claude.ai）：isAnthropicAuthEnabled()
+//      通过 macOS Keychain / 便携式存储管理 access/refresh token
+//   2. API Key：直接使用 ANTHROPIC_API_KEY 环境变量
+//   3. AWS Bedrock：通过 AWS 凭证访问 Claude
+//   4. Google Vertex AI：通过 GCP 凭证访问 Claude
+//   5. 第三方提供商：通过 preferThirdPartyAuthentication() 路由
+//
+// 【订阅状态检测】
+//   isProSubscriber() / isMaxSubscriber() / isTeamPremiumSubscriber()
+//   基于 OAuth token 中的 subscription_type 字段判断
+//
+// 【关键函数】
+//   getClaudeAIOAuthTokens()  — memoized，读取 keychain 中的 OAuth token
+//   refreshOAuthToken()       — 使用 refresh_token 刷新 access_token
+//   isAnthropicAuthEnabled()  — 检测是否使用 Anthropic OAuth 认证
+//   getAPIKey()               — 获取当前有效的 API Key（多来源优先级）
+// =============================================================================
+
 import chalk from 'chalk'
 import { exec } from 'child_process'
 import { execa } from 'execa'

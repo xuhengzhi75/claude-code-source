@@ -1,3 +1,25 @@
+// tools/AgentTool/agentMemorySnapshot.ts — Agent 记忆快照管理
+// 职责：为子 Agent 的持久化记忆提供快照（snapshot）机制，
+// 支持记忆状态的保存、恢复和同步，防止并发写入冲突。
+//
+// 快照机制：
+//   - 每次 Agent 完成任务后，将记忆目录打包为 snapshot.json
+//   - 下次 Agent 启动时，从快照恢复记忆状态
+//   - .snapshot-synced.json 记录最后同步时间戳，避免重复同步
+//
+// 目录结构：
+//   <memory-dir>/agent-memory-snapshots/
+//     snapshot.json        — 记忆内容快照
+//     .snapshot-synced.json — 同步状态元数据
+//
+// 核心函数：
+//   - saveAgentMemorySnapshot(scope, agentId)：保存当前记忆为快照
+//   - restoreAgentMemorySnapshot(scope, agentId)：从快照恢复记忆
+//   - isSnapshotSynced(scope, agentId)：检查快照是否已同步
+//
+// 关联：
+//   - agentMemory.ts：AgentMemoryScope / getAgentMemoryDir
+//   - runAgent.ts：在 Agent 启动/结束时调用快照操作
 import { mkdir, readdir, readFile, unlink, writeFile } from 'fs/promises'
 import { join } from 'path'
 import { z } from 'zod/v4'

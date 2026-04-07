@@ -1,3 +1,12 @@
+// =============================================================================
+// src/migrations/resetAutoModeOptInForDefaultOffer.ts — 自动模式默认提供重置
+//
+// 【迁移内容】
+//   当 feature('AUTO_MODE_DEFAULT_OFFER') 启用时，重置用户的自动模式
+//   opt-in 状态，使其重新看到默认提供弹窗。
+//   用于在产品策略变更时重新征得用户同意。
+// =============================================================================
+
 import { feature } from 'bun:bundle'
 import { logEvent } from 'src/services/analytics/index.js'
 import { getGlobalConfig, saveGlobalConfig } from '../utils/config.js'

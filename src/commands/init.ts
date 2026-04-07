@@ -1,3 +1,21 @@
+// commands/init.ts — /init 斜杠命令
+// 职责：为当前仓库初始化 CLAUDE.md 文件（以及可选的 skills 和 hooks），
+// 让 Claude 在后续会话中能更快理解项目结构和约定。
+//
+// 两套 prompt：
+//   OLD_INIT_PROMPT：旧版，直接生成 CLAUDE.md，包含命令、架构说明
+//   NEW_INIT_PROMPT：新版（feature flag 控制），分阶段交互式设置：
+//     Phase 1：询问用户想设置什么（CLAUDE.md / skills / hooks）
+//     Phase 2：分析仓库，生成最小化的 CLAUDE.md
+//     Phase 3：可选设置 skills 和 hooks
+//
+// CLAUDE.md 设计原则（写入 prompt）：
+//   - 只写 Claude 不看就会出错的内容
+//   - 不重复显而易见的通用开发实践
+//   - 不列举可以自动发现的文件结构
+//
+// 完成后调用 maybeMarkProjectOnboardingComplete() 标记项目已初始化
+
 import { feature } from 'bun:bundle'
 import type { Command } from '../commands.js'
 import { maybeMarkProjectOnboardingComplete } from '../projectOnboardingState.js'

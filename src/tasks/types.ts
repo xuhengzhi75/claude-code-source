@@ -1,3 +1,19 @@
+// tasks/types.ts — Task 状态类型联合定义
+// 职责：定义所有具体 Task 状态类型的联合类型，供需要处理任意 Task 类型的
+// 组件和工具函数使用。
+//
+// Task 类型体系：
+//   LocalShellTask    — 本地 Bash 命令（后台 shell / monitor）
+//   LocalAgentTask    — 本地子 Agent（在同一进程内运行）
+//   RemoteAgentTask   — 远程 Agent（通过 Teleport/CCR 在云端运行）
+//   InProcessTeammateTask — 团队协作 Agent（多 Agent 协同）
+//   LocalWorkflowTask — 本地工作流任务
+//   MonitorMcpTask    — MCP 服务器监控任务
+//   DreamTask         — 自动记忆整合（auto-dream）子 Agent
+//
+// BackgroundTaskState：可在底部 pill 和 Shift+Down 对话框中显示的任务类型
+// isBackgroundTask()：判断任务是否应显示在后台任务指示器中
+
 // Union of all concrete task state types
 // Use this for components that need to work with any task type
 

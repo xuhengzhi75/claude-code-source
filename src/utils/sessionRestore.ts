@@ -1,3 +1,23 @@
+// utils/sessionRestore.ts — 会话恢复与切换
+// 职责：实现 Claude Code 的会话恢复（resume）和会话切换（switch）功能，
+// 将磁盘上的历史会话重新加载到内存中继续执行。
+//
+// 核心函数：
+//   - restoreSession(sessionId, appState)：从磁盘恢复指定会话
+//     1. 读取会话日志（JSONL 格式）
+//     2. 反序列化消息历史（conversationRecovery.ts）
+//     3. 恢复 bootstrap state（sessionId/cwd/model/agentType 等）
+//     4. 恢复 cost state（token 消耗统计）
+//     5. 恢复 skill 状态（从 attachment 回放）
+//   - switchSession(targetSessionId)：切换到另一个会话
+//     → 保存当前会话状态 → 加载目标会话
+//
+// 关键设计：
+//   - switchSession() 在 bootstrap/state.js 中注册，支持跨模块调用
+//   - clearSystemPromptSections()：切换会话时清除旧的系统提示缓存
+//   - getActiveAgentsFromList()：恢复 swarm 中活跃的 Agent 列表
+//   - setMainLoopModelOverride()：恢复会话级模型覆盖设置
+//   - ANT-ONLY 特性通过 feature() 条件编译
 import { feature } from 'bun:bundle'
 import type { UUID } from 'crypto'
 import { dirname } from 'path'

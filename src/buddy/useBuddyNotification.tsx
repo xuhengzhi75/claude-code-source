@@ -1,3 +1,22 @@
+// =============================================================================
+// src/buddy/useBuddyNotification.tsx — Buddy 功能上线通知 Hook
+//
+// 【模块职责】
+//   在 Buddy 功能预告期（2026-04-01 ~ 04-07）或正式上线后，
+//   通过 useNotifications 向用户展示一次性彩虹通知，引导用户
+//   运行 /buddy 命令孵化宠物。
+//
+// 【时间窗口逻辑】
+//   isBuddyTeaserWindow()：2026 年 4 月 1-7 日（本地时区）
+//   isBuddyLive()：2026 年 4 月及以后
+//   "external" === 'ant' 短路：Anthropic 内部构建始终返回 true（测试用）
+//
+// 【通知内容】
+//   RainbowText 组件：将文本逐字符着色为彩虹渐变（getRainbowColor）
+//   通知仅在 feature('BUDDY') 开启且 config.companion 尚未设置时显示，
+//   避免已孵化用户重复看到提示。
+// =============================================================================
+
 import { c as _c } from "react/compiler-runtime";
 import { feature } from 'bun:bundle';
 import React, { useEffect } from 'react';

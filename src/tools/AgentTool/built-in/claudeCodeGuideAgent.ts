@@ -1,3 +1,21 @@
+// tools/AgentTool/built-in/claudeCodeGuideAgent.ts — Claude Code 指南 Agent
+// 职责：定义"Claude Code Guide Agent"的系统提示词和配置，
+// 专门用于回答关于 Claude Code 使用方法的问题。
+//
+// Agent 特点：
+//   - 知识型 Agent：专注于 Claude Code 文档和最佳实践
+//   - 支持 WebFetch / WebSearch 获取最新文档
+//   - 通过 SendMessage 与用户进行多轮对话
+//   - 根据用户设置（getSettings_DEPRECATED）个性化回答
+//   - 区分是否使用第三方服务（isUsing3PServices）
+//
+// 工具集：
+//   Bash / FileRead / Glob / Grep / WebFetch / WebSearch / SendMessage
+//
+// 关联：
+//   - builtInAgents.ts：注册此 Agent 定义
+//   - loadAgentsDir.ts：AgentDefinition / BuiltInAgentDefinition 类型
+//   - utils/auth.ts：isUsing3PServices 判断
 import { BASH_TOOL_NAME } from 'src/tools/BashTool/toolName.js'
 import { FILE_READ_TOOL_NAME } from 'src/tools/FileReadTool/prompt.js'
 import { GLOB_TOOL_NAME } from 'src/tools/GlobTool/prompt.js'

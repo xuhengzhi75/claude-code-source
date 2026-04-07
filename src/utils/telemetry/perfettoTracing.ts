@@ -1,3 +1,33 @@
+// utils/telemetry/perfettoTracing.ts — Perfetto 性能追踪（Ant 内部专用）
+// 职责：以 Chrome Trace Event 格式生成性能追踪文件，
+// 可在 ui.perfetto.dev 或 Chrome chrome://tracing 中可视化分析。
+//
+// ⚠️ 仅限 Ant 内部构建，外部发布版本中此模块被剔除。
+//
+// 追踪内容：
+//   - Agent 层级关系（swarm 中的父子 agent 树）
+//   - API 请求：TTFT（首 token 时间）、TTLT（最后 token 时间）、
+//               prompt 长度、缓存命中统计、消息 ID、推测执行标志
+//   - 工具调用：工具名称、执行时长、token 消耗
+//   - 用户输入等待时间
+//
+// 启用方式：
+//   - CLAUDE_CODE_PERFETTO_TRACE=1：使用默认路径
+//   - CLAUDE_CODE_PERFETTO_TRACE=<path>：指定输出路径
+//   - CLAUDE_CODE_PERFETTO_WRITE_INTERVAL_S=<N>：每 N 秒写一次（默认仅退出时写）
+//
+// 输出路径：~/.claude/traces/trace-<session-id>.json
+//
+// Chrome Trace Event 格式：
+//   - 'B'（Begin）/ 'E'（End）：时间段事件（用于 API 请求、工具调用）
+//   - 'i'（Instant）：瞬时事件（用于用户输入）
+//   - 'M'（Metadata）：进程/线程名称
+//   - pid/tid：用 agent ID 映射，支持多 agent 并发可视化
+//
+// 关键设计：
+//   - 每个 agent 映射为独立的 pid（进程），支持 swarm 层级展示
+//   - 时间戳单位：微秒（Chrome Trace Event 标准）
+//   - 写入策略：内存累积 + 定时/退出时批量写入（避免频繁 I/O）
 /**
  * Perfetto Tracing for Claude Code (Ant-only)
  *

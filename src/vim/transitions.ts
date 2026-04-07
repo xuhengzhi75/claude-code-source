@@ -1,3 +1,25 @@
+// =============================================================================
+// src/vim/transitions.ts — Vim 状态转换表
+//
+// 【模块职责】
+//   实现 NORMAL 模式下所有按键的状态转换逻辑，是状态机的"大脑"。
+//   每个 CommandState 类型对应一个转换函数，穷举处理该状态下的所有合法输入。
+//
+// 【架构模式】
+//   纯函数状态机：所有转换函数接收 (state, key, ...) 返回新 state，
+//   不产生副作用，便于测试和 dot-repeat 重放。
+//
+// 【主入口】
+//   handleNormalModeKey(key, vimState, persistentState, value, cursor)
+//     → { newVimState, newPersistentState, newValue, newCursor }
+//   被 useVimInput hook 调用，每次按键触发一次。
+//
+// 【状态转换路径示例】
+//   idle → [d/c/y] → operator → [motion] → execute → idle
+//   idle → [1-9]   → count    → [op]     → operator → …
+//   idle → [f/F]   → find     → [char]   → execute  → idle
+// =============================================================================
+
 /**
  * Vim State Transition Table
  *

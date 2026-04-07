@@ -1,3 +1,31 @@
+// utils/telemetry/sessionTracing.ts — 会话级 OpenTelemetry 追踪
+// 职责：为 Claude Code 工作流提供基于 OpenTelemetry 的分布式追踪，
+// 将用户交互、LLM 请求、工具调用等操作组织为层级 Span 树。
+//
+// 核心函数：
+//   - startInteractionSpan()：创建根交互 Span（每次用户输入一个）
+//   - startLLMRequestSpan()：创建 LLM 请求子 Span
+//   - startToolSpan()：创建工具调用子 Span
+//   - endInteractionSpan() / endLLMRequestSpan() / endToolSpan()：结束对应 Span
+//
+// Span 层级结构：
+//   interaction（用户交互）
+//   ├── user_input（用户输入处理）
+//   ├── llm_request（LLM API 调用）
+//   │   └── tool（工具调用）
+//   └── tool（直接工具调用）
+//
+// 双追踪后端：
+//   - OpenTelemetry（ENHANCED_TELEMETRY_BETA）：标准 OTEL 协议，支持 OTLP 导出
+//   - Perfetto（perfettoTracing.ts）：Chrome Trace 格式，用于本地性能分析
+//
+// 启用条件：
+//   - feature('ENHANCED_TELEMETRY_BETA') + OTEL_TRACES_EXPORTER 环境变量
+//   - AsyncLocalStorage 维护当前活跃 Span 的上下文
+//
+// 隐私保护：
+//   - 用户提示词默认 REDACTED，需 OTEL_LOG_USER_PROMPTS=1 才记录
+//   - truncateContent() 限制 Span 属性长度，防止超出 OTEL 限制
 /**
  * Session Tracing for Claude Code using OpenTelemetry (BETA)
  *

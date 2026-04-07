@@ -1,3 +1,11 @@
+// commands/permissions/permissions.tsx — /permissions 斜杠命令
+// 职责：打开权限规则管理界面，让用户查看和管理工具调用的权限规则。
+//
+// 功能：
+//   - 渲染 PermissionRuleList 组件，显示当前所有权限规则
+//   - 支持重试被拒绝的工具调用（onRetryDenials）
+//   - 用户退出后通过 onDone 回调返回主界面
+
 import * as React from 'react';
 import { PermissionRuleList } from '../../components/permissions/rules/PermissionRuleList.js';
 import type { LocalJSXCommandCall } from '../../types/command.js';

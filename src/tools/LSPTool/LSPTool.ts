@@ -1,3 +1,27 @@
+// tools/LSPTool/LSPTool.ts — LSP 语言服务工具
+// 职责：通过 Language Server Protocol 提供代码智能功能，
+// 让模型能够利用语言服务器进行精确的代码分析。
+//
+// 支持的 LSP 操作：
+//   - hover：获取符号的类型信息和文档注释
+//   - definition：跳转到符号定义位置
+//   - references：查找所有引用位置
+//   - document_symbols：列出文件中所有符号（函数/类/变量等）
+//   - workspace_symbols：在整个工作区搜索符号
+//   - call_hierarchy_incoming：查找调用某函数的所有调用者
+//   - call_hierarchy_outgoing：查找某函数调用的所有被调用者
+//   - diagnostics：获取文件的语法/语义错误和警告
+//
+// 架构：
+//   - LSPTool 是工具层，负责参数解析和结果格式化
+//   - LSPClient（src/services/lsp/LSPClient.ts）负责实际的 LSP 通信
+//   - LSPServerManager 管理语言服务器的生命周期
+//
+// 关键设计：
+//   - 路径转换：文件路径 → file:// URI（LSP 标准）
+//   - 结果格式化：formatters.ts 将 LSP 响应转为人类可读的文本
+//   - symbolContext.ts：为符号查询提供额外上下文（如所在函数/类）
+//   - 懒启动：首次调用时才启动对应语言的 LSP 服务器
 import { open } from 'fs/promises'
 import * as path from 'path'
 import { pathToFileURL } from 'url'

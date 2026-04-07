@@ -1,3 +1,13 @@
+// bridge/capacityWake.ts — Bridge 容量控制唤醒原语
+// 职责：为 Bridge 轮询循环提供"容量满时休眠、条件满足时提前唤醒"的原语，
+// 被 replBridge.ts 和 bridgeMain.ts 共享使用。
+//
+// 唤醒条件（任一满足即唤醒）：
+//   (a) 外层循环信号中止（shutdown）
+//   (b) 容量释放（当前会话完成，可接受新消息）
+//
+// 设计意图：避免忙等待（busy-wait），在容量满时让出 CPU，
+// 同时保证关闭信号能立即响应，不被阻塞在 sleep 中
 /**
  * Shared capacity-wake primitive for bridge poll loops.
  *

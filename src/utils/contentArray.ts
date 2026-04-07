@@ -1,3 +1,17 @@
+// utils/contentArray.ts — Content Block 数组操作工具
+// 职责：提供在 Anthropic API content 数组中精确插入 block 的工具函数，
+// 用于 API 层正确定位补充内容（如缓存编辑指令）。
+//
+// 核心函数：insertBlockRelativeToToolResults(content, block)
+//   插入规则：
+//   - 若存在 tool_result blocks：插入到最后一个 tool_result 之后
+//   - 否则：插入到最后一个 block 之前
+//   - 若插入后 block 成为最后一个元素：追加文本续接 block
+//     （某些 API 要求 prompt 不能以非文本内容结尾）
+//
+// 使用场景：
+//   - 缓存编辑指令（cache editing directives）的精确定位
+//   - 确保 tool_result 之后的内容顺序正确
 /**
  * Utility for inserting a block into a content array relative to tool_result
  * blocks. Used by the API layer to position supplementary content (e.g.,

@@ -1,3 +1,25 @@
+// utils/plugins/mcpPluginIntegration.ts — 插件 MCP 服务器集成
+// 职责：从已加载的插件中提取 MCP 服务器配置，
+// 将插件提供的 MCP 服务器注入到全局 MCP 配置中。
+//
+// 核心函数：
+//   - getPluginMcpServers()：从所有已启用插件中收集 MCP 服务器配置
+//   - loadMcpServersFromPlugin()：从单个插件加载 MCP 服务器配置
+//   - loadMcpServersFromMcpb()：从 .mcpb 文件（DXT 格式）加载 MCP 服务器
+//
+// 插件 MCP 配置来源：
+//   1. plugin.json 中的 mcpServers 字段（直接配置）
+//   2. .mcpb 文件（DXT 打包格式，含二进制可执行文件）
+//
+// 变量替换：
+//   - expandEnvVarsInString()：展开 MCP 配置中的 ${ENV_VAR} 环境变量
+//   - substitutePluginVariables()：替换插件特定变量（如 ${PLUGIN_DIR}）
+//   - substituteUserConfigVariables()：替换用户配置变量（如 API Key）
+//
+// 关键设计：
+//   - 插件 MCP 服务器以 "plugin_name:server_name" 格式命名，避免与用户配置冲突
+//   - McpServerConfigSchema 验证确保配置格式正确
+//   - 错误收集而非抛出：单个插件的 MCP 配置错误不影响其他插件
 import { join } from 'path'
 import { expandEnvVarsInString } from '../../services/mcp/envExpansion.js'
 import {

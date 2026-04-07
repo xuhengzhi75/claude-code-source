@@ -1,3 +1,24 @@
+// =============================================================================
+// src/utils/fsOperations.ts — 文件系统操作抽象层
+//
+// 【模块职责】
+//   提供文件系统操作的抽象接口（FsImplementation），支持在测试中注入
+//   mock 实现，同时封装常用的文件系统操作工具函数。
+//
+// 【FsImplementation 接口】
+//   基于 Node.js fs 模块的子集，提供类型安全的同步/异步操作：
+//   readFileSync / readFile / writeFile / mkdir / readdir / stat / unlink / rename 等
+//
+// 【关键函数】
+//   getFsImplementation()   — 获取当前 fs 实现（生产：Node.js fs；测试：mock）
+//   setFsImplementation(fs) — 注入 mock 实现（仅测试使用）
+//   safeResolvePath(path)   — 安全解析路径（处理符号链接和相对路径）
+//
+// 【设计模式】
+//   依赖注入：通过 getFsImplementation() 获取 fs 实现，
+//   使文件系统操作可在测试中被完全替换，无需 mock Node.js 内置模块。
+// =============================================================================
+
 import * as fs from 'fs'
 import {
   mkdir as mkdirPromise,

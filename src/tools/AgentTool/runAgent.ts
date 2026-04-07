@@ -1,3 +1,26 @@
+// =============================================================================
+// src/tools/AgentTool/runAgent.ts — 子 Agent 执行核心
+//
+// 【模块职责】
+//   实现子 Agent 的完整执行流程，是 AgentTool 的核心执行引擎。
+//   负责构建子 Agent 的系统提示、工具集、消息历史，并调用 query() 驱动执行。
+//
+// 【关键函数】
+//   runAgent(params)
+//     → AsyncGenerator<StreamEvent>
+//     构建子 Agent 上下文并调用 query()，将流式事件转发给父 Agent
+//
+//   assembleToolPool(agentId, tools, permissionMode, ...)
+//     为子 Agent 组装工具集，根据权限模式过滤危险工具
+//
+//   buildAgentSystemPrompt(...)
+//     构建子 Agent 系统提示，注入环境信息、记忆、技能等上下文
+//
+// 【执行模式】
+//   本地模式：直接在当前进程内 fork，共享内存和文件系统
+//   Worktree 模式：在独立 git worktree 中执行，隔离文件修改
+// =============================================================================
+
 import { feature } from 'bun:bundle'
 import type { UUID } from 'crypto'
 import { randomUUID } from 'crypto'

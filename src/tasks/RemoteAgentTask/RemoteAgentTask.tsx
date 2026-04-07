@@ -1,3 +1,22 @@
+// tasks/RemoteAgentTask/RemoteAgentTask.tsx — 远程 Agent 任务（云端会话）
+// 职责：管理在远端（Teleport/CCR）运行的 Agent 会话，通过轮询获取进度，
+// 支持 ultraplan（ExitPlanMode）等高级功能。
+//
+// 核心特性：
+//   - 远程执行：Agent 在云端独立进程中运行，本地通过 pollRemoteSessionEvents() 轮询
+//   - ultraplan 模式：支持 ExitPlanMode 的计划审批流程（plan_ready / needs_input 阶段）
+//   - 会话恢复：进程重启后可从 remoteAgentMetadata 恢复轮询状态
+//   - 长时运行：isLongRunning=true 时不在第一个 result 后标记完成
+//   - 归档：会话结束后调用 archiveRemoteSession() 持久化记录
+//
+// 状态字段（RemoteAgentTaskState）：
+//   sessionId：远端会话 ID，用于 API 调用
+//   isUltraplan / ultraplanPhase：ultraplan 模式标识和当前阶段
+//   todoList：Agent 的 Todo 列表（实时同步）
+//   log：完整的 SDK 消息日志
+//
+// 轮询机制：pollRemoteSessionEvents() 持续拉取事件，直到会话结束或被中止
+
 import type { ToolUseBlock } from '@anthropic-ai/sdk/resources';
 import { getRemoteSessionUrl } from '../../constants/product.js';
 import { OUTPUT_FILE_TAG, REMOTE_REVIEW_PROGRESS_TAG, REMOTE_REVIEW_TAG, STATUS_TAG, SUMMARY_TAG, TASK_ID_TAG, TASK_NOTIFICATION_TAG, TASK_TYPE_TAG, TOOL_USE_ID_TAG, ULTRAPLAN_TAG } from '../../constants/xml.js';

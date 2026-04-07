@@ -1,3 +1,16 @@
+// utils/format.ts — 纯展示格式化工具（无 Ink 依赖）
+// 职责：提供人类可读的数值/时间/文件大小格式化函数，
+// 不依赖 Ink（React 终端渲染库），可在任何上下文中安全使用。
+//
+// 核心函数：
+//   - formatFileSize(bytes)：字节数 → 人类可读字符串（"1.5KB"/"2.3MB"）
+//   - formatDuration(ms)：毫秒 → 人类可读时长（"1.2s"/"3m 45s"）
+//   - formatNumber(n)：数字 → 千分位格式（"1,234,567"）
+//   - formatRelativeTime(date)：日期 → 相对时间（"2 hours ago"）
+//
+// 宽度感知截断：见 ./truncate.ts（依赖终端宽度，不在此模块）
+//
+// 注：此文件是"叶子节点"（leaf-safe），不引入任何有副作用的模块
 // Pure display formatters — leaf-safe (no Ink). Width-aware truncation lives in ./truncate.ts.
 
 import { getRelativeTimeFormat, getTimeZone } from './intl.js'

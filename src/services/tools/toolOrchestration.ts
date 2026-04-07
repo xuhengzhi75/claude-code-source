@@ -1,3 +1,27 @@
+// services/tools/toolOrchestration.ts — 工具并发编排器
+// 职责：将一批工具调用（AssistantMessage 中的 tool_use blocks）
+// 按并发安全性分批执行，是工具执行的高层调度逻辑。
+//
+// 核心函数：runTools(assistantMessage, tools, context, canUseTool)
+//   → AsyncGenerator<MessageUpdate>
+//
+// 并发策略（关键设计）：
+//   1. 将工具调用列表按 isConcurrencySafe() 分批：
+//      - 可并发工具（如 FileRead、Glob、Grep）：同批并行执行
+//      - 不可并发工具（如 BashTool、FileEdit）：单独一批串行执行
+//   2. 每批内部使用 all() 并发执行所有工具
+//   3. 批次间严格串行（等待上一批全部完成）
+//
+// 并发上限：
+//   - CLAUDE_CODE_MAX_TOOL_USE_CONCURRENCY 环境变量（默认 10）
+//   - 防止过多并发工具耗尽系统资源
+//
+// 与其他模块的关系：
+//   - toolExecution.ts（runToolUse）：执行单个工具
+//   - StreamingToolExecutor：流式模式下的工具执行器（另一种执行路径）
+//   - Tool.ts（isConcurrencySafe）：工具自身声明是否支持并发
+//
+// 输出：MessageUpdate 流，包含每个工具的执行结果消息
 import type { ToolUseBlock } from '@anthropic-ai/sdk/resources/index.mjs'
 import type { CanUseToolFn } from '../../hooks/useCanUseTool.js'
 import { findToolByName, type ToolUseContext } from '../../Tool.js'

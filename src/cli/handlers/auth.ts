@@ -1,3 +1,21 @@
+// cli/handlers/auth.ts — `claude auth` 子命令处理器
+// 职责：实现 login / logout / status 三个认证子命令。
+//
+// 认证流程：
+//   login：
+//     1. 快速路径：若设置了 CLAUDE_CODE_OAUTH_REFRESH_TOKEN 环境变量，
+//        直接用 refresh token 换取 access token，跳过浏览器 OAuth 流程
+//     2. 标准路径：启动 OAuthService，打开浏览器完成 OAuth 授权，
+//        获取 tokens 后调用 installOAuthTokens() 保存凭证
+//   logout：调用 performLogout() 清除本地凭证
+//   status：读取当前认证状态，支持 --json 和 --text 两种输出格式
+//
+// 认证方式优先级：
+//   claude.ai OAuth > Console OAuth > ANTHROPIC_API_KEY 环境变量 > 第三方服务
+//
+// installOAuthTokens()：token 安装的核心函数，负责保存 token、获取用户角色、
+// 创建 API key（Console 用户），被 login 和 setup-token 流程共用
+
 /* eslint-disable custom-rules/no-process-exit -- CLI subcommand handler intentionally exits */
 
 import {

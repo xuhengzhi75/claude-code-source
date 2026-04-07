@@ -1,3 +1,23 @@
+// =============================================================================
+// src/buddy/CompanionSprite.tsx — Companion 终端动画 React 组件
+//
+// 【模块职责】
+//   在 Claude Code 终端 UI 右侧渲染 ASCII 宠物精灵，包含：
+//   - 500ms 帧率的 idle 动画（IDLE_SEQUENCE 序列：静止→fidget→blink）
+//   - 气泡（speech bubble）：显示宠物台词，20 tick（~10s）后淡出
+//   - 爱心漂浮动画：/buddy pet 命令触发，持续 2.5s
+//   - 闪亮（shiny）效果：legendary 宠物有彩虹色渲染
+//
+// 【状态机】
+//   useEffect + setInterval(500ms) 驱动帧计数器，
+//   AppState.companionBubble 携带气泡文本，
+//   AppState.companionPetAt 携带 pet 时间戳触发爱心动画。
+//
+// 【布局约束】
+//   终端宽度 < 80 列时隐藏精灵（isFullscreenActive 时也隐藏），
+//   避免在窄终端破坏布局。
+// =============================================================================
+
 import { c as _c } from "react/compiler-runtime";
 import { feature } from 'bun:bundle';
 import figures from 'figures';

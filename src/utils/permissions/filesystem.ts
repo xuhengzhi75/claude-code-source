@@ -1,3 +1,30 @@
+// utils/permissions/filesystem.ts — 文件系统权限检查核心
+// 职责：实现文件路径的权限检查逻辑，决定 Claude Code 是否可以读取/写入/创建指定路径。
+// 是文件操作安全模型的核心实现。
+//
+// 核心函数：
+//   - checkPathSafetyForAutoEdit()：检查路径是否在允许的工作目录内（写操作）
+//   - checkReadableInternalPath()：检查路径是否可读（含内部路径白名单）
+//   - checkEditableInternalPath()：检查路径是否可编辑（含内部路径白名单）
+//   - pathInWorkingPath()：检查路径是否在当前工作目录内
+//   - pathInAllowedWorkingPath()：检查路径是否在用户配置的允许路径内
+//   - matchingRuleForInput()：查找匹配当前路径的权限规则
+//
+// 路径安全策略：
+//   - 工作目录限制：默认只允许访问 CWD 及其子目录
+//   - 内部路径白名单：.claude/ 目录、记忆文件、工具结果目录等
+//   - 路径遍历防护：containsPathTraversal() 检测 ../ 攻击
+//   - UNC 路径防护：containsVulnerableUncPath() 检测 Windows UNC 路径注入
+//   - .gitignore 感知：使用 ignore 库检测是否在 gitignore 范围内
+//
+// 特殊路径处理：
+//   - 记忆文件（memdir）：isAutoMemPath() 允许访问记忆目录
+//   - Agent 记忆：isAgentMemoryPath() 允许 Agent 访问自己的记忆
+//   - 计划目录（plans）：getPlansDirectory() 允许访问计划文件
+//   - 工具结果目录：getToolResultsDir() 允许访问工具输出
+//
+// 临时目录：
+//   - getClaudeTempDir()：返回 Claude 专用临时目录（含随机后缀防猜测）
 import { feature } from 'bun:bundle'
 import { randomBytes } from 'crypto'
 import ignore from 'ignore'

@@ -1,3 +1,15 @@
+// cli/exit.ts — CLI 退出辅助函数
+// 职责：统一封装 CLI 子命令的退出逻辑，消除各 handler 中重复的
+// "打印消息 + 调用 process.exit" 模式（原来约 60 处拷贝）。
+//
+// 设计要点：
+//   - cliError：向 stderr 输出错误信息，以 exit code 1 退出
+//   - cliOk：向 stdout 输出成功信息，以 exit code 0 退出
+//   - 返回类型 `never` 让 TypeScript 在调用点做控制流收窄，
+//     调用方可写 `return cliError(...)` 而无需额外的 return 语句
+//   - 测试中 process.exit 被 spy 拦截（不真正退出），
+//     因此函数末尾有 `return undefined as never` 保证类型安全
+
 /**
  * CLI exit helpers for subcommand handlers.
  *

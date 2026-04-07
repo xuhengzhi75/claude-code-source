@@ -1,3 +1,23 @@
+// tools/AgentTool/agentDisplay.ts — Agent 信息展示工具函数
+// 职责：提供 Agent 列表展示的共享工具函数，
+// 同时服务于 CLI `claude agents` 命令和交互式 `/agents` 命令。
+//
+// 核心功能：
+//   - formatAgentList(agents)：格式化 Agent 列表为可读字符串
+//   - groupAgentsBySource(agents)：按来源分组（built-in/project/user/plugin）
+//   - getAgentSourceLabel(source)：获取来源的显示名称
+//
+// Agent 来源类型（AgentSource）：
+//   - 'built-in'：内置 Agent（generalPurpose/plan/explore 等）
+//   - 'project'：项目级自定义 Agent（.claude/agents/）
+//   - 'user'：用户级自定义 Agent（~/.claude/agents/）
+//   - 'plugin'：插件提供的 Agent
+//
+// 关联：
+//   - loadAgentsDir.ts：AgentDefinition 类型
+//   - utils/settings/constants.ts：SettingSource / getSourceDisplayName
+//   - utils/model/agent.ts：getDefaultSubagentModel
+
 /**
  * Shared utilities for displaying agent information.
  * Used by both the CLI `claude agents` handler and the interactive `/agents` command.

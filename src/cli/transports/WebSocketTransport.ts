@@ -1,3 +1,21 @@
+// cli/transports/WebSocketTransport.ts — WebSocket 双向传输层（默认传输实现）
+// 职责：通过 WebSocket 协议实现与 Session Ingress 服务的双向消息传输，
+// 是三种传输实现中的默认选项（无特殊环境变量时使用）。
+//
+// 连接管理：
+//   - 自动重连：指数退避（1s → 30s），最长重试 10 分钟后放弃
+//   - Ping/Pong：每 10s 发送 ping，检测连接活性
+//   - Keep-alive 帧：每 5 分钟发送 keep_alive JSON 帧，防止代理超时
+//   - 环形缓冲区：断线期间最多缓存 1000 条消息，重连后重放
+//
+// 写入：直接通过 WebSocket send()，消息序列化为 NDJSON
+// 读取：监听 WebSocket message 事件，回调 onData
+//
+// 三种传输的选择逻辑（见 transportUtils.ts）：
+//   CCR_V2=1 → SSETransport
+//   POST_V2=1 → HybridTransport
+//   默认 → WebSocketTransport（本文件）
+
 import type { StdoutMessage } from 'src/entrypoints/sdk/controlTypes.js'
 import type WsWebSocket from 'ws'
 import { logEvent } from '../../services/analytics/index.js'

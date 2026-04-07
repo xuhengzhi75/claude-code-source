@@ -1,3 +1,25 @@
+// services/lsp/LSPDiagnosticRegistry.ts — LSP 诊断结果注册表
+// 职责：异步接收并缓存 LSP 服务器推送的诊断信息（错误/警告），
+// 在下一轮对话时将诊断结果作为 Attachment 注入到消息中。
+//
+// 核心类型：
+//   - PendingLSPDiagnostic：待处理的诊断通知（含服务器名、文件列表、时间戳）
+//
+// 核心函数：
+//   - registerPendingLSPDiagnostic()：存储 LSP 推送的诊断结果
+//   - checkForLSPDiagnostics()：检索待处理的诊断结果
+//   - getLSPDiagnosticAttachments()：将诊断结果转换为 Attachment[]
+//
+// 工作流程（与 AsyncHookRegistry 模式一致）：
+//   1. LSP 服务器发送 textDocument/publishDiagnostics 通知
+//   2. registerPendingLSPDiagnostic() 存入 LRU 缓存
+//   3. 下一轮 query 开始时 checkForLSPDiagnostics() 取出
+//   4. getLSPDiagnosticAttachments() 转换为 Attachment 注入对话
+//
+// 关键设计：
+//   - LRU 缓存：防止诊断结果无限积累（按文件路径去重）
+//   - attachmentSent 标志：防止同一诊断重复注入对话
+//   - 与 AsyncHookRegistry 模式一致，但更简单（诊断同步到达，无需累积）
 import { randomUUID } from 'crypto'
 import { LRUCache } from 'lru-cache'
 import { logForDebugging } from '../../utils/debug.js'

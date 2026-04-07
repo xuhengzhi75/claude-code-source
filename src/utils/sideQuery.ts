@@ -1,3 +1,23 @@
+// =============================================================================
+// src/utils/sideQuery.ts — 轻量级侧边查询（Side Query）
+//
+// 【模块职责】
+//   提供不经过主 query() 循环的轻量级模型调用，用于辅助性任务：
+//   - 记忆相关性筛选（findRelevantMemories）
+//   - 会话标题生成（sessionTitle）
+//   - 其他不需要工具调用的单轮推理任务
+//
+// 【与 query() 的区别】
+//   sideQuery 是单轮、无工具、无状态的 API 调用，
+//   不记录到会话历史，不触发 hooks，不计入主循环 token 预算。
+//   适合"问一个小问题"的场景，避免污染主对话上下文。
+//
+// 【关键函数】
+//   sideQuery(systemPrompt, userMessage, options?)
+//     → Promise<string>  返回模型的文本响应
+//     使用 getAnthropicClient() 直接调用 API，绕过 query() 管道
+// =============================================================================
+
 import type Anthropic from '@anthropic-ai/sdk'
 import type { BetaToolUnion } from '@anthropic-ai/sdk/resources/beta/messages.js'
 import {

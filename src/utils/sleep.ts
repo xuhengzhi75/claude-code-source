@@ -1,3 +1,16 @@
+// utils/sleep.ts — 可中止的异步等待工具
+// 职责：提供支持 AbortSignal 的 sleep 函数，
+// 确保退避循环（backoff loop）在进程关闭时不会阻塞。
+//
+// 核心函数：sleep(ms, options?)
+//   - 默认：等待 ms 毫秒后 resolve（静默中止，调用方检查 signal.aborted）
+//   - throwOnAbort: true：中止时 reject（适合深层重试循环，让异常向上冒泡）
+//   - abortError: Error：自定义中止时的 rejection 错误（隐含 throwOnAbort: true）
+//
+// 使用场景：
+//   - API 请求重试的退避等待（withRetry.ts）
+//   - 轮询循环的间隔等待
+//   - 进程关闭时快速响应 AbortSignal，避免阻塞 graceful shutdown
 /**
  * Abort-responsive sleep. Resolves after `ms` milliseconds, or immediately
  * when `signal` aborts (so backoff loops don't block shutdown).

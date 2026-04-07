@@ -1,3 +1,24 @@
+// tools/FileEditTool/types.ts — FileEditTool 类型定义
+// 职责：定义 FileEditTool 的输入 schema 和核心类型，
+// 使用 Zod 进行运行时类型验证。
+//
+// 核心类型：
+//   - EditInput（inputSchema）：工具调用的输入参数
+//     · file_path：要修改的文件绝对路径
+//     · old_string：要替换的原始文本
+//     · new_string：替换后的新文本（必须与 old_string 不同）
+//     · replace_all：是否替换所有出现（默认 false）
+//   - FileEdit：单次编辑操作的结构化表示
+//     · 包含编辑前后内容、diff、行号等信息
+//
+// 特殊处理：
+//   - semanticBoolean：将字符串 "true"/"false" 也解析为布尔值
+//     （模型有时会输出字符串而非布尔值）
+//   - lazySchema：延迟 schema 初始化，避免循环依赖
+//
+// 关联：
+//   - FileEditTool.ts：使用 EditInput 验证工具调用参数
+//   - utils.ts：使用 FileEdit 类型传递编辑结果
 import { z } from 'zod/v4'
 import { lazySchema } from '../../utils/lazySchema.js'
 import { semanticBoolean } from '../../utils/semanticBoolean.js'

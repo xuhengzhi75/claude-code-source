@@ -1,3 +1,22 @@
+// =============================================================================
+// src/memdir/findRelevantMemories.ts — 相关记忆智能筛选
+//
+// 【模块职责】
+//   在用户发起查询时，通过 sideQuery（轻量级 Sonnet 调用）从记忆目录中
+//   筛选出最相关的记忆文件（最多 5 个），避免将全部记忆塞入上下文。
+//
+// 【工作流程】
+//   1. scanMemoryFiles() 扫描记忆目录，读取每个文件的 frontmatter（name/description/type）
+//   2. formatMemoryManifest() 将文件列表格式化为 manifest 文本
+//   3. sideQuery(SELECT_MEMORIES_SYSTEM_PROMPT, manifest + userQuery)
+//      → 返回 JSON 数组，包含相关文件名
+//   4. 将文件名映射回完整路径，返回 RelevantMemory[]
+//
+// 【功能门控】
+//   feature('FIND_RELEVANT_MEMORIES') 关闭时直接返回空数组，
+//   退化为"加载全部记忆"的旧行为。
+// =============================================================================
+
 import { feature } from 'bun:bundle'
 import { logForDebugging } from '../utils/debug.js'
 import { errorMessage } from '../utils/errors.js'

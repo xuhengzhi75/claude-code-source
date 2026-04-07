@@ -1,3 +1,16 @@
+// =============================================================================
+// src/migrations/migrateAutoUpdatesToSettings.ts — 自动更新偏好迁移
+//
+// 【迁移内容】
+//   将 globalConfig.autoUpdates = false（用户主动关闭自动更新）迁移到
+//   userSettings.env.DISABLE_AUTOUPDATER = '1'，并从 globalConfig 中删除
+//   旧字段。
+//
+// 【迁移条件】
+//   仅当 autoUpdates === false 且 autoUpdatesProtectedForNative !== true 时执行，
+//   即只迁移用户主动关闭的情况，不迁移原生安装保护性关闭的情况。
+// =============================================================================
+
 import { logEvent } from 'src/services/analytics/index.js'
 import { getGlobalConfig, saveGlobalConfig } from '../utils/config.js'
 import { logError } from '../utils/log.js'

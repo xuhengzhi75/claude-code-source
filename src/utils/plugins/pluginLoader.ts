@@ -1,3 +1,36 @@
+// utils/plugins/pluginLoader.ts — 插件加载与发现引擎
+// 职责：从多个来源发现、加载、验证 Claude Code 插件，
+// 是插件系统的核心入口，负责将插件目录转换为 LoadedPlugin 对象。
+//
+// 插件发现来源（优先级从高到低）：
+//   1. Marketplace 插件（settings 中 plugin@marketplace 格式）
+//   2. 会话级插件（--plugin-dir CLI 参数或 SDK plugins 选项）
+//
+// 插件目录结构：
+//   my-plugin/
+//   ├── plugin.json     # 可选 manifest（元数据、依赖、版本）
+//   ├── commands/       # 自定义 slash 命令（.md 文件）
+//   ├── agents/         # 自定义 AI Agent（.md 文件）
+//   └── hooks/          # Hook 配置（hooks.json）
+//
+// 核心函数：
+//   - loadAllPlugins()：加载所有已启用插件，返回 PluginLoadResult
+//   - loadAllPluginsCacheOnly()：仅从缓存加载（不触发网络请求）
+//   - loadPluginFromDir()：从指定目录加载单个插件
+//   - cachePlugin()：将插件缓存到本地目录
+//   - getVersionedCachePath()：获取插件版本化缓存路径
+//
+// 加载流程：
+//   1. 读取 settings 中的插件列表
+//   2. 从 marketplace 获取插件元数据
+//   3. 下载/解压插件到缓存目录
+//   4. 验证 plugin.json manifest
+//   5. 加载 commands/agents/hooks 组件
+//   6. 检测重名冲突，收集错误
+//
+// 关键设计：
+//   - memoize(loadAllPlugins)：同一会话内只加载一次，避免重复 I/O
+//   - 错误收集而非抛出：加载失败的插件记录到 errors 数组，不影响其他插件
 /**
  * Plugin Loader Module
  *

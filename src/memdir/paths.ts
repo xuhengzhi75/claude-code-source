@@ -1,3 +1,30 @@
+// =============================================================================
+// src/memdir/paths.ts — 记忆目录路径解析与安全校验
+//
+// 【模块职责】
+//   计算并验证 Claude Code 自动记忆目录（auto-memory）的文件系统路径，
+//   提供路径解析、安全校验、功能开关检测等基础能力。
+//
+// 【路径解析优先级（getAutoMemPath）】
+//   1. CLAUDE_COWORK_MEMORY_PATH_OVERRIDE 环境变量（Cowork 空间级挂载）
+//   2. settings.json autoMemoryDirectory（policy/local/user，支持 ~/ 展开）
+//   3. <memoryBase>/projects/<sanitized-git-root>/memory/（默认）
+//      其中 memoryBase = CLAUDE_CODE_REMOTE_MEMORY_DIR || ~/.claude
+//
+// 【安全设计（validateMemoryPath）】
+//   拒绝以下危险路径：相对路径、根目录/近根目录（长度<3）、
+//   Windows 驱动器根（C:）、UNC 路径（\\server\share）、含 null 字节的路径。
+//   projectSettings 被排除在 autoMemoryDirectory 来源之外，防止恶意仓库
+//   通过 .claude/settings.json 将记忆写入 ~/.ssh 等敏感目录。
+//
+// 【关键函数】
+//   isAutoMemoryEnabled()    — 功能开关（env/bare/CCR/settings 四级优先级）
+//   isExtractModeActive()    — 后台记忆提取 agent 是否启用
+//   getAutoMemPath()         — memoized 路径计算（按 projectRoot 缓存）
+//   getAutoMemDailyLogPath() — KAIROS 模式日志文件路径（logs/YYYY/MM/YYYY-MM-DD.md）
+//   isAutoMemPath(path)      — 判断路径是否在记忆目录内（防路径穿越）
+// =============================================================================
+
 import memoize from 'lodash-es/memoize.js'
 import { homedir } from 'os'
 import { isAbsolute, join, normalize, sep } from 'path'

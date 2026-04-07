@@ -1,3 +1,23 @@
+// services/diagnosticTracking.ts — IDE 诊断信息追踪
+// 职责：从连接的 IDE（VS Code/JetBrains 等）实时获取代码诊断信息（错误/警告），
+// 并在工具调用后将相关诊断注入到对话上下文中。
+//
+// 工作原理：
+//   1. 通过 MCP RPC 调用 IDE 的诊断接口（callIdeRpc）
+//   2. 过滤出与当前编辑文件相关的诊断条目
+//   3. 格式化为人类可读的摘要（最多 MAX_DIAGNOSTICS_SUMMARY_CHARS 字符）
+//   4. 在 FileEdit/FileWrite 等工具调用后自动注入诊断摘要
+//
+// 诊断类型：
+//   - Error：语法/类型错误（最高优先级）
+//   - Warning：潜在问题
+//   - Info/Hint：建议信息
+//
+// 关键设计：
+//   - DiagnosticsTrackingError：专用错误类，区分诊断获取失败与其他错误
+//   - pathsEqual/normalizePathForComparison：跨平台路径比较（处理大小写/分隔符差异）
+//   - MAX_DIAGNOSTICS_SUMMARY_CHARS = 4000：防止诊断信息过长占用 context window
+//   - getConnectedIdeClient()：检测是否有 IDE 连接，无连接时跳过
 import figures from 'figures'
 import { logError } from 'src/utils/log.js'
 import { callIdeRpc } from '../services/mcp/client.js'

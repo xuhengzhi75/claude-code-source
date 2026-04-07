@@ -1,3 +1,18 @@
+// cli/handlers/autoMode.ts — `claude auto-mode` 子命令处理器
+// 职责：管理 Auto Mode（自动模式）的分类器规则，提供查看和 AI 审查功能。
+//
+// 子命令：
+//   defaults：输出内置默认分类器规则（JSON）
+//   config：输出当前生效规则（用户自定义 + 默认值合并，按节替换语义）
+//   critique：用 AI 审查用户自定义规则的质量（清晰度/完整性/冲突/可操作性）
+//
+// Auto Mode 分类器：
+//   - 是一个 LLM，读取 allow/soft_deny/environment 三类规则
+//   - 决定工具调用是否需要用户确认（auto-approve vs require-confirm）
+//   - 用户可在 settings 的 autoMode 字段自定义规则，按节替换默认值
+//
+// critique 命令通过 sideQuery() 发起一次独立的 AI 调用，不影响主会话
+
 /**
  * Auto mode subcommand handlers — dump default/merged classifier rules and
  * critique user-written rules. Dynamically imported when `claude auto-mode ...` runs.

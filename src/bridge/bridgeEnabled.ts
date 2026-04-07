@@ -1,3 +1,14 @@
+// bridge/bridgeEnabled.ts — Bridge 功能开关与路径选择
+// 职责：通过 Growthbook 特性门控决定 Bridge 模式是否可用，
+// 以及选择 env-based 还是 env-less 执行路径。
+//
+// 关键函数：
+//   - isBridgeEnabled()：Bridge 功能总开关（Statsig gate）
+//   - isEnvLessBridgeEnabled()：是否启用 env-less 路径（不依赖 Environments API）
+//   - getBridgeMode()：返回当前应使用的 Bridge 模式
+//
+// 注意：此文件使用命名空间 import 避免循环依赖
+//   （bridgeEnabled → auth → config → bridgeEnabled 的潜在循环）
 import { feature } from 'bun:bundle'
 import {
   checkGate_CACHED_OR_BLOCKING,

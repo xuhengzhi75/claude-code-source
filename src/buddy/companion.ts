@@ -1,3 +1,22 @@
+// =============================================================================
+// src/buddy/companion.ts — Companion 生成与读取逻辑
+//
+// 【模块职责】
+//   基于 userId 确定性地生成 Companion（宠物伴侣）的外观属性（Bones），
+//   并与存储在 config 中的灵魂数据（Soul）合并，返回完整 Companion 对象。
+//
+// 【核心算法】
+//   1. hashString(userId + SALT) → 32-bit 种子
+//   2. mulberry32(seed) → 轻量级伪随机数生成器（PRNG）
+//   3. rollRarity → 按权重抽取稀有度（common 60% … legendary 1%）
+//   4. rollStats → 一个峰值属性 + 一个低谷属性 + 其余随机分布
+//   5. roll() 结果被 rollCache 缓存（key = userId+SALT），避免热路径重复计算
+//
+// 【安全设计】
+//   Bones 不持久化：每次从 hash(userId) 重新生成，用户无法通过编辑
+//   config.companion 来伪造稀有度或物种。
+// =============================================================================
+
 import { getGlobalConfig } from '../utils/config.js'
 import {
   type Companion,

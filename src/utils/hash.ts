@@ -1,3 +1,16 @@
+// utils/hash.ts — 字符串哈希工具
+// 职责：提供快速、确定性的非加密哈希函数，
+// 用于生成缓存目录名、会话 ID 等需要跨运行时稳定的标识符。
+//
+// 核心函数：
+//   - djb2Hash(str)：djb2 算法，返回有符号 32 位整数
+//     → 跨运行时确定性（不同于 Bun.hash 使用 wyhash，结果可能不同）
+//     → 适用于需要磁盘持久化的缓存目录名（跨版本升级后仍一致）
+//   - hashString(str)：返回十六进制字符串形式的哈希值
+//
+// 与 crypto.ts 的区别：
+//   - hash.ts：非加密哈希，速度快，用于缓存键/目录名
+//   - crypto.ts：加密哈希（SHA-256 等），用于安全相关场景
 /**
  * djb2 string hash — fast non-cryptographic hash returning a signed 32-bit int.
  * Deterministic across runtimes (unlike Bun.hash which uses wyhash). Use as a

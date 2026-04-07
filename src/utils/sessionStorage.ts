@@ -1,3 +1,28 @@
+// =============================================================================
+// src/utils/sessionStorage.ts — 会话存储与 JSONL 对话历史管理
+//
+// 【模块职责】
+//   管理 Claude Code 会话的持久化存储，包括对话历史（JSONL 格式）、
+//   会话元数据、项目目录映射等。是会话恢复和历史查询的核心模块。
+//
+// 【存储结构】
+//   ~/.claude/projects/<sanitized-cwd>/
+//     <session-uuid>.jsonl  — 对话历史（每行一条消息）
+//     <session-uuid>.json   — 会话元数据（标题/时间/费用等）
+//
+// 【关键函数】
+//   getProjectDir(cwd)       — 获取项目存储目录路径
+//   saveSession(messages)    — 追加写入对话消息到 JSONL 文件
+//   loadSession(sessionId)   — 从 JSONL 文件加载完整对话历史
+//   listSessions(cwd)        — 列出项目下所有会话（按时间排序）
+//   readFileTailSync(path)   — 同步读取文件末尾（用于快速加载最近消息）
+//
+// 【性能优化】
+//   JSONL 格式支持追加写入，避免每次保存重写整个文件。
+//   readFileTailSync 使用 fstatSync + readSync 直接读取文件末尾，
+//   避免加载整个大文件。
+// =============================================================================
+
 import { feature } from 'bun:bundle'
 import type { UUID } from 'crypto'
 import type { Dirent } from 'fs'

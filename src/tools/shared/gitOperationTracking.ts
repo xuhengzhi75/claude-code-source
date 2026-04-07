@@ -1,3 +1,25 @@
+// tools/shared/gitOperationTracking.ts — Git 操作追踪（跨 Shell）
+// 职责：检测命令字符串中的 git 操作并记录使用指标，
+// 同时适用于 BashTool 和 PowerShellTool（Shell 无关）。
+//
+// 检测的操作：
+//   - git commit：提交操作（增加 commitCounter）
+//   - git push：推送操作（增加 prCounter）
+//   - gh pr create：GitHub CLI 创建 PR
+//   - glab mr create：GitLab CLI 创建 MR
+//   - curl 方式创建 PR（GitHub/GitLab API）
+//
+// 实现方式：
+//   - 正则表达式匹配原始命令文本
+//   - 容忍 git 全局选项（-c key=val / -C path / --git-dir=path）
+//   - 增加 OTLP 计数器（getCommitCounter / getPrCounter）
+//   - 触发分析事件（logEvent）
+//
+// 关联：
+//   - BashTool.tsx：命令执行后调用此模块追踪 git 操作
+//   - PowerShellTool.tsx：同上
+//   - bootstrap/state.ts：getCommitCounter / getPrCounter
+
 /**
  * Shell-agnostic git operation tracking for usage metrics.
  *

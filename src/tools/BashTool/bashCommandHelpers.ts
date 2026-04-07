@@ -1,3 +1,27 @@
+// tools/BashTool/bashCommandHelpers.ts — Bash 命令辅助工具
+// 职责：提供 BashTool 权限检查流程中的辅助函数，
+// 包括命令标识检测、权限请求消息构建、AST 解析封装等。
+//
+// 核心类型：
+//   - CommandIdentityCheckers：命令身份检测函数集合
+//     · isNormalizedCdCommand：是否为 cd 命令
+//     · isNormalizedGitCommand：是否为 git 命令
+//   - IParsedCommand：解析后的命令结构（来自 ParsedCommand）
+//
+// 关键函数：
+//   - buildParsedCommandFromRoot(node)：从 AST 根节点构建解析命令
+//   - createPermissionRequestMessage(...)：构建权限请求提示消息
+//   - bashCommandIsSafeAsync_DEPRECATED(cmd)：旧版安全检查（已废弃）
+//
+// 废弃标记（_DEPRECATED）：
+//   - isUnsafeCompoundCommand_DEPRECATED：旧版复合命令检测
+//   - splitCommand_DEPRECATED：旧版命令分割
+//   这些函数保留用于向后兼容，新代码应使用 ParsedCommand 体系
+//
+// 关联：
+//   - BashTool.tsx：主工具入口，调用此文件的辅助函数
+//   - bashSecurity.ts：安全分析引擎
+//   - utils/bash/ParsedCommand.ts：命令 AST 解析
 import type { z } from 'zod/v4'
 import {
   isUnsafeCompoundCommand_DEPRECATED,

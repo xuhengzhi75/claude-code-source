@@ -1,3 +1,13 @@
+// =============================================================================
+// src/migrations/migrateReplBridgeEnabledToRemoteControlAtStartup.ts
+// — REPL Bridge 配置键重命名迁移
+//
+// 【迁移内容】
+//   将 globalConfig.replBridgeEnabled 迁移到 remoteControlAtStartup，
+//   旧键是实现细节泄漏到用户配置的遗留问题。
+//   幂等：仅当旧键存在且新键不存在时执行。
+// =============================================================================
+
 import { saveGlobalConfig } from '../utils/config.js'
 
 /**

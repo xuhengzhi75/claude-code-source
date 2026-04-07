@@ -1,3 +1,11 @@
+// =============================================================================
+// src/migrations/migrateLegacyOpusToCurrent.ts — 旧版 Opus 模型别名迁移
+//
+// 【迁移内容】
+//   将旧版 Opus 模型别名（claude-opus-4-5 等）迁移到当前规范别名，
+//   仅在 isLegacyModelRemapEnabled() 为 true 时执行（GrowthBook 门控）。
+// =============================================================================
+
 import {
   type AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS,
   logEvent,

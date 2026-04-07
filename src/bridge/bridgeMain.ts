@@ -1,3 +1,22 @@
+// bridge/bridgeMain.ts — Remote Control Bridge 主入口
+// 职责：实现 `claude remote-control`（或 `rc`）命令的完整生命周期，
+// 是 Bridge 模式（本地 Claude Code ↔ claude.ai 网页端）的顶层编排器。
+//
+// 执行流程：
+//   1. 认证检查（OAuth token 有效性）
+//   2. 初始化 Bridge 连接（initReplBridge 或 initEnvLessBridgeCore）
+//   3. 启动长轮询循环，接收来自 claude.ai 的用户消息
+//   4. 将消息转发给本地 QueryEngine 执行
+//   5. 将执行结果流式回传给 claude.ai
+//
+// 两种 Bridge 路径：
+//   - env-based（replBridge）：通过 Environments API，支持 CCR v2 协议
+//   - env-less（remoteBridgeCore）：直接 HTTP 轮询，不依赖 Environments API
+//
+// 关键特性：
+//   - 容量控制：at-capacity 时暂停接收新消息，capacityWake 唤醒机制
+//   - 会话超时：DEFAULT_SESSION_TIMEOUT_MS（24h）后自动断开
+//   - 优雅关闭：捕获 SIGINT/SIGTERM，flush 后退出
 import { feature } from 'bun:bundle'
 import { randomUUID } from 'crypto'
 import { hostname, tmpdir } from 'os'

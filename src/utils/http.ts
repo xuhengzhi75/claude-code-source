@@ -1,3 +1,23 @@
+// utils/http.ts — HTTP 请求工具函数
+// 职责：为 Claude Code 的所有 HTTP 请求提供统一的认证头注入和 axios 实例配置。
+//
+// 核心函数：
+//   - getAuthHeaders()：根据当前认证方式生成 Authorization 头
+//     → OAuth 模式：Bearer <access_token>（自动刷新过期 token）
+//     → API Key 模式：x-api-key: <key>
+//   - getUserAgent()：生成标准 User-Agent 字符串
+//     格式："claude-cli/<version> (<platform>) [workload]"
+//     ⚠️ 日志过滤依赖 "claude-cli" 字符串，不可随意修改
+//
+// 认证流程：
+//   1. 优先使用 OAuth token（isClaudeAISubscriber）
+//   2. OAuth token 过期时调用 handleOAuth401Error() 自动刷新
+//   3. 无 OAuth 时回退到 API Key
+//
+// 关联：
+//   - auth.ts：提供 getClaudeAIOAuthTokens / getAnthropicApiKey
+//   - userAgent.ts：提供 getClaudeCodeUserAgent（含版本/平台信息）
+//   - workloadContext.ts：提供 getWorkload（标识请求来源场景）
 /**
  * HTTP utility constants and helpers
  */

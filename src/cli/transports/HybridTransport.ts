@@ -1,3 +1,18 @@
+// cli/transports/HybridTransport.ts — 混合传输层（WebSocket 读 + HTTP POST 写）
+// 职责：在 CLAUDE_CODE_POST_FOR_SESSION_INGRESS_V2=1 模式下，
+// 用 WebSocket 接收服务端消息，用 HTTP POST 发送客户端消息。
+//
+// 设计动机：
+//   - WebSocket 双向通信在某些网络环境（代理/防火墙）下写入不稳定
+//   - 将写入改为 HTTP POST 可利用标准 HTTP 重试语义，提高可靠性
+//   - 读取仍用 WebSocket 保持低延迟的服务端推送
+//
+// 写入流程：
+//   write(stream_event) → 100ms 批量缓冲 → SerialBatchEventUploader → HTTP POST
+//   （最多 1 个 POST 在途，新事件在缓冲区累积，失败时指数退避重试）
+//
+// 关闭优雅期：3s（超出 gracefulShutdown 的 2s 预算，作为最后兜底）
+
 import axios, { type AxiosError } from 'axios'
 import type { StdoutMessage } from 'src/entrypoints/sdk/controlTypes.js'
 import { logForDebugging } from '../../utils/debug.js'

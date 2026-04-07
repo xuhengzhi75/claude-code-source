@@ -1,3 +1,20 @@
+// commands/compact/compact.ts — /compact 斜杠命令
+// 职责：手动触发对话历史压缩（compaction），将长对话压缩为摘要，
+// 释放上下文窗口空间，让会话可以继续进行。
+//
+// 压缩流程（委托给 services/compact/compact.ts）：
+//   1. 调用 compactConversation() 生成摘要
+//   2. 用 boundary + summary + kept messages 重建对话历史
+//   3. 调用 notifyCompaction() 通知 prompt cache 断点检测
+//   4. 标记 postCompaction 状态（markPostCompaction）
+//
+// 错误处理：
+//   - ERROR_MESSAGE_NOT_ENOUGH_MESSAGES：消息太少，无需压缩
+//   - ERROR_MESSAGE_INCOMPLETE_RESPONSE：模型响应不完整
+//   - ERROR_MESSAGE_USER_ABORT：用户中止
+//
+// feature flag：通过 bun:bundle feature() 控制新版压缩行为
+
 import { feature } from 'bun:bundle'
 import chalk from 'chalk'
 import { markPostCompaction } from 'src/bootstrap/state.js'

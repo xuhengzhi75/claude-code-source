@@ -1,3 +1,18 @@
+// commands/brief.ts — /brief 斜杠命令
+// 职责：控制 Brief 模式（简洁输出模式）的开关，Brief 模式下 Claude 的响应
+// 更简短，工具调用结果也会被折叠显示。
+//
+// Brief 模式特性：
+//   - 通过 GrowthBook 配置控制是否启用斜杠命令入口
+//   - 需要用户有 Brief 权限（isBriefEntitled 检查）
+//   - 与 Kairos 模式互斥（Kairos 激活时 Brief 不可用）
+//   - 配置通过 Zod schema 验证，防止 GrowthBook 推送格式错误的配置
+//
+// 命令格式：
+//   /brief on   — 开启 Brief 模式
+//   /brief off  — 关闭 Brief 模式
+//   /brief      — 切换当前状态
+
 import { feature } from 'bun:bundle'
 import { z } from 'zod/v4'
 import { getKairosActive, setUserMsgOptIn } from '../bootstrap/state.js'

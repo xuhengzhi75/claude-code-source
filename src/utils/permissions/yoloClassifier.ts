@@ -1,3 +1,29 @@
+// utils/permissions/yoloClassifier.ts — Auto Mode 安全分类器
+// 职责：在 auto mode（bypassPermissions）下，通过 LLM 分类器判断工具调用是否安全，
+// 替代人工确认，实现"智能自动化"而非"盲目跳过"。
+//
+// 核心函数：
+//   - classifyToolUse()：调用 LLM 对工具调用进行安全分类，返回 allow/deny/ask
+//   - buildClassifierRequest()：构建分类器的 API 请求（含系统提示词和工具描述）
+//   - awaitClassifierAutoApproval()：等待分类器结果，超时则降级为人工确认
+//
+// 分类器架构：
+//   - 使用独立的 sideQuery() 调用（querySource='auto_mode'），不影响主对话
+//   - 系统提示词从 yolo-classifier-prompts/ 目录加载（build time 内联为字符串）
+//   - 支持 TRANSCRIPT_CLASSIFIER feature flag（ANT-ONLY 功能）
+//
+// 安全策略：
+//   - 分类结果缓存：相同命令+上下文的分类结果可复用（getLastClassifierRequests）
+//   - prompt_too_long 处理：分类请求超限时降级为 ask
+//   - 置信度阈值：低置信度时降级为 ask 而非直接 allow
+//
+// 提示词设计：
+//   - BASE_PROMPT：通用系统提示词（外部版本）
+//   - ANT_PROMPT：内部版本，含更严格的安全规则
+//   - getBashPromptAllowDescriptions/DenyDescriptions：从 bashClassifier 获取规则描述
+//
+// 关键常量：
+//   - FOREGROUND_529_RETRY_SOURCES 包含 'auto_mode'：分类器请求会重试 529
 import { feature } from 'bun:bundle'
 import type Anthropic from '@anthropic-ai/sdk'
 import type { BetaToolUnion } from '@anthropic-ai/sdk/resources/beta/messages.js'

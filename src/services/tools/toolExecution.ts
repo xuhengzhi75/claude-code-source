@@ -1,3 +1,31 @@
+// services/tools/toolExecution.ts — 单次工具调用执行引擎
+// 职责：执行单个工具调用（ToolUseBlock），处理权限检查、执行、结果格式化
+// 和遥测上报的完整生命周期。这是工具执行的最底层实现。
+//
+// 核心函数：runToolUse(toolUse, tools, context, canUseTool)
+//   1. 权限检查：canUseTool() → PermissionResult（allow/deny/ask）
+//   2. 用户确认：需要时弹出权限对话框（ask 模式）
+//   3. 工具执行：tool.call(input, context) → AsyncGenerator<ToolCallProgress>
+//   4. 结果收集：将流式进度事件聚合为最终 ToolResultBlockParam
+//   5. 遥测上报：logEvent('tengu_tool_use', {...}) 记录工具使用统计
+//
+// 权限决策流程：
+//   canUseTool() → allow → 直接执行
+//               → deny  → 返回拒绝消息
+//               → ask   → 等待用户确认 → allow/deny
+//
+// 遥测字段（tengu_tool_use 事件）：
+//   - tool_name：工具名称（脱敏）
+//   - tool_input：工具输入（可选，受 isToolDetailsLoggingEnabled 控制）
+//   - duration_ms：执行耗时
+//   - is_error：是否出错
+//   - file_extension：文件扩展名（用于统计语言分布）
+//   - mcp_tool_details：MCP 工具的额外元数据
+//
+// 关键设计：
+//   - MessageUpdateLazy：延迟求值的消息更新，避免不必要的序列化
+//   - 工具执行超时：通过 AbortSignal 传递，工具自行处理
+//   - 错误隔离：工具执行错误转为 error content block，不中断主流程
 import { feature } from 'bun:bundle'
 import type {
   ContentBlockParam,

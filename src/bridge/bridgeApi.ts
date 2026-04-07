@@ -1,3 +1,17 @@
+// bridge/bridgeApi.ts — Bridge HTTP API 客户端
+// 职责：封装与 claude.ai Bridge 服务器的所有 HTTP 通信，
+// 提供类型安全的 API 调用接口（BridgeApiClient）。
+//
+// 核心操作：
+//   - createBridgeApiClient()：创建带认证头的 axios 实例
+//   - poll()：长轮询获取新消息（GET /api/bridge/poll）
+//   - sendMessage()：回传执行结果（POST /api/bridge/message）
+//   - createSession()：创建新 Bridge 会话
+//
+// 错误处理：
+//   - BridgeFatalError：不可恢复错误，触发进程退出
+//   - isExpiredErrorType()：识别 token 过期，触发重新登录
+//   - isSuppressible403()：识别可忽略的 403（如会话已关闭）
 import axios from 'axios'
 
 import { debugBody, extractErrorDetail } from './debugUtils.js'

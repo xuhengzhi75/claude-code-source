@@ -1,3 +1,16 @@
+// commands/memory/memory.tsx — /memory 斜杠命令
+// 职责：管理 Claude 的记忆文件（CLAUDE.md 及相关 memory 文件），
+// 提供交互式界面让用户查看、编辑、创建记忆文件。
+//
+// 功能：
+//   - 列出所有记忆文件（getMemoryFiles）
+//   - 通过 MemoryFileSelector 交互式选择要编辑的文件
+//   - 在外部编辑器中打开文件（editFileInEditor）
+//   - 创建新的记忆文件（mkdir + writeFile）
+//   - 编辑后刷新缓存（clearMemoryFileCaches）
+//
+// 记忆文件路径：相对于 getClaudeConfigHomeDir() 的路径
+
 import { mkdir, writeFile } from 'fs/promises';
 import * as React from 'react';
 import type { CommandResultDisplay } from '../../commands.js';

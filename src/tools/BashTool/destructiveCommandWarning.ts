@@ -1,3 +1,24 @@
+// tools/BashTool/destructiveCommandWarning.ts — 破坏性命令警告
+// 职责：检测潜在破坏性的 Bash 命令，在权限对话框中显示警告文本。
+// 注意：此模块仅提供信息展示，不影响权限逻辑或自动审批。
+//
+// 检测的破坏性模式（DESTRUCTIVE_PATTERNS）：
+//   Git 类：
+//     - git reset --hard：可能丢弃未提交的修改
+//     - git push --force / -f：可能覆盖远程历史
+//     - git clean -f / -fd：删除未跟踪文件
+//   文件系统类：
+//     - rm -rf：递归强制删除
+//     - chmod/chown 递归操作：批量修改权限/所有者
+//   数据库类：
+//     - DROP TABLE / DROP DATABASE：删除数据库对象
+//   其他：
+//     - kill -9 / killall：强制终止进程
+//
+// 关联：
+//   - BashTool.tsx：在权限确认 UI 中展示警告
+//   - bashPermissions.ts：权限决策逻辑（不依赖此模块）
+
 /**
  * Detects potentially destructive bash commands and returns a warning string
  * for display in the permission dialog. This is purely informational — it

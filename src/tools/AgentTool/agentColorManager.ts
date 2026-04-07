@@ -1,3 +1,20 @@
+// tools/AgentTool/agentColorManager.ts — 子 Agent 颜色管理器
+// 职责：为并发运行的多个子 Agent 分配唯一的显示颜色，
+// 使 TUI 界面中不同 Agent 的输出可视化区分。
+//
+// 颜色池（AGENT_COLORS）：
+//   red / blue / green / yellow / purple / orange / pink / cyan
+//   共 8 种颜色，循环分配
+//
+// 核心函数：
+//   - getAgentColor(agentId)：为指定 agentId 分配/查询颜色
+//   - releaseAgentColor(agentId)：Agent 结束后释放颜色
+//   - getAgentColorMap()：从 bootstrap/state 获取全局颜色映射表
+//
+// 关联：
+//   - bootstrap/state.ts：存储全局 agentColorMap
+//   - utils/theme.ts：Theme 类型，用于颜色渲染
+//   - AgentTool/UI.tsx：使用颜色渲染 Agent 输出
 import { getAgentColorMap } from '../../bootstrap/state.js'
 import type { Theme } from '../../utils/theme.js'
 

@@ -1,3 +1,27 @@
+// =============================================================================
+// src/query/stopHooks.ts — Stop Hook 执行与消息生成
+//
+// 【模块职责】
+//   在 query() 循环的每轮结束时执行 stop hooks，处理 hook 返回的
+//   continue/stop 决策，并生成相应的消息注入到对话流中。
+//
+// 【三类 Hook】
+//   1. StopHook（用户自定义停止钩子）：
+//      模型停止后执行，可返回 continue 指令让模型继续工作
+//   2. TaskCompletedHook：
+//      任务完成时执行（非交互模式），用于通知外部系统
+//   3. TeammateIdleHook：
+//      Cowork 场景下队友空闲时执行，协调多 agent 工作流
+//
+// 【关键函数】
+//   handleStopHooks(params)
+//     → AsyncGenerator<StreamEvent>
+//     执行所有 stop hooks，yield 进度消息和最终 continue/stop 决策
+//
+//   buildStopHookContinueMessage(hookResult)
+//     → Message  将 hook 的 continue 指令格式化为用户消息注入对话
+// =============================================================================
+
 import { feature } from 'bun:bundle'
 import { getShortcutDisplay } from '../keybindings/shortcutFormat.js'
 import { isExtractModeActive } from '../memdir/paths.js'

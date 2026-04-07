@@ -1,3 +1,23 @@
+// =============================================================================
+// src/utils/git.ts — Git 仓库操作工具函数
+//
+// 【模块职责】
+//   提供 Claude Code 与 Git 仓库交互所需的全部工具函数，包括仓库状态
+//   查询、文件变更检测、提交信息生成等。
+//
+// 【关键函数】
+//   findCanonicalGitRoot(cwd)  — 查找规范 git 根目录（处理 worktree）
+//   getGitStatus()             — 获取工作区状态（staged/unstaged/untracked）
+//   getGitDiff(options)        — 获取文件差异（staged/unstaged/HEAD）
+//   getRecentCommits(n)        — 获取最近 n 条提交记录
+//   isGitRepo(cwd)             — 检测目录是否在 git 仓库中
+//   getGitRemoteUrl()          — 获取远程仓库 URL
+//
+// 【性能优化】
+//   memoize 缓存 git 根目录查找结果，避免重复 shell 调用。
+//   gitFilesystem.ts 提供文件系统级缓存（branch/head/remote）。
+// =============================================================================
+
 import { createHash } from 'crypto'
 import { readFileSync, realpathSync, statSync } from 'fs'
 import { open, readFile, realpath, stat } from 'fs/promises'

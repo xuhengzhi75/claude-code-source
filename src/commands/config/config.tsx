@@ -1,3 +1,7 @@
+// commands/config/config.tsx — /config 斜杠命令
+// 职责：打开设置面板（Settings 组件），默认显示 Config 标签页。
+// 是 /settings 命令的别名，提供统一的配置入口。
+
 import * as React from 'react';
 import { Settings } from '../../components/Settings/Settings.js';
 import type { LocalJSXCommandCall } from '../../types/command.js';

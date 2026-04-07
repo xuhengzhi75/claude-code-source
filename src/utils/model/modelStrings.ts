@@ -1,3 +1,27 @@
+// utils/model/modelStrings.ts — 模型字符串解析与初始化
+// 职责：在启动时根据当前 Provider 初始化模型字符串映射，
+// 并提供运行时的模型 ID 解析功能。
+//
+// 核心函数：
+//   - initModelStrings()：启动时调用，将 ALL_MODEL_CONFIGS 按 Provider 展开为 ModelStrings
+//   - getModelStrings()：获取当前 Provider 下的模型字符串映射（从 bootstrap state 读取）
+//   - resolveOverriddenModel()：将用户指定的模型名（含别名）解析为实际 API 模型 ID
+//   - getCanonicalName()：将任意 Provider 的模型 ID 转换为 firstParty 标准 ID
+//
+// 初始化流程：
+//   1. 启动时 initModelStrings() 检测 Provider
+//   2. Bedrock：调用 getBedrockInferenceProfiles() 获取用户的推理配置文件列表
+//   3. 其他 Provider：直接从 ALL_MODEL_CONFIGS 读取对应 Provider 的 ID
+//   4. 结果存入 bootstrap state，供全局访问
+//
+// Bedrock 推理配置文件：
+//   - 用户可能有自定义推理配置文件（如 "eu.anthropic.claude-opus-4-6-v1"）
+//   - findFirstMatch() 通过 firstParty ID 子串匹配找到对应的配置文件
+//   - 找不到时回退到硬编码的 Bedrock ID
+//
+// 关键设计：
+//   - sequential()：确保并发调用时只初始化一次（防止竞态条件）
+//   - bootstrap state 存储：ModelStrings 在进程生命周期内不变
 import {
   getModelStrings as getModelStringsState,
   setModelStrings as setModelStringsState,

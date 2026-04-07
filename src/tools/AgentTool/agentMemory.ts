@@ -1,3 +1,23 @@
+// =============================================================================
+// src/tools/AgentTool/agentMemory.ts — 子 Agent 持久化记忆管理
+//
+// 【模块职责】
+//   为子 Agent 提供独立的持久化记忆目录，支持三种作用域：
+//   - user：~/.claude/agent-memory/（跨项目共享）
+//   - project：<git-root>/.claude/agent-memory/（项目级共享）
+//   - local：<git-root>/.claude/agent-memory-local/（本地私有）
+//
+// 【关键函数】
+//   getAgentMemoryDir(scope, agentId?)
+//     → string  返回对应作用域的记忆目录路径
+//
+//   loadAgentMemoryPrompt(scope, agentId?)
+//     → string  构建并返回子 Agent 的记忆系统提示（含 MEMORY.md 内容）
+//
+//   ensureAgentMemoryDir(scope, agentId?)
+//     → void  幂等创建记忆目录
+// =============================================================================
+
 import { join, normalize, sep } from 'path'
 import { getProjectRoot } from '../../bootstrap/state.js'
 import {

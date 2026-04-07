@@ -1,3 +1,29 @@
+// tools/AgentTool/agentToolUtils.ts — Agent 工具核心工具函数
+// 职责：为 AgentTool 提供完整的子 Agent 生命周期管理，包括
+// 工具过滤、权限控制、进度追踪、异步 Agent 任务管理等。
+//
+// 核心功能：
+//   1. 工具集过滤（filterToolsForAgent）
+//      - 根据 Agent 定义的 allowlist/denylist 过滤可用工具
+//      - 不同 Agent 类型（custom/async/in-process teammate）有不同默认限制
+//   2. 异步 Agent 任务管理
+//      - createProgressTracker：创建进度追踪器
+//      - enqueueAgentNotification：任务完成后发送通知
+//      - completeAsyncAgent / failAsyncAgent：标记任务完成/失败
+//   3. Agent 摘要（startAgentSummarization）
+//      - 当 Agent 对话超长时触发摘要压缩
+//   4. 分析事件上报（logEvent）
+//      - 记录 Agent 调用的各类分析指标
+//
+// 工具常量（来自 constants/tools.ts）：
+//   - ALL_AGENT_DISALLOWED_TOOLS：所有 Agent 禁用的工具
+//   - ASYNC_AGENT_ALLOWED_TOOLS：异步 Agent 允许的工具
+//   - CUSTOM_AGENT_DISALLOWED_TOOLS：自定义 Agent 禁用的工具
+//   - IN_PROCESS_TEAMMATE_ALLOWED_TOOLS：进程内 Teammate 允许的工具
+//
+// 关联：
+//   - AgentTool.tsx：主入口，调用此文件的工具函数
+//   - loadAgentsDir.ts：Agent 定义类型
 import { feature } from 'bun:bundle'
 import { z } from 'zod/v4'
 import { clearInvokedSkillsForAgent } from '../../bootstrap/state.js'

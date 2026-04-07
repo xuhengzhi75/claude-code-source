@@ -1,3 +1,21 @@
+// services/internalLogging.ts — Ant 内部日志上报
+// 职责：将 Claude Code 的工具调用上下文上报到 Ant 内部日志系统，
+// 用于内部调试、审计和性能分析（仅 Ant 员工环境）。
+//
+// 核心函数：logInternalToolUse(toolPermissionContext)
+//   - 读取 Kubernetes namespace（判断是否在 devbox 中运行）
+//   - 将工具权限上下文序列化为 JSON
+//   - 通过 logEvent 上报到内部分析管道
+//
+// Kubernetes namespace 检测：
+//   - null：本地开发环境（laptop）
+//   - "default"：默认命名空间的 devbox
+//   - "ts"：ts 命名空间的 devbox
+//   - 其他：自定义命名空间
+//
+// 触发条件：
+//   - USER_TYPE === 'ant'：仅 Ant 内部用户触发
+//   - memoize：namespace 在进程生命周期内不变，缓存避免重复读取
 import { readFile } from 'fs/promises'
 import memoize from 'lodash-es/memoize.js'
 import type { ToolPermissionContext } from '../Tool.js'

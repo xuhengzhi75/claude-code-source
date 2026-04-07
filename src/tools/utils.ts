@@ -1,3 +1,15 @@
+// =============================================================================
+// src/tools/utils.ts — 工具层通用工具函数
+//
+// 【模块职责】
+//   提供工具层（tools/）共用的辅助函数，目前主要处理工具调用消息的标记。
+//
+// 【关键函数】
+//   tagMessagesWithToolUseID(messages, toolUseID)
+//     为用户消息打上 sourceToolUseID 标签，使其在工具调用解析前保持
+//     "transient"（临时）状态，防止 UI 中出现重复的"is running"消息。
+// =============================================================================
+
 import type {
   AssistantMessage,
   AttachmentMessage,

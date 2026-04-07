@@ -1,3 +1,28 @@
+// utils/log.ts — 会话日志持久化与读取
+// 职责：将 Claude Code 的对话记录（transcript）持久化到磁盘，
+// 并提供历史会话的读取、搜索和管理能力。
+//
+// 核心功能：
+//   写入：
+//     - logMessage()：将单条消息追加到当前会话日志文件（NDJSON 格式）
+//     - logError()：记录错误到日志文件（同时写入 debug 日志）
+//     - flushLog()：强制 flush 缓冲区（进程退出前调用）
+//
+//   读取：
+//     - readLog(sessionId)：读取指定会话的完整日志
+//     - listLogs()：列出所有历史会话（按时间排序）
+//     - sortLogs()：按时间戳排序日志条目
+//
+// 存储格式：
+//   - 路径：~/.claude/projects/<project-hash>/<session-id>.jsonl
+//   - 格式：NDJSON（每行一个 JSON 对象）
+//   - 每条记录包含：timestamp、role、content、usage 等字段
+//
+// 关键设计：
+//   - memoize：缓存日志文件路径查找，避免重复 I/O
+//   - TICK_TAG：用于标记 API 请求的 tick 边界（调试用）
+//   - setLastAPIRequest/setLastAPIRequestMessages：同步最新请求到 bootstrap state
+//   - stripDisplayTags：写入前去除 UI 渲染标签，保持日志纯净
 import { feature } from 'bun:bundle'
 import type { BetaMessageStreamParams } from '@anthropic-ai/sdk/resources/beta/messages/messages.mjs'
 import { readdir, readFile, stat } from 'fs/promises'

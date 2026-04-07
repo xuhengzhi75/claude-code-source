@@ -1,3 +1,19 @@
+// commands/logout/logout.tsx — /logout 斜杠命令 + 登出核心逻辑
+// 职责：清除所有本地认证凭证，退出登录状态。
+//
+// 清除范围（performLogout）：
+//   - OAuth token（getClaudeAIOAuthTokens + removeApiKey）
+//   - Trusted Device token 缓存（clearTrustedDeviceTokenCache）
+//   - GrowthBook 缓存（refreshGrowthBookAfterAuthChange）
+//   - 策略限制缓存（clearPolicyLimitsCache）
+//   - 远程托管设置缓存（clearRemoteManagedSettingsCache）
+//   - Betas 缓存（clearBetasCaches）
+//   - 工具 schema 缓存（clearToolSchemaCache）
+//   - 用户缓存（resetUserCache）
+//   - 安全存储（getSecureStorage）
+//
+// Grove 特殊处理：登出前检查 Grove 设置，确保企业账号正确处理
+
 import * as React from 'react';
 import { clearTrustedDeviceTokenCache } from '../../bridge/trustedDevice.js';
 import { Text } from '../../ink.js';

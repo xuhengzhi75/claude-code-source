@@ -1,3 +1,24 @@
+// utils/env.ts — 环境路径与配置文件路径管理
+// 职责：提供 Claude Code 所有配置文件、数据文件的标准路径，
+// 以及运行时环境（Node.js/Bun/npm/npx）的检测。
+//
+// 核心路径函数（均 memoized）：
+//   - getGlobalClaudeFile()：全局配置文件路径（~/.claude/.config.json）
+//   - getGlobalConfigPath()：新版全局配置路径（~/.claude/settings.json）
+//   - getLocalConfigPath()：项目级配置路径（<cwd>/.claude/settings.json）
+//   - getOAuthConfigPath()：OAuth token 存储路径（含平台后缀）
+//   - getNodePath()：当前 Node.js 可执行文件路径
+//   - getNpmPath()：npm 可执行文件路径
+//   - getNpxPath()：npx 可执行文件路径
+//
+// 环境检测：
+//   - isRunningWithBun()：是否在 Bun 运行时中执行
+//   - getClaudeConfigHomeDir()：读取 CLAUDE_CONFIG_DIR 环境变量（可覆盖默认路径）
+//
+// 路径约定：
+//   - 配置根目录：~/.claude/（可通过 CLAUDE_CONFIG_DIR 覆盖）
+//   - 项目配置：<project-root>/.claude/
+//   - OAuth 配置：路径含平台后缀（fileSuffixForOauthConfig），支持多账号
 import memoize from 'lodash-es/memoize.js'
 import { homedir } from 'os'
 import { join } from 'path'

@@ -1,3 +1,26 @@
+// =============================================================================
+// src/buddy/sprites.ts — Companion ASCII 精灵图渲染
+//
+// 【模块职责】
+//   存储 18 种物种的 ASCII 精灵帧数据，并提供渲染函数将 CompanionBones
+//   转换为可在终端显示的字符串数组。
+//
+// 【数据结构】
+//   BODIES: Record<Species, string[][]>
+//     每个物种有 3 帧（idle 静止 + 2 帧 fidget 小动作），每帧 5 行 12 字符宽。
+//     {E} 占位符在渲染时替换为 bones.eye（眼睛字符）。
+//     第 0 行为帽子槽：空白时可被 HAT_LINES 覆盖；某些帧用第 0 行做烟雾/天线动画。
+//
+// 【关键函数】
+//   renderSprite(bones, frame)  → string[]  完整精灵（含帽子）
+//   renderFace(bones)           → string    仅脸部表情（用于气泡头像）
+//   spriteFrameCount(species)   → number    该物种的帧数（用于动画循环）
+//
+// 【优化细节】
+//   当所有帧的第 0 行均为空白时，渲染时自动 shift() 掉帽子槽行，
+//   避免无帽时浪费一行终端空间。
+// =============================================================================
+
 import type { CompanionBones, Eye, Hat, Species } from './types.js'
 import {
   axolotl,

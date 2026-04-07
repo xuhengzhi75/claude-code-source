@@ -1,3 +1,25 @@
+// utils/platform.ts — 运行平台检测
+// 职责：检测 Claude Code 当前运行的操作系统平台，
+// 为平台差异化逻辑提供统一的平台标识。
+//
+// 平台类型：
+//   - 'macos'：macOS（darwin）
+//   - 'windows'：原生 Windows（win32）
+//   - 'wsl'：Windows Subsystem for Linux（/proc/version 含 Microsoft）
+//   - 'linux'：其他 Linux 发行版
+//   - 'unknown'：无法识别的平台
+//
+// 关键函数：
+//   - getPlatform()：memoized，返回当前平台标识
+//   - getWslVersion()：检测 WSL 版本（1 或 2），仅 WSL 环境有效
+//   - isWsl()：快捷检测是否在 WSL 中运行
+//
+// 支持的平台：SUPPORTED_PLATFORMS = ['macos', 'wsl']
+//   → 其他平台（windows/linux）功能受限（如 computer use 不可用）
+//
+// 实现细节：
+//   - WSL 检测：读取 /proc/version 文件，检查是否含 "Microsoft" 字符串
+//   - memoize：平台不会在运行时改变，缓存结果避免重复 I/O
 import { readdir, readFile } from 'fs/promises'
 import memoize from 'lodash-es/memoize.js'
 import { release as osRelease } from 'os'

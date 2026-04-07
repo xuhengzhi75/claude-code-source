@@ -1,3 +1,23 @@
+// tools/AgentTool/resumeAgent.ts — 子 Agent 恢复执行
+// 职责：实现已暂停/中断的子 Agent 的恢复执行逻辑，
+// 允许异步 Agent 在用户交互后继续完成任务。
+//
+// 恢复场景：
+//   - 异步 Agent 等待用户输入后继续
+//   - SDK 模式下 Agent 进度摘要恢复
+//   - Coordinator 模式下子 Agent 恢复
+//
+// 核心流程：
+//   1. 从持久化存储加载 Agent 的历史消息
+//   2. 过滤孤立的 thinking-only 消息和未解决的 tool use
+//   3. 重建工具集（assembleToolPool）
+//   4. 在 agentContext 中恢复执行（runWithAgentContext）
+//   5. 注册为异步 Agent 任务（registerAsyncAgent）
+//
+// 关联：
+//   - runAgent.ts：初次执行逻辑（resumeAgent 是其镜像）
+//   - tasks/LocalAgentTask：异步 Agent 任务注册
+//   - utils/messages.ts：消息过滤工具函数
 import { promises as fsp } from 'fs'
 import { getSdkAgentProgressSummariesEnabled } from '../../bootstrap/state.js'
 import { getSystemPrompt } from '../../constants/prompts.js'

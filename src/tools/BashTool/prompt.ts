@@ -1,3 +1,28 @@
+// tools/BashTool/prompt.ts — BashTool 系统提示词生成器
+// 职责：根据运行时环境动态生成 BashTool 的系统提示词，
+// 告知模型如何正确使用 Bash 工具。
+//
+// 提示词内容（动态组合）：
+//   1. 基础使用说明：命令格式、超时设置、工作目录
+//   2. 沙箱模式说明（SandboxManager）：沙箱限制和可用命令
+//   3. Git 操作指南（shouldIncludeGitInstructions）：
+//      提交规范、分支操作等
+//   4. 嵌入式搜索工具说明（hasEmbeddedSearchTools）：
+//      ant-native 构建中 find/grep 替代 Glob/Grep
+//   5. Undercover 模式（isUndercover）：
+//      隐藏 Claude Code 身份时的特殊指令
+//   6. 归因文本（getAttributionTexts）：
+//      工具调用的来源标注
+//
+// 关键参数：
+//   - getDefaultBashTimeoutMs()：默认超时（通常 120s）
+//   - getMaxBashTimeoutMs()：最大超时（通常 600s）
+//   - getClaudeTempDir()：Claude 临时目录路径
+//
+// 关联：
+//   - BashTool.tsx：调用 getBashToolPrompt() 构建请求
+//   - toolName.ts：BASH_TOOL_NAME 常量（避免循环依赖）
+//   - utils/sandbox/sandbox-adapter.ts：沙箱模式检测
 import { feature } from 'bun:bundle'
 import { prependBullets } from '../../constants/prompts.js'
 import { getAttributionTexts } from '../../utils/attribution.js'

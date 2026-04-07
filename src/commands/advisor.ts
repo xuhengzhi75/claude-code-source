@@ -1,3 +1,17 @@
+// commands/advisor.ts — /advisor 斜杠命令
+// 职责：管理 Advisor 模型配置，允许用户为当前会话设置一个辅助顾问模型。
+//
+// Advisor 模式：
+//   - 主模型（main loop model）负责执行，Advisor 模型在旁提供建议
+//   - 用户可通过 /advisor <model> 设置，/advisor off 关闭
+//   - 仅部分模型支持 Advisor 功能（modelSupportsAdvisor 检查）
+//   - 仅有权限的用户可配置（canUserConfigureAdvisor 检查）
+//
+// 命令格式：
+//   /advisor          — 查看当前 Advisor 设置
+//   /advisor <model>  — 设置 Advisor 模型（如 /advisor opus）
+//   /advisor off      — 关闭 Advisor
+
 import type { Command } from '../commands.js'
 import type { LocalCommandCall } from '../types/command.js'
 import {

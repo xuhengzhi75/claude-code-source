@@ -1,3 +1,26 @@
+// services/compact/microCompact.ts — 微压缩（局部历史压缩）
+// 职责：在不触发全量压缩的情况下，对最旧的几轮对话进行局部压缩，
+// 释放 token 空间同时保留近期上下文的完整性。
+//
+// 核心函数：
+//   - runMicroCompact()：执行微压缩，选取最旧的 N 轮对话生成摘要
+//   - selectMessagesForMicroCompact()：选择待压缩的消息组
+//   - buildMicroCompactPrompt()：构建微压缩专用提示词
+//
+// 与全量压缩的区别：
+//   - 全量压缩（compact.ts）：替换所有历史消息，生成单一摘要
+//   - 微压缩（microCompact.ts）：仅压缩最旧的几轮，保留近期消息原样
+//
+// 触发场景：
+//   - 时间驱动压缩（timeBasedMCConfig）：按时间间隔定期微压缩
+//   - 工具结果过大：FileRead/Bash 等工具返回大量内容时触发
+//
+// 工具结果处理：
+//   - 对 FileRead/FileEdit/Bash/Glob/Grep/WebFetch 等工具的结果进行摘要
+//   - 保留工具调用结构，仅压缩 result 内容
+//
+// 缓存感知：
+//   - 压缩后通知 promptCacheBreakDetection 缓存已失效
 import { feature } from 'bun:bundle'
 import type { ToolResultBlockParam } from '@anthropic-ai/sdk/resources/index.mjs'
 import type { QuerySource } from '../../constants/querySource.js'

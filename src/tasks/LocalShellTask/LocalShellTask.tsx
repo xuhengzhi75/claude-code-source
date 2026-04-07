@@ -1,3 +1,21 @@
+// tasks/LocalShellTask/LocalShellTask.tsx — 本地 Shell 任务（后台 Bash 命令）
+// 职责：管理在后台运行的 Bash 命令，支持普通 shell 命令和 monitor（持续监控）两种模式。
+//
+// 核心特性：
+//   - 后台执行：命令在独立子进程中运行，不阻塞主会话
+//   - 卡顿检测：每 5s 检查一次，若 45s 无输出且末行匹配交互提示模式，
+//     则发送通知提醒用户（CC-1175）
+//   - 输出持久化：将命令输出写入磁盘（diskOutput）
+//   - 完成通知：命令结束后通过 enqueuePendingNotification() 发送通知
+//
+// 任务类型（BashTaskKind）：
+//   'shell'：普通后台命令，完成后通知
+//   'monitor'：持续监控命令（如 `npm run dev`），不自动结束
+//
+// 卡顿检测模式（PROMPT_PATTERNS）：
+//   匹配 (y/n)、[Y/n]、Press Enter、Continue? 等交互提示，
+//   区分"命令慢"和"命令在等待用户输入"
+
 import { feature } from 'bun:bundle';
 import { stat } from 'fs/promises';
 import { OUTPUT_FILE_TAG, STATUS_TAG, SUMMARY_TAG, TASK_ID_TAG, TASK_NOTIFICATION_TAG, TOOL_USE_ID_TAG } from '../../constants/xml.js';

@@ -1,3 +1,28 @@
+// tools/AgentTool/prompt.ts — AgentTool 系统提示词生成器
+// 职责：根据当前 Agent 定义和运行时上下文，动态生成
+// AgentTool 的系统提示词（system prompt）。
+//
+// 提示词内容包括：
+//   1. Agent 工具描述（getToolsDescription）
+//      - 列出该 Agent 可用的工具集
+//      - 区分 allowlist/denylist 两种配置模式
+//   2. Fork 子 Agent 指令（isForkSubagentEnabled）
+//      - 当 Fork 功能启用时，注入 Fork 指令说明
+//   3. 订阅类型感知（getSubscriptionType）
+//      - Pro/Max 用户可能获得不同的提示词内容
+//   4. Teammate 模式感知（isTeammate/isInProcessTeammate）
+//      - Teammate 模式下调整提示词以适配协作场景
+//   5. 嵌入式搜索工具（hasEmbeddedSearchTools）
+//      - 检测是否有内嵌搜索工具，影响提示词描述
+//
+// 关键函数：
+//   - getAgentToolPrompt(agent)：返回完整系统提示词字符串
+//   - getToolsDescription(agent)：返回工具列表描述
+//
+// 关联：
+//   - AgentTool.tsx：调用 getAgentToolPrompt 构建请求
+//   - loadAgentsDir.ts：AgentDefinition 类型
+//   - forkSubagent.ts：isForkSubagentEnabled 特性门控
 import { getFeatureValue_CACHED_MAY_BE_STALE } from '../../services/analytics/growthbook.js'
 import { getSubscriptionType } from '../../utils/auth.js'
 import { hasEmbeddedSearchTools } from '../../utils/embeddedTools.js'

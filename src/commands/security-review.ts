@@ -1,3 +1,17 @@
+// commands/security-review.ts — /security-review 斜杠命令
+// 职责：对当前分支的待提交变更进行安全审查，识别潜在安全漏洞。
+//
+// 审查范围（通过 git diff 获取）：
+//   - 注入漏洞（SQL/命令/XSS）
+//   - 认证和授权问题
+//   - 敏感数据暴露（密钥、token、PII）
+//   - 不安全的依赖和配置
+//   - 加密和数据保护问题
+//
+// 工具限制：仅允许 git diff/status/log/show/remote + Read/Glob/Grep/LS/Task
+// 命令已迁移到插件市场，通过 createMovedToPluginCommand 提供过渡期支持
+// Markdown frontmatter 中定义 allowed-tools，通过 parseSlashCommandToolsFromFrontmatter 解析
+
 import { parseFrontmatter } from '../utils/frontmatterParser.js'
 import { parseSlashCommandToolsFromFrontmatter } from '../utils/markdownConfigLoader.js'
 import { executeShellCommandsInPrompt } from '../utils/promptShellExecution.js'

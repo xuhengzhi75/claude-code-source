@@ -1,3 +1,11 @@
+// bridge/workSecret.ts — CCR v2 工作密钥管理
+// 职责：管理 CCR v2 协议中的工作密钥（WorkSecret），
+// 用于在 Bridge 会话中验证工作进程的身份。
+//
+// WorkSecret 结构：
+//   - base64url 编码的 JSON，含版本号和随机密钥材料
+//   - 由服务器颁发，本地存储并在每次轮询时携带
+//   - 版本号用于协议兼容性检查（lt() 比较）
 import axios from 'axios'
 import { jsonParse, jsonStringify } from '../utils/slowOperations.js'
 import type { WorkSecret } from './types.js'

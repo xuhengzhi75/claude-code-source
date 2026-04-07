@@ -1,3 +1,31 @@
+// =============================================================================
+// src/vim/operators.ts — Vim 操作符（Operator）执行纯函数
+//
+// 【模块职责】
+//   实现 Vim NORMAL 模式下所有操作符的执行逻辑：
+//   delete(d) / change(c) / yank(y) / x / replace(r) / toggleCase(~) /
+//   indent(>/< ) / join(J) / openLine(o/O) / paste(p/P)
+//
+// 【架构模式】
+//   纯函数：接收 OperatorContext（value + cursor + persistentState + count）
+//   返回 { newValue, newCursor, newPersistentState, recordedChange }，
+//   不产生副作用，便于 dot-repeat 重放。
+//
+// 【关键函数】
+//   executeOperatorMotion   — 操作符 + motion（dw / d$ / …）
+//   executeOperatorTextObj  — 操作符 + 文本对象（diw / da" / …）
+//   executeOperatorFind     — 操作符 + f/F/t/T 查找（df, / …）
+//   executeX                — x（删除光标字符）
+//   executePaste            — p/P（粘贴寄存器内容）
+//   executeReplace          — r（替换单字符）
+//   executeToggleCase       — ~（大小写切换）
+//   executeIndent           — >/< （缩进/反缩进）
+//   executeJoin             — J（合并行）
+//   executeOpenLine         — o/O（在上/下方开新行并进入 INSERT）
+//   executeLineOp           — dd/cc/yy（整行操作）
+//   executeOperatorG/Gg     — dG/dgg 等行级范围操作
+// =============================================================================
+
 /**
  * Vim Operator Functions
  *

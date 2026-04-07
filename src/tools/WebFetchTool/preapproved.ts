@@ -1,3 +1,24 @@
+// tools/WebFetchTool/preapproved.ts — WebFetch 预批准域名列表
+// 职责：维护一份代码相关的预批准域名白名单，
+// 这些域名无需用户明确授权即可通过 WebFetch 访问。
+//
+// 安全设计：
+//   - 预批准仅适用于 WebFetch（GET 请求）
+//   - 沙箱系统故意不继承此列表（防止数据泄露）
+//   - 原因：部分域名（如 huggingface.co、kaggle.com、nuget.org）
+//     支持文件上传，若允许任意网络访问会有数据泄露风险
+//
+// 预批准域名分类：
+//   - Anthropic 官方：platform.claude.com / code.claude.com 等
+//   - 代码托管：github.com / gitlab.com / bitbucket.org
+//   - 包管理：npmjs.com / pypi.org / crates.io / rubygems.org 等
+//   - 文档站点：docs.python.org / developer.mozilla.org 等
+//   - AI/ML：huggingface.co（仅 GET）/ kaggle.com（仅 GET）
+//
+// 验证：
+//   test/utils/sandbox/webfetch-preapproved-separation.test.ts
+//   确保沙箱网络限制需要用户明确授权
+
 // For legal and security concerns, we typically only allow Web Fetch to access
 // domains that the user has provided in some form. However, we make an
 // exception for a list of preapproved domains that are code-related.

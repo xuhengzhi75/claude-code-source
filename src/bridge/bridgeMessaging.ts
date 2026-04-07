@@ -1,3 +1,13 @@
+// bridge/bridgeMessaging.ts — Bridge 消息传输层公共工具
+// 职责：提供 Bridge 消息处理的共享传输层工具，
+// 被 env-based（replBridge）和 env-less（remoteBridgeCore）两条路径复用。
+//
+// 核心功能：
+//   - 入站消息解析（ingress parsing）：将服务器推送的 JSON 解析为内部消息类型
+//   - 控制请求处理（control-request handling）：处理 ping/abort/config 等控制消息
+//   - Echo 去重（echo-dedup）：过滤掉本地发出后被服务器回显的消息
+//
+// 设计原则：纯函数，无闭包状态，两条 Bridge 路径共享同一套逻辑
 /**
  * Shared transport-layer helpers for bridge message handling.
  *

@@ -1,3 +1,22 @@
+// =============================================================================
+// src/vim/textObjects.ts — Vim 文本对象（Text Object）边界查找
+//
+// 【模块职责】
+//   实现 Vim 文本对象的范围计算：iw/aw（单词）、i"/a"（引号对）、
+//   i(/a(（括号对）、i[/a[（方括号对）、i{/a{（花括号对）等。
+//
+// 【关键函数】
+//   findTextObject(scope, objType, value, cursor)
+//     → TextObjectRange { start, end } | null
+//     scope: 'inner'（不含分隔符）| 'around'（含分隔符/空白）
+//
+// 【实现细节】
+//   - 单词对象（w/W）：基于 isVimWordChar / isVimPunctuation 分类
+//   - 引号对象（"/'/`）：从光标向两侧扫描匹配的引号字符
+//   - 括号对象（()/[]/{}/<>）：支持嵌套计数，找到匹配的开/闭括号
+//   - 使用 getGraphemeSegmenter() 处理 Unicode 多字节字符
+// =============================================================================
+
 /**
  * Vim Text Object Finding
  *

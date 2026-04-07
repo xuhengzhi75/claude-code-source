@@ -1,3 +1,17 @@
+// cli/transports/WorkerStateUploader.ts — Worker 状态合并上传器
+// 职责：将 worker 状态（worker_status）和元数据（external_metadata）
+// 通过 PUT /worker 接口上报给 CCR 服务，采用合并（coalescing）策略
+// 避免高频状态变更产生大量请求。
+//
+// 合并策略：
+//   - 同一时刻最多 1 个 PUT 在途 + 1 个待发 patch（不会无限增长）
+//   - 新的状态变更合并到待发 patch（顶层 key 取最新值）
+//   - external_metadata/internal_metadata 内部采用 RFC 7396 merge patch 语义
+//     （key 覆盖，null 值保留让服务端删除）
+//   - 失败时指数退避重试，直到成功或 close()
+//
+// 使用方：CCRClient（在 reportState/reportMetadata 时调用）
+
 import { sleep } from '../../utils/sleep.js'
 
 /**

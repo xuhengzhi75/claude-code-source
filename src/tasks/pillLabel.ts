@@ -1,3 +1,19 @@
+// tasks/pillLabel.ts — 后台任务 Pill 标签生成器
+// 职责：为底部状态栏的 Pill 组件和对话记录中的任务时长行生成紧凑的文字标签，
+// 确保两处显示的术语一致。
+//
+// 标签规则（按任务类型）：
+//   local_bash：区分 shell（普通命令）和 monitor（监控命令），分别计数
+//   in_process_teammate：按团队名去重后显示团队数
+//   local_agent：显示本地 Agent 数量
+//   remote_agent：普通显示 "N cloud sessions"；
+//     ultraplan 模式下根据阶段显示 ◇/◆ 图标和状态文字
+//   local_workflow：显示后台工作流数量
+//   monitor_mcp：显示监控数量
+//   dream：固定显示 "dreaming"
+//
+// pillNeedsCta()：判断是否需要显示 "↓ to view" 提示（仅 ultraplan 注意状态）
+
 import { DIAMOND_FILLED, DIAMOND_OPEN } from '../constants/figures.js'
 import { count } from '../utils/array.js'
 import type { BackgroundTaskState } from './types.js'

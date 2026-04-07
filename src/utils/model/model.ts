@@ -1,3 +1,30 @@
+// utils/model/model.ts — 模型选择与解析核心
+// 职责：根据用户配置、订阅类型和运行环境，解析并返回当前会话应使用的模型名称。
+// 是所有模型相关决策的统一入口。
+//
+// 核心函数：
+//   - getMainLoopModel()：获取主循环使用的模型（含别名解析、订阅检查）
+//   - getSmallFastModel()：获取小型快速模型（Haiku，用于分类器/摘要等后台任务）
+//   - getDefaultMainLoopModelSetting()：获取默认主循环模型设置
+//   - resolveModelAlias()：将 'sonnet'/'opus'/'haiku' 等别名解析为具体模型 ID
+//
+// 模型选择优先级：
+//   1. 会话内 /model 命令覆盖（最高优先级）
+//   2. 启动时 --model 参数
+//   3. ANTHROPIC_MODEL 环境变量
+//   4. 用户 settings 中保存的模型
+//   5. 默认模型（根据订阅类型）
+//
+// 订阅感知：
+//   - Pro 订阅：默认 Sonnet
+//   - Max 订阅：默认 Opus（或更高级模型）
+//   - Team Premium：默认 Sonnet
+//   - 1M context：modelSupports1M() 检测是否支持百万 token 上下文
+//
+// 关键设计：
+//   - 模型代号（codename）通过 process.env.USER_TYPE === 'ant' 条件包裹，
+//     Bun 构建时死代码消除，防止内部代号泄露到外部构建
+//   - @[MODEL LAUNCH] 注释标记：新模型发布时需要同步更新的位置
 // biome-ignore-all assist/source/organizeImports: ANT-ONLY import markers must not be reordered
 /**
  * Ensure that any model codenames introduced here are also added to

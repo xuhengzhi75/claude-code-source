@@ -1,3 +1,21 @@
+// services/analytics/sink.ts — 埋点事件路由 Sink
+// 职责：在应用启动时初始化埋点 sink，将 logEvent() 的事件路由到
+// Datadog 和内部 1P 日志系统（firstPartyEventLogger）。
+//
+// 核心函数：
+//   - initializeAnalyticsSink()：启动时调用，将 sink 注入 index.ts 的 attachAnalyticsSink()
+//   - routeEvent()：根据 feature gate 决定是否上报到 Datadog 和/或 1P
+//
+// 路由逻辑：
+//   1. isSinkKilled('datadog')：killswitch 开关，可远程关闭 Datadog 上报
+//   2. checkStatsigFeatureGate('tengu_log_datadog_events')：feature gate 控制
+//   3. shouldSampleEvent()：采样率控制，降低高频事件的上报量
+//
+// 设计模式：
+//   - sink 与 index.ts 解耦：index.ts 只暴露 logEvent() 接口，
+//     sink.ts 在启动时注入具体实现，避免循环依赖
+//   - 延迟初始化：isDatadogGateEnabled 在首次调用时从缓存读取，
+//     避免启动时同步 I/O
 /**
  * Analytics sink implementation
  *

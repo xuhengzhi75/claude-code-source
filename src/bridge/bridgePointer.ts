@@ -1,3 +1,13 @@
+// bridge/bridgePointer.ts — Bridge 会话指针文件管理
+// 职责：管理 Bridge 会话的"指针文件"（pointer file），
+// 用于在进程重启后定位并恢复已有的 Bridge 会话。
+//
+// 指针文件机制：
+//   - 会话启动时写入 ~/.claude/bridge-pointer.json（含 sessionId、bridgeUrl 等）
+//   - 进程重启后读取指针文件，尝试续接已有会话
+//   - 会话正常结束时删除指针文件
+//
+// 这是 Bridge 模式恢复能力的基础设施
 import { mkdir, readFile, stat, unlink, writeFile } from 'fs/promises'
 import { dirname, join } from 'path'
 import { z } from 'zod/v4'

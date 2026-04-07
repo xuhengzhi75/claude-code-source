@@ -1,3 +1,11 @@
+// bridge/jwtUtils.ts — Bridge JWT Token 解析与验证工具
+// 职责：解析和验证 Bridge 连接使用的 JWT token，
+// 提取 token 中的会话信息（过期时间、用户 ID 等）。
+//
+// 主要用途：
+//   - 检测 token 是否即将过期，提前触发刷新
+//   - 从 token payload 中提取 Bridge 会话元数据
+//   - 记录 token 相关的诊断日志（不含 PII）
 import { logEvent } from '../services/analytics/index.js'
 import { logForDebugging } from '../utils/debug.js'
 import { logForDiagnosticsNoPII } from '../utils/diagLogs.js'

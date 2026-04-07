@@ -1,3 +1,28 @@
+// services/api/withRetry.ts — API 调用重试策略引擎
+// 职责：为所有 Anthropic API 调用提供指数退避重试逻辑，
+// 区分前台（用户等待）和后台（静默）查询的重试策略。
+//
+// 核心函数：
+//   - withRetry()：主重试包装器，处理 429/529/网络错误的退避重试
+//   - withPersistentRetry()：无人值守模式下的持久重试（最长 6h）
+//   - shouldRetry529()：判断当前 querySource 是否应重试 529
+//
+// 重试策略：
+//   - 429 Rate Limit：指数退避，最多 DEFAULT_MAX_RETRIES=10 次
+//   - 529 Overloaded：仅 FOREGROUND_529_RETRY_SOURCES 中的来源重试，最多 MAX_529_RETRIES=3 次
+//   - ECONNRESET/EPIPE：网络抖动，立即重试
+//   - APIUserAbortError：用户主动取消，不重试
+//
+// 前台 vs 后台区分（FOREGROUND_529_RETRY_SOURCES）：
+//   - 前台：repl_main_thread / sdk / compact / auto_mode 等（用户可见，值得重试）
+//   - 后台：title / suggestion / classifier 等（用户不感知，重试会放大容量压力）
+//
+// 无人值守模式（CLAUDE_CODE_UNATTENDED_RETRY）：
+//   - 最大退避 5min，总时长上限 6h
+//   - 每 30s 发送心跳 SystemAPIErrorMessage 防止宿主环境判定空闲
+//
+// Fast Mode 集成：
+//   - 429 时检测是否为 fast mode 超额，触发 cooldown 而非普通重试
 import { feature } from 'bun:bundle'
 import type Anthropic from '@anthropic-ai/sdk'
 import {

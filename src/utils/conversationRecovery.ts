@@ -1,3 +1,28 @@
+// utils/conversationRecovery.ts — 对话历史反序列化与恢复
+// 职责：将磁盘上的序列化消息历史（JSONL）反序列化为内存中的消息对象，
+// 处理中断恢复、格式迁移和语义修复。
+//
+// 核心函数：
+//   - deserializeMessages(logs)：主入口，将日志条目转换为 Message[]
+//     → 两步设计：先取事实（parseRawMessages），再语义修复（fixupMessages）
+//   - detectInterruptedTurn(messages)：检测中断的对话轮次
+//     → 统一 interrupted_turn → interrupted_prompt，SDK/REPL 走同一路径
+//   - insertAssistantSentinel(messages)：在中断位置插入 assistant sentinel
+//     → 位置约束：与 removeInterruptedMessage splice 精确配合
+//   - isTerminalToolResult(message)：识别 Brief 模式的合法 turn 终态
+//     → tool_result 结尾是合法终态，需特殊识别
+//
+// 关键设计（已在第2轮注解中详细记录）：
+//   - 两步反序列化：先取事实、再语义修复（信号22）
+//   - 中断检测统一路径（信号23）
+//   - sentinel 插入位置约束（信号24）
+//   - Brief 模式 tool_result 终态识别（信号25）
+//   - skill 状态从 attachment 回放（信号26）
+//
+// 格式迁移：
+//   - ContextCollapseCommitEntry/ContextCollapseSnapshotEntry：compact 历史记录
+//   - PersistedWorktreeSession：worktree 会话持久化格式
+//   - AttributionSnapshotMessage：归因快照消息
 import { feature } from 'bun:bundle'
 import type { UUID } from 'crypto'
 import { relative } from 'path'

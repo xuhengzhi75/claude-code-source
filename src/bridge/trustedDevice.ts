@@ -1,3 +1,12 @@
+// bridge/trustedDevice.ts — Bridge 可信设备注册与验证
+// 职责：管理本地设备在 claude.ai 服务器上的可信状态，
+// 实现"记住此设备"功能，避免每次 Bridge 连接都需要重新授权。
+//
+// 工作机制：
+//   - 首次连接时向服务器注册设备（hostname + 唯一标识符）
+//   - 服务器颁发设备信任令牌，存储在本地
+//   - 后续连接携带令牌，跳过重复授权流程
+//   - memoize 缓存设备信任状态，避免重复 API 调用
 import axios from 'axios'
 import memoize from 'lodash-es/memoize.js'
 import { hostname } from 'os'

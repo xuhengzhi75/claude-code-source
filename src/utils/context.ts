@@ -1,3 +1,24 @@
+// utils/context.ts — 模型上下文窗口配置
+// 职责：管理模型的上下文窗口大小、输出 token 上限等关键参数，
+// 是 token 预算系统的配置层。
+//
+// 关键常量：
+//   - MODEL_CONTEXT_WINDOW_DEFAULT = 200_000：默认上下文窗口（200k tokens）
+//   - COMPACT_MAX_OUTPUT_TOKENS = 20_000：compact 操作的最大输出 token
+//   - MAX_OUTPUT_TOKENS_DEFAULT = 32_000：默认最大输出 token
+//   - MAX_OUTPUT_TOKENS_UPPER_LIMIT = 64_000：最大输出 token 上限
+//
+// 槽位预留优化（Slot Reservation Optimization）：
+//   BQ p99 输出 = 4,911 tokens，32k/64k 默认值过度预留 8-16 倍槽位容量。
+//   启用上限后，<1% 的请求会触及限制，这些请求在 64k 时重试一次。
+//
+// 1M 上下文支持：
+//   - CONTEXT_1M_BETA_HEADER：启用 1M token 上下文的 beta 头
+//   - 通过 getModelCapability() 检测模型是否支持 1M 上下文
+//
+// 关键函数：
+//   - getContextWindowSize(model)：获取指定模型的上下文窗口大小
+//   - getMaxOutputTokens(model)：获取指定模型的最大输出 token 数
 // biome-ignore-all assist/source/organizeImports: ANT-ONLY import markers must not be reordered
 import { CONTEXT_1M_BETA_HEADER } from '../constants/betas.js'
 import { getGlobalConfig } from './config.js'

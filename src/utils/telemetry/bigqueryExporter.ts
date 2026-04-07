@@ -1,3 +1,32 @@
+// utils/telemetry/bigqueryExporter.ts — BigQuery 指标导出器（Ant 内部）
+// 职责：将 OpenTelemetry Metrics 数据通过 Anthropic 内部 API 上报到 BigQuery，
+// 用于内部数据分析和监控大盘。
+//
+// 实现接口：PushMetricExporter（OTel SDK 标准导出器接口）
+//   - export()：将 ResourceMetrics 转换为 BigQuery 格式并 POST 到内部端点
+//   - forceFlush()：立即 flush（当前实现为 no-op）
+//   - shutdown()：关闭导出器
+//
+// 数据转换流程：
+//   ResourceMetrics（OTel）
+//     → MetricData[]（各指标）
+//       → DataPoint[]（时间序列数据点）
+//         → BigQuery 行格式（name/description/attributes/value/timestamp）
+//
+// 上报条件（多重门控）：
+//   1. checkMetricsEnabled()：用户未选择退出指标收集
+//   2. checkHasTrustDialogAccepted()：用户已接受信任对话框
+//   3. isClaudeAISubscriber()：Claude.ai 订阅用户
+//   4. !getIsNonInteractiveSession()：非非交互式会话
+//
+// 支持的 OTel 指标类型：
+//   - Sum（累积/增量）
+//   - Gauge
+//   - Histogram（转换为 sum/count/min/max 四个数据点）
+//   - ExponentialHistogram（同上）
+//
+// 认证：使用 getAuthHeaders() 注入 Bearer Token
+// 用户代理：getClaudeCodeUserAgent()
 import type { Attributes, HrTime } from '@opentelemetry/api'
 import { type ExportResult, ExportResultCode } from '@opentelemetry/core'
 import {

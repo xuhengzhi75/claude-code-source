@@ -1,4 +1,17 @@
 import { c as _c } from "react/compiler-runtime";
+// commands/resume/resume.tsx — /resume 斜杠命令
+// 职责：恢复之前的会话，通过 LogSelector 交互式选择历史会话并加载。
+//
+// 功能：
+//   - 渲染 LogSelector 组件，列出历史会话
+//   - 支持会话搜索和过滤
+//   - 选中后加载历史消息（MessageResponse）
+//   - 支持复制会话 ID 到剪贴板（setClipboard）
+//   - 显示加载进度（Spinner）
+//
+// 与 CLI --resume 的区别：
+//   此命令在会话内运行，可在不退出的情况下切换到历史会话
+
 import chalk from 'chalk';
 import type { UUID } from 'crypto';
 import figures from 'figures';

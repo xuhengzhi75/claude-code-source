@@ -1,3 +1,32 @@
+// tools/AgentTool/loadAgentsDir.ts — Agent 定义加载器
+// 职责：从文件系统加载自定义 Agent 定义（Markdown 文件），
+// 解析 frontmatter 配置，构建 AgentDefinition 对象。
+//
+// Agent 定义文件格式（.md）：
+//   ---
+//   name: my-agent
+//   tools: [Bash, FileRead]          # 工具白名单
+//   disallowedTools: [WebSearch]     # 工具黑名单
+//   effort: high                     # 推理强度
+//   maxTurns: 10                     # 最大轮次
+//   mcpServers: [...]                # MCP 服务器配置
+//   ---
+//   <Agent 系统提示词内容>
+//
+// 核心类型：
+//   - AgentDefinition：完整 Agent 定义（含 source 来源）
+//   - BuiltInAgentDefinition：内置 Agent 定义（无文件路径）
+//   - EffortValue：推理强度枚举（low/medium/high）
+//
+// 加载流程：
+//   1. loadMarkdownFilesForSubdir：扫描 .claude/agents/ 目录
+//   2. parseAgentToolsFromFrontmatter：解析工具配置
+//   3. lazySchema：延迟 Zod schema 验证（避免循环依赖）
+//   4. memoize：缓存加载结果，避免重复 IO
+//
+// 关联：
+//   - builtInAgents.ts：内置 Agent 定义
+//   - agentToolUtils.ts：使用 AgentDefinition 过滤工具
 import { feature } from 'bun:bundle'
 import memoize from 'lodash-es/memoize.js'
 import { basename } from 'path'

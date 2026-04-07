@@ -1,3 +1,21 @@
+// tools/BashTool/sedValidation.ts — sed 命令安全验证
+// 职责：对 sed 命令进行细粒度安全验证，
+// 防止通过 sed 执行危险操作（如写入任意文件、执行外部命令等）。
+//
+// 验证策略：
+//   - 标志白名单：只允许安全的 sed 标志（-n/-E/-r/-i 等）
+//   - 脚本内容检查：检测危险的 sed 命令（e 命令执行 shell、w 命令写文件等）
+//   - 地址范围验证：防止通过地址范围绕过限制
+//
+// 危险 sed 操作：
+//   - 'e' 命令：执行 shell 命令（等同于 system()）
+//   - 'w' 命令：写入任意文件路径
+//   - 'r' 命令：读取任意文件（在某些上下文中危险）
+//
+// 核心函数：
+//   - validateSedCommand(command, context)：验证 sed 命令安全性
+//   - validateFlagsAgainstAllowlist(flags, allowedFlags)：标志白名单验证
+//     → 处理组合标志（如 -nE、-Er）
 import type { ToolPermissionContext } from '../../Tool.js'
 import { splitCommand_DEPRECATED } from '../../utils/bash/commands.js'
 import { tryParseShellCommand } from '../../utils/bash/shellQuote.js'

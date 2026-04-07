@@ -1,3 +1,25 @@
+// =============================================================================
+// src/vim/types.ts — Vim 模式状态机类型定义
+//
+// 【模块职责】
+//   定义 Claude Code 终端输入框 Vim 模式的完整状态机类型体系，
+//   类型本身即文档——读懂类型即读懂系统工作方式。
+//
+// 【状态机结构】
+//   VimState = INSERT | NORMAL
+//   INSERT 模式：追踪已输入文本（用于 dot-repeat）
+//   NORMAL 模式：CommandState 子状态机，处理操作符/计数/查找/文本对象
+//
+// 【关键类型】
+//   CommandState：NORMAL 模式下的命令解析状态（idle/count/operator/find/…）
+//   PersistentState：跨命令持久状态（lastChange/lastFind/register）
+//   RecordedChange：dot-repeat 所需的完整命令记录
+//
+// 【常量集合】
+//   OPERATORS / SIMPLE_MOTIONS / FIND_KEYS / TEXT_OBJ_SCOPES / TEXT_OBJ_TYPES
+//   MAX_VIM_COUNT = 10000（防止 9999d 等超大计数卡死）
+// =============================================================================
+
 /**
  * Vim Mode State Machine Types
  *

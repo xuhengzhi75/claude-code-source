@@ -1,3 +1,13 @@
+// commands/clear/conversation.ts — 对话清除核心逻辑
+// 职责：实现 /clear 命令的完整清除流程，包括：
+//   1. 重置会话 ID（regenerateSessionId）
+//   2. 清空消息历史（setMessages）
+//   3. 重置 token 计数和成本追踪
+//   4. 记录分析事件（tengu_clear）
+//   5. 可选：保留或清除 CLAUDE.md 上下文
+//
+// 注意：此模块有较重的依赖，应懒加载（/clear 命令触发时才 import）
+
 /**
  * Conversation clearing utility.
  * This module has heavier dependencies and should be lazy-loaded when possible.

@@ -1,3 +1,21 @@
+// tasks/LocalAgentTask/LocalAgentTask.tsx — 本地子 Agent 任务
+// 职责：在当前进程内运行子 Agent（通过 AgentTool 派生），管理其完整生命周期：
+// 启动、进度追踪、输出持久化、完成通知。
+//
+// 核心特性：
+//   - 在同一 Node.js 进程内运行，共享内存和工具集
+//   - 支持 worktree 模式：在独立 git worktree 中执行，隔离文件系统变更
+//   - 进度追踪：记录工具调用次数、token 消耗、最近活动（最多 5 条）
+//   - 输出持久化：将 Agent 输出写入磁盘（diskOutput），支持符号链接
+//   - SDK 进度事件：通过 emitTaskProgress() 向 SDK 消费方推送进度
+//
+// 状态字段（LocalAgentTaskState）：
+//   progress：工具调用数、token 数、最近活动列表、摘要
+//   isBackgrounded：是否已后台化（Ctrl+B 触发）
+//   worktreePath/worktreeBranch：worktree 模式下的路径和分支
+//
+// backgroundAgentTask()：将前台 Agent 任务切换为后台模式的工具函数
+
 import { getSdkAgentProgressSummariesEnabled } from '../../bootstrap/state.js';
 import { OUTPUT_FILE_TAG, STATUS_TAG, SUMMARY_TAG, TASK_ID_TAG, TASK_NOTIFICATION_TAG, TOOL_USE_ID_TAG, WORKTREE_BRANCH_TAG, WORKTREE_PATH_TAG, WORKTREE_TAG } from '../../constants/xml.js';
 import { abortSpeculation } from '../../services/PromptSuggestion/speculation.js';

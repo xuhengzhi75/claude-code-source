@@ -1,6 +1,6 @@
 # Code Annotation Roadmap（源码注释补齐路线图）
 
-更新时间：2026-04-02（第4轮抽样后，P1 全部完成）
+更新时间：2026-04-06（第6轮，P2 大规模推进：buddy/vim/voice/memdir/migrations/query/tools核心/utils核心 全部完成）
 
 ## 0. 目标与口径
 
@@ -122,7 +122,9 @@
 | ✅ P1 已完成 | `src/entrypoints/cli.tsx`（路由分流 + 动态 import） | fast-path 与完整主链边界、分支不可合并原因 | ch03 / ch04 / ch13（信号47-51）|
 | P2 | `src/commands/*`（权限/安全/配置相关命令） | 命令级权限策略、交互与非交互差异、降级策略 | ch09 / ch11 / Part V |
 | P2 | `src/services/*Manager*`（状态/权限/任务管理） | 状态机转换约束、可观测性字段、回滚路径 | ch11 / ch16 / Part V |
-| P2 | `src/bootstrap` / `src/bridge` / `src/assistant` | Bridge/Daemon/Assistant 运行边界与失败信号 | ch03 / ch09 / Part V |
+| ✅ P2 进行中 | `src/bridge/`（全部 23 个文件） | Bridge 两条路径、CCR v2 初始化约束、keep-alive 机制 | ch03 / ch09 / Part V |
+| ✅ P2 进行中 | `src/cli/`（全部文件：exit/ndjson/remoteIO/update/handlers/transports） | 传输层三模式、懒加载子命令、NDJSON 安全序列化 | ch03 / ch04 / ch09 |
+| ✅ P2 进行中 | `src/tasks/`（types/pillLabel/stopTask/LocalMainSession/DreamTask/LocalAgentTask/RemoteAgentTask/LocalShellTask） | Task 类型体系、卡顿检测、ultraplan、后台化 | ch08 / ch17 |
 
 ---
 
@@ -137,6 +139,28 @@
 
 ## 4. 当前判断（简版）
 
-- 现状：P0 + P1 全部完成，共 51 条可核对信号，覆盖启动链路、Query 主链、恢复/压缩/记忆、任务并发、工具装配、提示词缓存边界、CLI 入口路由。
-- 短板：ch05（能力装配）、ch15（提示词）、ch19（提示词工程设计模式）的 verified 证据仍偏少，P1 信号补充后可升级部分 inference 条目。
-- 下一步：按 P2 顺序推进，或先把 P1 新增信号同步到 `chapter-evidence-map.md`，把 ch05/ch14/ch15/ch19/ch03/ch04 的相关条目从 inference 升 verified。
+- 现状（2026-04-07 第10轮）：P0 + P1 全部完成，P2 全面推进，utils 顶层 + services/oauth 完成。
+  - 已注解文件：9（第一批）+ 35（第二批）+ 23（bridge/）+ 14（cli/）+ 8（tasks/）
+    + 6（buddy/）+ 5（vim/）+ 1（voice/）+ 8（memdir/）+ 11（migrations/）
+    + 4（query/）+ 核心 tools 文件 ~15 个 + 核心 utils 文件 ~20 个
+    + services/api/ 4 个 + services/compact/ 3 个 + services/mcp/ 3 个
+    + services/analytics/ 5 个 + utils/settings/ 2 个 + utils/swarm/ 3 个
+    + utils/shell/ 3 个
+    + utils/permissions/ 9 个 + services/lsp/ 6 个 + utils/plugins/ 4 个
+    + utils/model/ 8 个 + utils/telemetry/ 9 个
+    + services/tools/ 4 个 + tools/MCPTool/ 1 个 + tools/LSPTool/ 1 个
+    + **utils 顶层新增 ~12 个 + services/oauth/ 3 个 + services/ 顶层 2 个** = **约 260 个文件**
+  - 第八批新增 10 条 verified 条目（见 chapter-evidence-map.md 末尾）
+  - 覆盖新增：
+    - OAuth PKCE 流程（code_verifier/challenge/base64url）
+    - HTTP 认证头注入与 User-Agent 日志过滤约束
+    - agentContext AsyncLocalStorage 并发隔离设计
+    - context.ts 槽位预留优化（BQ p99 数据驱动）
+    - sessionState requires_action 双路径传递
+    - toolHooks AttachmentMessage 注入、attachments @-mention token 预算
+    - diagnosticTracking IDE 诊断注入、internalLogging Ant 内部 K8s 检测
+- 短板：ch15（提示词）的 verified 证据仍偏少；src/utils/ 顶层仍有大量文件待注解。
+- 下一步：
+  1. src/utils/ 顶层剩余高价值文件（sessionStorage/sessionRestore/gracefulShutdown 等）注解
+  2. src/tools/ 各工具子目录（BashTool/AgentTool 内部文件）注解
+  3. 把新增 verified 条目同步到对应章节正文（ch03/04 认证、ch16 状态、ch14 工具）

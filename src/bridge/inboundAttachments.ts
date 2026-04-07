@@ -1,3 +1,11 @@
+// bridge/inboundAttachments.ts — 入站消息文件附件解析器
+// 职责：解析 Bridge 入站消息中的 file_uuid 附件引用，
+// 通过 OAuth API 获取实际文件内容并转换为 content block。
+//
+// 工作流程：
+//   Web 端上传文件 → /api/{org}/upload → 获得 file_uuid
+//   → Bridge 消息携带 file_uuid → 本模块通过 GET /api/oauth/files/{uuid}/content 获取内容
+//   → 转换为 image/document content block 供模型处理
 /**
  * Resolve file_uuid attachments on inbound bridge user messages.
  *

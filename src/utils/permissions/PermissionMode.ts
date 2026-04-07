@@ -1,3 +1,20 @@
+// utils/permissions/PermissionMode.ts — 权限模式定义与 UI 配置
+// 职责：定义 Claude Code 的权限模式枚举及其 UI 展示配置（标题、图标、颜色）。
+//
+// 权限模式（PermissionMode）：
+//   - 'default'：默认模式，工具调用需要用户确认
+//   - 'plan'：计划模式，先展示计划再执行，不直接修改文件
+//   - 'acceptEdits'：自动接受文件编辑，但 Bash 命令仍需确认
+//   - 'bypassPermissions'：跳过所有权限检查（危险，需显式启用）
+//   - 'auto'：自动模式，由 yoloClassifier 决定是否需要确认
+//
+// 外部模式（ExternalPermissionMode）：
+//   - 暴露给 SDK/API 用户的权限模式子集（不含内部模式）
+//
+// 关键设计：
+//   - 类型定义提取到 src/types/permissions.ts 以打破循环依赖
+//   - lazySchema() 延迟初始化 Zod Schema
+//   - permissionModeTitle() 供 UI 组件显示当前模式名称
 import { feature } from 'bun:bundle'
 import z from 'zod/v4'
 import { PAUSE_ICON } from '../../constants/figures.js'

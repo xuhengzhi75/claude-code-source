@@ -1,3 +1,22 @@
+// tools/BashTool/commandSemantics.ts — 命令退出码语义配置
+// 职责：为特定命令定义退出码的语义解释，
+// 避免将"非错误"的非零退出码误报为错误。
+//
+// 背景：许多命令使用退出码传递信息而非仅表示成功/失败：
+//   - grep：返回 1 表示"无匹配"（不是错误）
+//   - diff：返回 1 表示"有差异"（不是错误）
+//   - test/[：返回 1 表示"条件为假"（不是错误）
+//
+// 核心类型：CommandSemantic = (exitCode, stdout, stderr) => { isError, message? }
+//
+// 关键函数：
+//   - getCommandSemantic(command)：根据命令名返回对应的语义解释函数
+//   - defaultSemantic：默认语义（仅 0 为成功，其他均为错误）
+//
+// 命令语义注册表：
+//   - grep/egrep/fgrep：退出码 1 = 无匹配（非错误）
+//   - diff/git diff：退出码 1 = 有差异（非错误）
+//   - test/[：退出码 1 = 条件为假（非错误）
 /**
  * Command semantics configuration for interpreting exit codes in different contexts.
  *

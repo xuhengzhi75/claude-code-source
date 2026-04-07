@@ -1,4 +1,14 @@
 import { c as _c } from "react/compiler-runtime";
+// commands/session/session.tsx — /session 斜杠命令
+// 职责：显示当前会话信息，包括会话 ID、连接状态等，
+// 并生成 QR 码方便移动端扫描接入当前会话。
+//
+// 功能：
+//   - 显示当前 sessionId（来自 bootstrap/state）
+//   - 生成 QR 码（qrcode 库）供移动端扫描
+//   - 显示 Bridge 连接状态（AppState）
+//   - 支持键盘快捷键退出（useKeybinding）
+
 import { toString as qrToString } from 'qrcode';
 import * as React from 'react';
 import { useEffect, useState } from 'react';

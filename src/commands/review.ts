@@ -1,3 +1,17 @@
+// commands/review.ts — /review 斜杠命令
+// 职责：对当前分支的 PR 进行代码审查。
+//
+// 两种模式：
+//   LOCAL_REVIEW：本地执行，通过 gh CLI 获取 PR diff 并分析
+//   Ultrareview：开启时跳转到 ultrareview 流程（云端审查）
+//
+// 审查内容：
+//   - PR 概述、代码质量、具体改进建议
+//   - 潜在问题和风险、性能影响、测试覆盖、安全考虑
+//
+// 法律要求：命令描述中显示 "Claude Code on the web" + 文档链接，
+// 确保用户在触发前看到服务名称和条款链接
+
 import type { ContentBlockParam } from '@anthropic-ai/sdk/resources/messages.js'
 import type { Command } from '../commands.js'
 import { isUltrareviewEnabled } from './review/ultrareviewEnabled.js'

@@ -1,3 +1,15 @@
+// cli/handlers/agents.ts — `claude agents` 子命令处理器
+// 职责：列出当前工作目录下所有已配置的 Agent 定义，按来源分组展示。
+//
+// 输出格式：
+//   <来源分组标签>:
+//     [shadowed by <优先来源>] <agentType> · <model> · <memory>
+//
+// 来源优先级（高→低）：project-local > user-global > built-in
+// 被更高优先级同名 Agent 覆盖的条目会标注 "(shadowed by ...)"
+//
+// 懒加载：仅在 `claude agents` 命令执行时动态 import，不影响主启动时间
+
 /**
  * Agents subcommand handler — prints the list of configured agents.
  * Dynamically imported only when `claude agents` runs.

@@ -1,3 +1,18 @@
+// bridge/remoteBridgeCore.ts — Env-less Bridge 核心实现
+// 职责：实现不依赖 Environments API 的 Bridge 连接核心逻辑（env-less path）。
+// 与 replBridge.ts（env-based）并列，是 Remote Control 的备用执行路径。
+//
+// "Env-less" 的含义：
+//   不通过 Environments API 层，直接使用 HTTP 轮询与 Bridge 服务器通信。
+//   区别于 CCR v2（/worker/* 传输协议）——env-based 路径也可以使用 CCR v2。
+//
+// 适用场景：
+//   - Environments API 不可用或被禁用时的降级路径
+//   - 某些企业部署环境中的简化连接模式
+//
+// 核心函数：
+//   - initEnvLessBridgeCore()：初始化 env-less Bridge 连接
+//   - 与 initBridgeCore()（replBridge.ts）共享 bridgeMessaging.ts 的消息处理逻辑
 // biome-ignore-all assist/source/organizeImports: ANT-ONLY import markers must not be reordered
 /**
  * Env-less Remote Control bridge core.

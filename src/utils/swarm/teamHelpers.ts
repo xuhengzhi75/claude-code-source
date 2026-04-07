@@ -1,3 +1,26 @@
+// utils/swarm/teamHelpers.ts — 团队（Swarm）管理工具
+// 职责：提供多智能体团队的创建、查询、清理操作，
+// 管理团队目录结构和团队成员的任务协调。
+//
+// 核心函数：
+//   - spawnTeam()：创建新团队，初始化团队目录和 Leader 配置
+//   - cleanupTeam()：清理团队目录和相关任务目录
+//   - getTeamInfo()：读取团队配置文件
+//   - notifyTasksUpdated()：通知 Leader 任务状态已更新
+//
+// 团队目录结构：
+//   ~/.claude/teams/<team_name>/
+//     ├── team.json          # 团队配置（成员列表、Leader 信息）
+//     └── tasks/             # 团队任务目录
+//
+// 操作类型（inputSchema.operation）：
+//   - 'spawnTeam'：创建新团队，设置 Leader 和初始成员
+//   - 'cleanup'：删除团队目录和所有相关任务
+//
+// 关键设计：
+//   - 使用 git 命令检测仓库根目录，确保团队目录在正确位置
+//   - lazySchema() 延迟初始化 Zod Schema，避免循环依赖
+//   - 团队名称通过 getTeamName() 从 bootstrap state 获取
 import { mkdirSync, readFileSync, writeFileSync } from 'fs'
 import { mkdir, readFile, rm, writeFile } from 'fs/promises'
 import { join } from 'path'

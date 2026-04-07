@@ -1,3 +1,26 @@
+// utils/telemetry/pluginTelemetry.ts — 插件遥测辅助工具
+// 职责：为插件生命周期事件（安装/加载/卸载/错误）构建标准化的遥测字段，
+// 实现"双列隐私模式"（twin-column privacy pattern）。
+//
+// 双列隐私模式：
+//   每个用户自定义名称字段同时发出两个值：
+//   1. 原始值（raw）：路由到 PII 标记的 _PROTO_* BigQuery 列（受访问控制保护）
+//   2. 脱敏值（redacted）：
+//      - 若 marketplace 在白名单中 → 使用真实名称
+//      - 否则 → 替换为 'third-party'
+//
+// plugin_id_hash：
+//   - sha256(name@marketplace + FIXED_SALT) 截取前 16 字符
+//   - 提供不依赖隐私的不透明聚合键
+//   - 可回答"distinct count"和"per-plugin 趋势"问题，而不暴露用户自定义名称
+//
+// 主要导出函数：
+//   - buildPluginTelemetryFields()：构建插件遥测字段对象
+//   - logPluginInstallEvent()：记录插件安装事件
+//   - logPluginLoadEvent()：记录插件加载事件
+//   - logPluginErrorEvent()：记录插件错误事件
+//
+// 关联：src/services/analytics/index.ts（logEvent 函数）
 /**
  * Plugin telemetry helpers — shared field builders for plugin lifecycle events.
  *

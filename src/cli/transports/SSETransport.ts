@@ -1,3 +1,18 @@
+// cli/transports/SSETransport.ts — SSE 传输层（Server-Sent Events 读 + HTTP POST 写）
+// 职责：在 CLAUDE_CODE_USE_CCR_V2=1 模式下，通过 SSE 长连接接收服务端事件，
+// 通过 HTTP POST 发送客户端消息，是 CCR v2 架构的标准传输实现。
+//
+// 连接管理：
+//   - 自动重连：指数退避（1s → 30s），最长重试 10 分钟后放弃
+//   - 活性检测：45s 无数据视为连接死亡，触发重连
+//   - 永久错误：401/403/404 立即关闭，不重试
+//
+// 事件格式：SSE 标准格式（data: <json>\n\n），每帧一个 JSON 消息
+// 写入：HTTP POST，支持 10 次重试，单次超时 15s
+//
+// 与 HybridTransport 的区别：
+//   SSETransport 用于 CCR v2（新架构），HybridTransport 用于 v1 过渡期
+
 import axios, { type AxiosError } from 'axios'
 import type { StdoutMessage } from 'src/entrypoints/sdk/controlTypes.js'
 import { logForDebugging } from '../../utils/debug.js'

@@ -1,3 +1,23 @@
+// cli/transports/ccrClient.ts — CCR v2 客户端（Cloud Code Runner v2）
+// 职责：在 CLAUDE_CODE_USE_CCR_V2=1 模式下，管理与 CCR 服务的完整生命周期：
+// 心跳维持、epoch 管理、状态上报、内部事件读写（transcript 持久化）。
+//
+// 核心职责：
+//   1. 心跳（Heartbeat）：每 20s 发送一次，防止服务端 TTL 超时（60s）
+//   2. 内部事件写入（writeInternalEvent）：将 transcript 消息作为 CCR v2
+//      internal events 持久化，替代 v1 Session Ingress 方案
+//   3. 内部事件读取（readInternalEvents）：会话恢复时重建对话历史
+//   4. 状态上报（reportState/reportMetadata/reportDelivery）：
+//      向 CCR 服务同步 worker 状态、元数据和消息投递确认
+//   5. 事件写入（writeEvent）：通过 SerialBatchEventUploader 批量上传输出事件
+//
+// 初始化顺序约束：
+//   new CCRClient() 必须在 transport.connect() 之前调用，
+//   否则早期 SSE 帧的 received-ack 会因回调未注册而被静默丢弃
+//
+// 流式事件缓冲：stream_event 消息在 100ms 窗口内累积后批量发送，
+// 每次 flush 输出完整的文本快照（非增量），支持客户端中途接入
+
 import { randomUUID } from 'crypto'
 import type {
   SDKPartialAssistantMessage,

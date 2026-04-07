@@ -1,4 +1,17 @@
 import { c as _c } from "react/compiler-runtime";
+// commands/login/login.tsx — /login 斜杠命令（会话内重新登录）
+// 职责：在已有会话中触发重新登录流程，支持切换账号或刷新 token。
+//
+// 功能：
+//   - 渲染 ConsoleOAuthFlow 交互式 OAuth 授权界面
+//   - 登录成功后刷新 GrowthBook、策略限制、远程托管设置
+//   - 支持 Trusted Device 注册（enrollTrustedDevice）
+//   - 重置成本状态（resetCostState）
+//
+// 与 CLI auth login 的区别：
+//   此命令在 Ink UI 内运行，适合会话中途切换账号；
+//   CLI auth login 在会话外运行，适合首次登录
+
 import { feature } from 'bun:bundle';
 import * as React from 'react';
 import { resetCostState } from '../../bootstrap/state.js';

@@ -1,3 +1,8 @@
+// commands/insights.ts — /insights 斜杠命令
+// 职责：分析项目历史和代码库，生成洞察报告（贡献者分析、代码演进、技术债等）。
+// 该命令体量较大（3200+ 行），包含完整的分析逻辑和报告生成流程。
+// 已迁移到插件市场，通过 createMovedToPluginCommand 提供过渡期支持。
+
 import { execFileSync } from 'child_process'
 import { diffLines } from 'diff'
 import { constants as fsConstants } from 'fs'

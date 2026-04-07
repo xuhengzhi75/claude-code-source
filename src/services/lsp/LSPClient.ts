@@ -1,3 +1,27 @@
+// services/lsp/LSPClient.ts — LSP 客户端通信层
+// 职责：封装与 Language Server Protocol 服务器的底层通信，
+// 通过 stdio 管道建立 JSON-RPC 连接，管理请求/响应/通知的收发。
+//
+// 核心类型：
+//   - LSPClient：LSP 客户端接口（start/initialize/sendRequest/sendNotification/stop）
+//
+// 核心函数：
+//   - createLSPClient()：工厂函数，返回 LSPClient 实例（闭包封装状态）
+//
+// 通信协议：
+//   - 使用 vscode-jsonrpc 库实现 JSON-RPC 2.0 协议
+//   - 通过 ChildProcess 的 stdin/stdout 建立 stdio 传输
+//   - 支持请求（有响应）和通知（无响应）两种消息类型
+//
+// 生命周期：
+//   1. start()：启动 LSP 服务器子进程，建立 JSON-RPC 连接
+//   2. initialize()：发送 LSP initialize 请求，获取服务器能力
+//   3. sendRequest/sendNotification：正常使用阶段
+//   4. stop()：发送 shutdown 请求，关闭连接，终止子进程
+//
+// 崩溃处理：
+//   - onCrash 回调：服务器意外退出时通知 LSPServerInstance 标记为 crashed
+//   - 区分"正常停止"和"意外崩溃"（通过 isStopping 标志）
 import { type ChildProcess, spawn } from 'child_process'
 import {
   createMessageConnection,

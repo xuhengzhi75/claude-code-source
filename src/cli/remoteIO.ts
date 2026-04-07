@@ -1,3 +1,23 @@
+// cli/remoteIO.ts — 远程双向 I/O 通道（Bridge / BYOC Worker 模式）
+// 职责：继承 StructuredIO，通过 WebSocket 或 SSE 传输层与远端（claude.ai 或
+// 环境管理器）建立双向消息通道，是 Bridge 模式下本地 Claude Code 进程的
+// 网络 I/O 核心。
+//
+// 架构位置：
+//   RemoteIO extends StructuredIO
+//   ├── transport: WebSocketTransport | SSETransport（由 getTransportForUrl 选择）
+//   ├── ccrClient: CCRClient（CCR v2 模式，负责心跳/epoch/状态上报/事件写入）
+//   └── inputStream: PassThrough（将远端消息注入 StructuredIO 的读取管道）
+//
+// 关键机制：
+//   1. 认证：从 sessionIngressAuth 获取 Bearer token，随请求头发送
+//   2. CCR v2：CLAUDE_CODE_USE_CCR_V2=1 时启用，CCRClient 必须在 transport.connect()
+//      之前初始化，否则早期 SSE 帧的 received-ack 会被静默丢弃
+//   3. Keep-alive：Bridge 模式下按 GrowthBook 配置间隔发送 keep_alive 帧，
+//      防止 Envoy 空闲超时（issue #21931）
+//   4. 控制请求回显：Bridge 模式下 control_request 消息始终回显到 stdout，
+//      让 Bridge 父进程能检测到权限请求
+
 import type { StdoutMessage } from 'src/entrypoints/sdk/controlTypes.js'
 import { PassThrough } from 'stream'
 import { URL } from 'url'

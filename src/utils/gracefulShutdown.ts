@@ -1,3 +1,29 @@
+// utils/gracefulShutdown.ts — 优雅退出管理
+// 职责：管理 Claude Code 进程的优雅退出流程，
+// 确保在退出前完成所有必要的清理工作（flush 日志、恢复终端状态等）。
+//
+// 核心函数：
+//   - setupGracefulShutdown()：注册进程退出处理器（memoized，只注册一次）
+//   - triggerShutdown(reason)：主动触发优雅退出
+//   - isShuttingDown()：检查是否正在退出中
+//
+// 退出流程：
+//   1. 恢复终端状态（禁用 Kitty keyboard / modify-other-keys 等特殊模式）
+//   2. 执行 cleanupRegistry 中注册的所有清理函数
+//   3. Flush Ink 实例（确保最后一帧渲染完成）
+//   4. 等待 scroll drain（滚动缓冲区排空）
+//   5. 写入退出原因到日志
+//
+// 终端恢复序列（CSI 控制码）：
+//   - DISABLE_KITTY_KEYBOARD：禁用 Kitty 键盘协议
+//   - DISABLE_MODIFY_OTHER_KEYS：禁用 modifyOtherKeys
+//   - DBP/DFE：禁用括号粘贴模式/焦点事件
+//
+// 关键设计：
+//   - signal-exit 库：跨平台监听 SIGINT/SIGTERM/process.exit
+//   - memoize：确保 setupGracefulShutdown 只执行一次
+//   - writeSync：退出时使用同步写入，避免异步 I/O 被截断
+//   - isSessionPersistenceDisabled：某些模式下跳过会话持久化
 import chalk from 'chalk'
 import { writeSync } from 'fs'
 import memoize from 'lodash-es/memoize.js'

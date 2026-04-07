@@ -1,3 +1,24 @@
+// =============================================================================
+// src/memdir/teamMemPrompts.ts — 团队记忆系统提示构建
+//
+// 【模块职责】
+//   当 TEAMMEM 功能启用时，构建包含私有记忆目录 + 团队记忆目录的
+//   联合系统提示文本，指导模型如何在两个目录间正确分配记忆。
+//
+// 【关键函数】
+//   buildCombinedMemoryPrompt(extraGuidelines?, skipIndex?)
+//     → string  联合提示文本，包含：
+//     - 私有目录（auto memory）：用户个人偏好/反馈
+//     - 团队目录（team memory）：项目级约定/决策/外部资源指针
+//     - TYPES_SECTION_COMBINED：含 <scope> 标签的四类记忆说明
+//     - 两个目录的 MEMORY.md 内容（各自截断后注入）
+//
+// 【与个人模式的区别】
+//   个人模式（buildMemoryLines）：单目录，无 scope 标签
+//   团队模式（buildCombinedMemoryPrompt）：双目录，含 scope 指导，
+//     强调哪些记忆应写入团队目录以便协作者共享
+// =============================================================================
+
 import {
   buildSearchingPastContextSection,
   DIRS_EXIST_GUIDANCE,

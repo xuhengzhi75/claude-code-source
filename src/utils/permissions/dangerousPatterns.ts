@@ -1,3 +1,21 @@
+// utils/permissions/dangerousPatterns.ts — 危险 Shell 命令模式列表
+// 职责：维护可绕过 auto mode 分类器的危险命令前缀列表，
+// 在进入 auto mode 时自动剥离这些过于宽泛的权限规则。
+//
+// 核心常量：
+//   - CROSS_PLATFORM_CODE_EXEC：跨平台代码执行入口（python/node/bash 等）
+//   - UNIX_CODE_EXEC：Unix 专用代码执行入口（perl/ruby/lua 等）
+//   - WINDOWS_CODE_EXEC：Windows 专用代码执行入口（powershell/cmd 等）
+//
+// 使用场景：
+//   - permissionSetup.ts 的 isDangerousBashPermission() 使用这些列表
+//   - 进入 auto mode 时，匹配这些模式的 allow 规则会被自动剥离
+//   - 防止 "Bash(python:*)" 这类规则绕过分类器执行任意代码
+//
+// 危险规则示例：
+//   - "Bash(python:*)"：允许运行任意 Python 代码
+//   - "Bash(node:*)"：允许运行任意 Node.js 代码
+//   - "Bash(bash:*)"：允许运行任意 Bash 脚本
 /**
  * Pattern lists for dangerous shell-tool allow-rule prefixes.
  *

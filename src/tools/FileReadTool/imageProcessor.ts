@@ -1,3 +1,23 @@
+// tools/FileReadTool/imageProcessor.ts — 图片处理器
+// 职责：为 FileReadTool 提供图片读取和处理能力，
+// 将图片文件转换为 Anthropic API 可接受的 base64 content block。
+//
+// 核心功能：
+//   - 图片格式检测：支持 PNG/JPEG/GIF/WebP
+//   - 图片缩放（Sharp）：超过尺寸限制时自动缩放
+//     · SharpInstance 类型：封装 Sharp 库的操作接口
+//     · 仅在 bundled 模式下可用（isInBundledMode）
+//   - Base64 编码：将图片 Buffer 转为 base64 字符串
+//   - 降采样：质量/颜色数量优化，减少 token 消耗
+//
+// 运行模式：
+//   - bundled 模式（ant-native）：使用内置 Sharp 库处理图片
+//   - 非 bundled 模式：跳过缩放，直接 base64 编码
+//
+// 关联：
+//   - FileReadTool.ts：调用此模块处理图片文件
+//   - utils/imageResizer.ts：通用图片缩放工具（BashTool 也使用）
+//   - utils/bundledMode.ts：检测是否为 bundled 构建
 import type { Buffer } from 'buffer'
 import { isInBundledMode } from '../../utils/bundledMode.js'
 

@@ -1,3 +1,29 @@
+// =============================================================================
+// src/utils/hooks.ts — 用户自定义 Hook 执行引擎
+//
+// 【模块职责】
+//   执行用户在 settings.json 中配置的 shell hook 命令，在 Claude Code
+//   生命周期的关键节点触发外部脚本，实现可扩展的自动化工作流。
+//
+// 【Hook 类型】
+//   PreToolUse    — 工具调用前执行（可阻止工具调用）
+//   PostToolUse   — 工具调用后执行（可修改工具结果）
+//   Stop          — 模型停止后执行（可触发继续）
+//   TaskCompleted — 任务完成时执行（非交互模式）
+//   TeammateIdle  — Cowork 队友空闲时执行
+//   Notification  — 通知事件时执行
+//
+// 【执行机制】
+//   通过 spawn() 启动子进程，通过 stdin 传入 JSON 上下文，
+//   读取 stdout 获取 hook 返回值（JSON 格式）。
+//   超时控制：默认 60s，可通过 hook 配置覆盖。
+//
+// 【关键函数】
+//   executeStopHooks()         — 执行 Stop hooks，返回 continue/stop 决策
+//   executeTaskCompletedHooks() — 执行 TaskCompleted hooks
+//   executeTeammateIdleHooks()  — 执行 TeammateIdle hooks
+// =============================================================================
+
 // biome-ignore-all assist/source/organizeImports: ANT-ONLY import markers must not be reordered
 /**
  * Hooks are user-defined shell commands that can be executed at various points

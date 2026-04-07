@@ -1,3 +1,20 @@
+// utils/sessionState.ts — 会话状态类型定义
+// 职责：定义 Claude Code 会话的状态机类型，
+// 用于 CCR（Claude Code Remote）侧边栏和推送通知的状态展示。
+//
+// 会话状态（SessionState）：
+//   - 'idle'：空闲，等待用户输入
+//   - 'running'：正在执行（模型推理或工具调用中）
+//   - 'requires_action'：需要用户操作（等待权限确认等）
+//
+// RequiresActionDetails（requires_action 状态的上下文）：
+//   两条传递路径：
+//   1. tool_name + action_description → RequiresActionDetails proto
+//      （webhook payload，类型化，记录到 Datadog）
+//   2. 完整对象 → external_metadata.pending_action（Session 上的可查询 JSON，
+//      允许前端迭代字段结构而无需 proto 往返）
+//
+// 关联：CCR 侧边栏、推送通知、Datadog 监控
 export type SessionState = 'idle' | 'running' | 'requires_action'
 
 /**

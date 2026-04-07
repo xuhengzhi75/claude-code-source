@@ -1,3 +1,22 @@
+// utils/permissions/permissionsLoader.ts — 权限规则加载器
+// 职责：从各配置来源（global/project/local/policy）加载权限规则，
+// 并提供权限规则的持久化写入功能。
+//
+// 核心函数：
+//   - loadPermissionRules()：从所有启用的配置来源加载权限规则
+//   - savePermissionRule()：将新规则持久化到指定来源的配置文件
+//   - shouldAllowManagedPermissionRulesOnly()：检查是否启用了托管规则独占模式
+//
+// 规则来源（SettingSource）：
+//   - 'global'：~/.claude/settings.json（用户全局规则）
+//   - 'project'：.claude/settings.json（项目级规则）
+//   - 'local'：.claude/settings.local.json（本地覆盖，不提交 git）
+//   - 'policySettings'：企业 MDM 托管规则（只读）
+//
+// 托管规则独占模式（allowManagedPermissionRulesOnly）：
+//   - 启用后，只有 policySettings 来源的规则生效
+//   - 用户无法通过 "Always allow" 添加自定义规则
+//   - 权限提示中隐藏 "Always allow" 选项
 import { readFileSync } from '../fileRead.js'
 import { getFsImplementation, safeResolvePath } from '../fsOperations.js'
 import { safeParseJSON } from '../json.js'

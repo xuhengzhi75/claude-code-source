@@ -1,3 +1,28 @@
+// services/analytics/firstPartyEventLogger.ts — 第一方事件日志器
+// 职责：通过 OpenTelemetry Logs API 将 Claude Code 的分析事件
+// 上报到 Anthropic 内部的第一方数据管道（区别于第三方 OTel 端点）。
+//
+// 与 sink.ts 的区别：
+//   - sink.ts：通用事件汇聚层，路由到多个目标（Datadog/OTel/BigQuery）
+//   - firstPartyEventLogger.ts：专门面向 Anthropic 内部数据管道的 OTel 日志器
+//
+// 核心类：FirstPartyEventLogger
+//   - 基于 OTel LoggerProvider + BatchLogRecordProcessor
+//   - 使用自定义 FirstPartyEventLoggingExporter 导出到内部端点
+//   - 每条日志记录包含完整的用户/会话/平台上下文
+//
+// 公共属性（每条事件都携带）：
+//   - user_id：用户唯一 ID（getOrCreateUserID）
+//   - platform：操作系统平台
+//   - wsl_version：WSL 版本（Windows 用户）
+//   - service.name / service.version：服务标识
+//   - 核心用户数据（getCoreUserData）
+//
+// 关键设计：
+//   - isAnalyticsDisabled()：用户选择退出时完全跳过
+//   - BatchLogRecordProcessor：批量发送，减少网络请求
+//   - profileCheckpoint()：记录初始化耗时（启动性能分析）
+//   - isEqual 去重：避免重复初始化相同配置的 logger
 import type { AnyValueMap, Logger, logs } from '@opentelemetry/api-logs'
 import { resourceFromAttributes } from '@opentelemetry/resources'
 import {

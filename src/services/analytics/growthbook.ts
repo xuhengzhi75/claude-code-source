@@ -1,3 +1,29 @@
+// services/analytics/growthbook.ts — GrowthBook 特性开关（Feature Flags）
+// 职责：集成 GrowthBook SDK，为 Claude Code 提供运行时特性开关（Feature Flags）
+// 和 A/B 测试能力，支持渐进式功能发布和实验。
+//
+// 核心功能：
+//   - getFeatureValue()：获取特性开关的值（支持 boolean/string/number/JSON）
+//   - getFeatureValue_CACHED_MAY_BE_STALE()：使用缓存值（性能优先，可能过期）
+//   - isFeatureEnabled()：检查特性是否启用
+//   - initGrowthBook()：初始化 GrowthBook 客户端，加载特性配置
+//
+// 特性配置来源：
+//   1. 远程：GrowthBook API（通过 clientKey 拉取）
+//   2. 本地缓存：globalConfig.cachedGrowthBookFeatures（离线可用）
+//   3. 默认值：特性未定义时的 fallback
+//
+// 用户属性（用于特性分组）：
+//   - user_id：用户唯一 ID
+//   - session_trust_accepted：是否接受信任对话框
+//   - is_non_interactive：是否为非交互式会话
+//   - GitHub Actions 元数据（CI 环境检测）
+//
+// 关键设计：
+//   - memoize：避免重复初始化 GrowthBook 实例
+//   - createSignal：特性变更时通知订阅者（响应式更新）
+//   - 缓存策略：将最新特性配置写入 globalConfig，下次启动时可离线使用
+//   - 非交互式会话：跳过远程拉取，直接使用缓存（避免网络延迟）
 import { GrowthBook } from '@growthbook/growthbook'
 import { isEqual, memoize } from 'lodash-es'
 import {

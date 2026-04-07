@@ -1,3 +1,24 @@
+// =============================================================================
+// src/memdir/memoryScan.ts — 记忆目录扫描原语
+//
+// 【模块职责】
+//   扫描记忆目录，读取每个 .md 文件的 frontmatter（name/description/type/mtime），
+//   构建 MemoryHeader 列表，供 findRelevantMemories 和 extractMemories 使用。
+//
+// 【拆分原因】
+//   从 findRelevantMemories.ts 中拆出，避免 extractMemories 导入 sideQuery
+//   和 API 客户端链（会形成循环依赖 memdir.ts → #25372）。
+//
+// 【关键函数】
+//   scanMemoryFiles(memoryDir)
+//     → MemoryHeader[]（含 filename/filePath/mtimeMs/description/type）
+//     跳过 MEMORY.md（索引文件）和非 .md 文件
+//
+//   formatMemoryManifest(headers)
+//     → string  将 MemoryHeader 列表格式化为 manifest 文本，
+//     供 SELECT_MEMORIES_SYSTEM_PROMPT 使用
+// =============================================================================
+
 /**
  * Memory-directory scanning primitives. Split out of findRelevantMemories.ts
  * so extractMemories can import the scan without pulling in sideQuery and

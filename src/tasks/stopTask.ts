@@ -1,3 +1,17 @@
+// tasks/stopTask.ts — 任务停止共享逻辑
+// 职责：提供统一的任务停止实现，被两个调用方共用：
+//   1. TaskStopTool：LLM 主动调用工具停止后台任务
+//   2. SDK stop_task 控制请求：外部 SDK 客户端发送停止指令
+//
+// 停止流程：
+//   1. 按 taskId 查找任务，不存在则抛 StopTaskError('not_found')
+//   2. 检查任务状态为 'running'，否则抛 StopTaskError('not_running')
+//   3. 查找对应的 Task 实现，调用 taskImpl.kill()
+//   4. LocalShellTask 特殊处理：抑制 exit code 137 通知（噪音），
+//      但直接发送 SDK task_terminated 事件，确保 SDK 消费方能感知任务关闭
+//
+// StopTaskError.code 枚举：'not_found' | 'not_running' | 'unsupported_type'
+
 // Shared logic for stopping a running task.
 // Used by TaskStopTool (LLM-invoked) and SDK stop_task control request.
 

@@ -1,3 +1,28 @@
+// tools/FileEditTool/utils.ts — FileEditTool 核心编辑工具函数
+// 职责：实现 string_replace 编辑的核心算法，包括
+// 字符串匹配、唯一性校验、diff 生成、弯引号规范化等。
+//
+// 核心算法（applyEdit）：
+//   1. 读取文件内容（readFileSyncCached）
+//   2. 规范化弯引号（curly → straight）
+//   3. 查找 old_string 在文件中的出现次数
+//   4. 唯一性校验：出现 0 次 → 报错；出现 >1 次 → 报错（除非 replace_all）
+//   5. 执行替换，生成新内容
+//   6. 生成 diff（getPatchFromContents）用于展示
+//
+// 弯引号常量（Claude 无法输出弯引号，用常量代替）：
+//   LEFT_DOUBLE_QUOTE / RIGHT_DOUBLE_QUOTE / LEFT_SINGLE_QUOTE / RIGHT_SINGLE_QUOTE
+//   编辑时自动将弯引号规范化为直引号
+//
+// diff 相关：
+//   - getPatchForDisplay(patch)：格式化 diff 用于 UI 展示
+//   - DIFF_TIMEOUT_MS：diff 计算超时保护
+//   - StructuredPatchHunk：结构化 diff 块类型
+//
+// 关联：
+//   - FileEditTool.ts：调用此文件的 applyEdit 执行编辑
+//   - types.ts：EditInput / FileEdit 类型定义
+//   - utils/diff.ts：diff 计算工具
 import { type StructuredPatchHunk, structuredPatch } from 'diff'
 import { logError } from 'src/utils/log.js'
 import { expandPath } from 'src/utils/path.js'

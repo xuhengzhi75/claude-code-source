@@ -1,3 +1,13 @@
+// bridge/codeSessionApi.ts — CCR v2 Code Session API 封装
+// 职责：提供 CCR v2 code-session API 的轻量 HTTP 封装，
+// 独立于 remoteBridgeCore.ts 以便 SDK /bridge 子路径按需导入。
+//
+// 核心函数：
+//   - createCodeSession()：在 CCR v2 服务器上创建新的 code session
+//   - fetchRemoteCredentials()：获取远端执行所需的临时凭证
+//
+// 拆分原因：SDK /bridge 子路径只需要这两个函数，
+// 不应捆绑 remoteBridgeCore.ts 的完整依赖树
 /**
  * Thin HTTP wrappers for the CCR v2 code-session API.
  *

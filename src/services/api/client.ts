@@ -1,3 +1,27 @@
+// services/api/client.ts — Anthropic SDK 客户端工厂
+// 职责：根据运行环境（Direct API / AWS Bedrock / GCP Vertex / Azure Foundry）
+// 动态构造对应的 Anthropic SDK 客户端实例，统一注入认证头、代理配置和会话标识。
+//
+// 核心函数：
+//   - getAnthropicClient()：工厂函数，返回 Anthropic | AnthropicBedrock | AnthropicVertex
+//   - configureApiKeyHeaders()：注入 API Key 或 OAuth Bearer Token 到请求头
+//   - buildFetch()：包装 fetch，支持 VCR 录制回放和代理穿透
+//
+// 多 Provider 路由逻辑：
+//   1. CLAUDE_CODE_USE_BEDROCK=1 → AnthropicBedrock（AWS SigV4 签名）
+//   2. CLAUDE_CODE_USE_VERTEX=1  → AnthropicVertex（GCP OAuth2）
+//   3. ANTHROPIC_FOUNDRY_RESOURCE → Azure Foundry（Azure AD / API Key）
+//   4. 默认                       → Anthropic（直连 API Key / OAuth）
+//
+// 认证优先级（Direct API）：
+//   1. ANTHROPIC_API_KEY 环境变量
+//   2. API Key Helper 进程（企业 SSO 场景）
+//   3. Claude.ai OAuth Token（订阅用户）
+//
+// 关键设计：
+//   - 每次 query 调用都重新创建客户端，确保 token 刷新后立即生效
+//   - dangerouslyAllowBrowser=true：在 Electron/Bun 环境中绕过浏览器检测
+//   - 超时默认 600s，可通过 API_TIMEOUT_MS 覆盖
 import Anthropic, { type ClientOptions } from '@anthropic-ai/sdk'
 import { randomUUID } from 'crypto'
 import type { GoogleAuth } from 'google-auth-library'

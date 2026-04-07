@@ -1,3 +1,23 @@
+// tools/BashTool/readOnlyValidation.ts — 只读命令验证
+// 职责：判断 Bash 命令是否为只读操作，只读命令可自动放行无需用户确认。
+//
+// 只读命令白名单（按工具分类）：
+//   - GIT_READ_ONLY_COMMANDS：git log/status/diff/show 等
+//   - GH_READ_ONLY_COMMANDS：gh pr list/view/status 等
+//   - DOCKER_READ_ONLY_COMMANDS：docker ps/images/inspect 等
+//   - PYRIGHT_READ_ONLY_COMMANDS：pyright 类型检查
+//   - EXTERNAL_READONLY_COMMANDS：cat/ls/find/grep/echo 等通用只读命令
+//
+// 特殊处理：
+//   - containsVulnerableUncPath：检测 Windows UNC 路径漏洞（\\server\share）
+//   - extractOutputRedirections：检测输出重定向（> 或 >>），有重定向则非只读
+//   - SandboxManager：沙箱模式下的只读判断逻辑不同
+//   - isCurrentDirectoryBareGitRepo：裸仓库中部分命令行为不同
+//
+// 关联：
+//   - bashPermissions.ts：调用此模块判断是否需要权限确认
+//   - utils/bash/commands.ts：命令解析工具
+//   - utils/sandbox/sandbox-adapter.ts：沙箱模式适配
 import type { z } from 'zod/v4'
 import { getOriginalCwd } from '../../bootstrap/state.js'
 import {

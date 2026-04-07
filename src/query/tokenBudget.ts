@@ -1,3 +1,22 @@
+// =============================================================================
+// src/query/tokenBudget.ts — Token 预算追踪与续跑决策
+//
+// 【模块职责】
+//   追踪 query() 循环中的 token 消耗，在模型接近 token 预算上限时
+//   决定是否继续（continue）或停止（stop），并生成续跑提示消息。
+//
+// 【BudgetTracker 状态】
+//   continuationCount    — 已续跑次数
+//   lastDeltaTokens      — 上轮新增 token 数
+//   lastGlobalTurnTokens — 上轮全局 token 总数
+//   startedAt            — 开始时间戳
+//
+// 【决策逻辑】
+//   COMPLETION_THRESHOLD = 0.9：使用率超过 90% 时触发续跑检查
+//   DIMINISHING_THRESHOLD = 500：每轮新增 token < 500 时认为收益递减，停止续跑
+//   shouldContinue() → ContinueDecision | StopDecision
+// =============================================================================
+
 import { getBudgetContinuationMessage } from '../utils/tokenBudget.js'
 
 const COMPLETION_THRESHOLD = 0.9
