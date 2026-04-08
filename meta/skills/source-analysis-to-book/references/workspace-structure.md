@@ -9,9 +9,12 @@ project/
 ├── docs/
 │   ├── book/
 │   │   ├── README.md                    # 读者入口（面向读者）
-│   │   └── chapters/                    # 章节正文
-│   │       ├── ch01-*.md
-│   │       └── ...
+│   │   ├── chapters/                    # 技术版章节正文
+│   │   │   ├── ch01-*.md
+│   │   │   └── ...
+│   │   └── easy-chapters/               # 通俗版文章（面向非技术读者）
+│   │       ├── README.md                # 通俗版目录（含与技术版对应关系）
+│   │       └── *.md
 │   └── book-workspace/                  # 写书工作区（不面向读者）
 │       ├── README.md                    # 工作区入口（按任务组织）
 │       ├── planning/
@@ -68,11 +71,12 @@ project/
 
 ### 2. 博客章节不入 git
 
-`blog/chapters/` 是构建产物，通过 `build.sh` 从 `docs/book/chapters/` 复制生成。不要把构建产物提交到 git。
+`blog/chapters/` 和 `blog/easy-chapters/` 都是构建产物，通过 `build.sh` 从 `docs/book/` 对应目录复制生成。不要把构建产物提交到 git。
 
 在 `.gitignore` 里添加：
 ```
 blog/chapters/
+blog/easy-chapters/
 ```
 
 ### 3. 状态文档分层
