@@ -1,17 +1,27 @@
 ---
 name: source-analysis-to-book
-description: >
-  将复杂代码仓库转化为一本结构化技术解读书的完整工作流 Skill。
-  适用场景：需要深度理解一个陌生仓库、把源码分析沉淀为文档/章节/书稿、
-  多人或多 Agent 协作写作、需要长周期推进并保持状态连续性、
-  写通俗版科普文章、重写章节去 AI 味、画论点树、Feynman+Kernighan 风格写作。
-  触发词：分析仓库、写书、源码解读、架构分析、成书、章节规划、证据整理、
-  通俗版、easy-chapters、去 AI 味、论点树、重写章节、Feynman 风格。
+description: "将复杂代码仓库转化为一本结构化技术解读书的完整工作流 Skill。适用场景：深度理解陌生仓库、把源码分析沉淀为文档/章节/书稿、多人或多 Agent 协作写作、长周期推进并保持状态连续性、写通俗版科普文章、重写章节去 AI 味、画论点树、Feynman+Kernighan 风格写作。触发词：分析仓库、写书、源码解读、架构分析、成书、章节规划、证据整理、通俗版、easy-chapters、去 AI 味、论点树、重写章节、Feynman 风格。"
+appkey: com.sankuai.raptor.iconfont.websdk
+tags: 写作,源码分析,技术书,多Agent,架构分析
+visibility: public
 ---
 
 # source-analysis-to-book
 
 这个 Skill 把"理解一个复杂代码仓库"这件事产品化，输出可持续写作的材料体系，而不是一次性的分析报告。
+
+## 快速启动（第一次使用）
+
+如果你是第一次使用这个 Skill，按以下步骤开始：
+
+1. **确认目标仓库**：你要分析的仓库在哪里？是本地路径还是需要先 clone？
+2. **建立工作区目录**：在项目根目录下创建 `docs/book-workspace/` 和 `docs/book/chapters/`（详见 `references/workspace-structure.md`）
+3. **创建第一份状态文件**：`docs/book-workspace/planning/project-status.md`，写下当前目标和下一步
+4. **开始阶段 A**：按 `references/workflow.md` 的阶段 A 流程，先找入口和主执行链，不要急着写章节
+
+如果你是**恢复中断的工作**，直接读工作区下的 `planning/project-status.md`，然后按 `references/task-recipes.md` 的配方 2 继续。
+
+---
 
 ## 核心原则
 
@@ -47,9 +57,13 @@ description: >
 
 ## 多 Agent 通信机制
 
-多 Agent 通过 Git 仓库 inbox 文件异步通信的完整机制，详见：
-- `docs/book-workspace/workflow/multi-agent-git-collab.md`（内部详细版）
-- `blog/articles/multi-agent-git-collab.md`（对外分享版）
+多 Agent 通过 Git 仓库 inbox 文件异步通信。核心机制：
+
+- 每个角色在工作区的 `inbox/` 目录下有独立收件箱文件（`for-[角色名].md`）
+- 消息格式：发件人 / 时间 / 主题 / 正文 / 状态（待处理 → 已处理 ✅）
+- 任务完成后必须更新 inbox 状态字段，防止下一个 Agent 实例重复处理
+
+详细机制见 `references/collaboration.md`。
 
 ## 提交规范
 

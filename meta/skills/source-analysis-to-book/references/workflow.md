@@ -13,7 +13,7 @@
 4. 找关键壁垒：tooling、runtime、安全边界、恢复机制、任务系统
 5. 找异常闭环：失败、重试、续跑、超时、终止
 
-产出（在 `book-workspace/architecture-notes/` 下）：
+产出（在 `<your-workspace>/architecture-notes/` 下，路径按 `workspace-structure.md` 约定）：
 - `system-overview.md`：系统全局定位
 - `runtime-structure.md`：运行时结构
 - `execution-flow-guide.md`：执行链路图
@@ -38,7 +38,7 @@
 3. 生成章节证据卡与交接卡
 4. 更新 coverage/status，避免重复劳动
 
-产出：
+产出（路径按 `workspace-structure.md` 约定）：
 - `architecture-notes/*.md`：主题深读笔记
 - `references/chapter-evidence-map.md`：章节证据映射
 - `workflow/analysis-handoff-template.md`：交接模板
@@ -56,7 +56,7 @@
 4. 每章加入：why now / design tradeoff / edge case / non-obvious conclusion
 5. 写完后检查是否退化成说明书，是否有 AI 味词汇
 
-产出：
+产出（路径按 `workspace-structure.md` 约定）：
 - `book/chapters/*.md`：章节正文
 - 更新 `planning/completed-coverage-and-writing-queue.md`
 
@@ -75,7 +75,7 @@
 4. 每篇 5~10 分钟读完，独立成文
 5. 分四个部分组织：你以为你在用聊天工具（其实不是）→ 它是怎么工作的 → 为什么别人抄不走 → 这对你意味着什么
 
-产出：
+产出（路径按 `workspace-structure.md` 约定）：
 - `book/easy-chapters/*.md`：通俗版文章
 - `book/easy-chapters/README.md`：通俗版目录（含与技术版的对应关系）
 
@@ -99,7 +99,7 @@
 
 ## 恢复上下文的最小读取路径
 
-任何 Agent 恢复上下文时，按这个顺序读：
+任何 Agent 恢复上下文时，按这个顺序读（路径相对于你的工作区根目录）：
 1. `planning/project-status.md`（当前进度和下一步）
 2. `status/status-index.md` + 最近一条 `status-*.md`（阶段快照）
 3. `references/chapter-evidence-map.md`（章节覆盖情况）
