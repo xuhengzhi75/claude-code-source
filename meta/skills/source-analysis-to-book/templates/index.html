@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{BOOK_TITLE}}</title>
+  <link rel="icon" type="image/x-icon" href="favicon.ico" />
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png" />
+  <link rel="apple-touch-icon" sizes="192x192" href="favicon-192.png" />
+  <!-- Open Graph / 分享预览 -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="{{BOOK_TITLE}}" />
+  <meta property="og:description" content="{{BOOK_DESC}}" />
+  <meta property="og:image" content="{{OG_IMAGE_URL}}" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:url" content="{{SITE_URL}}" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="{{BOOK_TITLE}}" />
+  <meta name="twitter:description" content="{{BOOK_DESC}}" />
+  <meta name="twitter:image" content="{{OG_IMAGE_URL}}" />
+  <!-- 阅读进度条 -->
+  <style>
+    #read-progress {
+      position: fixed; top: 0; left: 0; z-index: 9999;
+      height: 3px; width: 0%;
+      background: linear-gradient(90deg, var(--accent), var(--accent-hover));
+      transition: width 0.1s linear;
+      pointer-events: none;
+    }
+  </style>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/marked@9.1.6/marked.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
+  <style id="hljs-themes">
+    /* ── 正文 light：GitHub Light ── */
+    .md-body .hljs                                                    { color:#24292e; }
+    .md-body .hljs-doctag,.md-body .hljs-keyword,
+    .md-body .hljs-meta .hljs-keyword,.md-body .hljs-template-tag,
+    .md-body .hljs-template-variable,.md-body .hljs-type,
+    .md-body .hljs-variable.language_                                 { color:#d73a49; }
+    .md-body .hljs-title,.md-body .hljs-title.class_,
+    .md-body .hljs-title.class_.inherited__,
+    .md-body .hljs-title.function_                                    { color:#6f42c1; }
+    .md-body .hljs-attr,.md-body .hljs-attribute,
+    .md-body .hljs-literal,.md-body .hljs-meta,
+    .md-body .hljs-number,.md-body .hljs-operator,
+    .md-body .hljs-selector-attr,.md-body .hljs-selector-class,
+    .md-body .hljs-selector-id,.md-body .hljs-variable               { color:#005cc5; }
+    .md-body .hljs-meta .hljs-string,.md-body .hljs-regexp,
+    .md-body .hljs-string                                             { color:#032f62; }
+    .md-body .hljs-built_in,.md-body .hljs-symbol                    { color:#e36209; }
+    .md-body .hljs-code,.md-body .hljs-comment,
+    .md-body .hljs-formula                                            { color:#6a737d; }
+    .md-body .hljs-name,.md-body .hljs-quote,
+    .md-body .hljs-selector-pseudo,.md-body .hljs-selector-tag       { color:#22863a; }
+    .md-body .hljs-subst                                              { color:#24292e; }
+    .md-body .hljs-section                                            { color:#005cc5; font-weight:700; }
+    .md-body .hljs-bullet                                             { color:#735c0f; }
+    .md-body .hljs-emphasis                                           { color:#24292e; font-style:italic; }
+    .md-body .hljs-strong                                             { color:#24292e; font-weight:700; }
+    .md-body .hljs-addition                                           { color:#22863a; background:#f0fff4; }
+    .md-body .hljs-deletion                                           { color:#b31d28; background:#ffeef0; }
+    /* ── 正文 dark：GitHub Dark ── */
+    [data-theme="dark"] .md-body .hljs                                { color:#c9d1d9; }
+    [data-theme="dark"] .md-body .hljs-doctag,
+    [data-theme="dark"] .md-body .hljs-keyword,
+    [data-theme="dark"] .md-body .hljs-meta .hljs-keyword,
+    [data-theme="dark"] .md-body .hljs-template-tag,
+    [data-theme="dark"] .md-body .hljs-template-variable,
+    [data-theme="dark"] .md-body .hljs-type,
+    [data-theme="dark"] .md-body .hljs-variable.language_            { color:#ff7b72; }
+    [data-theme="dark"] .md-body .hljs-title,
+    [data-theme="dark"] .md-body .hljs-title.class_,
+    [data-theme="dark"] .md-body .hljs-title.class_.inherited__,
+    [data-theme="dark"] .md-body .hljs-title.function_               { color:#d2a8ff; }
+    [data-theme="dark"] .md-body .hljs-attr,
+    [data-theme="dark"] .md-body .hljs-attribute,
+    [data-theme="dark"] .md-body .hljs-literal,
+    [data-theme="dark"] .md-body .hljs-meta,
+    [data-theme="dark"] .md-body .hljs-number,
+    [data-theme="dark"] .md-body .hljs-operator,
+    [data-theme="dark"] .md-body .hljs-selector-attr,
+    [data-theme="dark"] .md-body .hljs-selector-class,
+    [data-theme="dark"] .md-body .hljs-selector-id,
+    [data-theme="dark"] .md-body .hljs-variable                      { color:#79c0ff; }
+    [data-theme="dark"] .md-body .hljs-meta .hljs-string,
+    [data-theme="dark"] .md-body .hljs-regexp,
+    [data-theme="dark"] .md-body .hljs-string                        { color:#a5d6ff; }
+    [data-theme="dark"] .md-body .hljs-built_in,
+    [data-theme="dark"] .md-body .hljs-symbol                        { color:#ffa657; }
+    [data-theme="dark"] .md-body .hljs-code,
+    [data-theme="dark"] .md-body .hljs-comment,
+    [data-theme="dark"] .md-body .hljs-formula                       { color:#8b949e; }
+    [data-theme="dark"] .md-body .hljs-name,
+    [data-theme="dark"] .md-body .hljs-quote,
+    [data-theme="dark"] .md-body .hljs-selector-pseudo,
+    [data-theme="dark"] .md-body .hljs-selector-tag                  { color:#7ee787; }
+    [data-theme="dark"] .md-body .hljs-subst                         { color:#c9d1d9; }
+    [data-theme="dark"] .md-body .hljs-section                       { color:#1f6feb; font-weight:700; }
+    [data-theme="dark"] .md-body .hljs-bullet                        { color:#f2cc60; }
+    [data-theme="dark"] .md-body .hljs-emphasis                      { color:#c9d1d9; font-style:italic; }
+    [data-theme="dark"] .md-body .hljs-strong                        { color:#c9d1d9; font-weight:700; }
+    [data-theme="dark"] .md-body .hljs-addition                      { color:#aff5b4; background:#033a16; }
+    [data-theme="dark"] .md-body .hljs-deletion                      { color:#ffdcd7; background:#67060c; }
+    /* ── 源码面板：Atom One Dark（始终深色）── */
+    .anchor-panel .hljs                                               { color:#abb2bf; background:transparent; }
+    .anchor-panel .hljs-comment,.anchor-panel .hljs-quote            { color:#5c6370; font-style:italic; }
+    .anchor-panel .hljs-doctag,.anchor-panel .hljs-formula,
+    .anchor-panel .hljs-keyword                                       { color:#c678dd; }
+    .anchor-panel .hljs-deletion,.anchor-panel .hljs-name,
+    .anchor-panel .hljs-section,.anchor-panel .hljs-selector-tag,
+    .anchor-panel .hljs-subst                                         { color:#e06c75; }
+    .anchor-panel .hljs-literal                                       { color:#56b6c2; }
+    .anchor-panel .hljs-addition,.anchor-panel .hljs-attribute,
+    .anchor-panel .hljs-meta .hljs-string,.anchor-panel .hljs-regexp,
+    .anchor-panel .hljs-string                                        { color:#98c379; }
+    .anchor-panel .hljs-attr,.anchor-panel .hljs-number,
+    .anchor-panel .hljs-selector-attr,.anchor-panel .hljs-selector-class,
+    .anchor-panel .hljs-selector-pseudo,.anchor-panel .hljs-template-variable,
+    .anchor-panel .hljs-type,.anchor-panel .hljs-variable            { color:#d19a66; }
+    .anchor-panel .hljs-bullet,.anchor-panel .hljs-link,
+    .anchor-panel .hljs-meta,.anchor-panel .hljs-selector-id,
+    .anchor-panel .hljs-symbol,.anchor-panel .hljs-title             { color:#61aeee; }
+    .anchor-panel .hljs-built_in,.anchor-panel .hljs-class .hljs-title,
+    .anchor-panel .hljs-title.class_                                  { color:#e6c07b; }
+    .anchor-panel .hljs-title.function_,
+    .anchor-panel .hljs-function .hljs-title                         { color:#61afef; }
+    .anchor-panel .hljs-emphasis                                      { font-style:italic; }
+    .anchor-panel .hljs-strong                                        { font-weight:700; }
+    .anchor-panel .hljs-link                                          { text-decoration:underline; }
+    .anchor-panel .hljs-punctuation,.anchor-panel .hljs-operator     { color:#abb2bf; }
+    .anchor-panel .hljs-params,.anchor-panel .hljs-property          { color:#abb2bf; }
+    .anchor-panel .hljs-tag                                           { color:#e06c75; }
+    .anchor-panel .hljs-tag .hljs-attr                                { color:#d19a66; }
+    .anchor-panel .hljs-tag .hljs-name                                { color:#e06c75; }
+  </style>
+</head>
+<body>
+  <!-- 纸质噪点纹理层（可选，需提供 noise.png） -->
+  <div class="texture-overlay" aria-hidden="true"></div>
+  <div id="read-progress"></div>
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <a class="sidebar-brand" href="#" onclick="window.location.hash='';showWelcome();return false;" title="回到首页">
+          <div class="brand-logo">
+            <!-- 替换为你的 Logo SVG，保持 32x32 -->
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect width="32" height="32" rx="8" fill="var(--accent)"/>
+              <text x="16" y="22" text-anchor="middle" fill="white" font-size="16" font-weight="bold">B</text>
+            </svg>
+          </div>
+          <div class="brand-text">
+            <div class="book-title">{{BOOK_TITLE}}</div>
+            <div class="book-subtitle">{{BOOK_SUBTITLE}}</div>
+          </div>
+        </a>
+      </div>
+      <nav class="toc" id="toc"><!-- Generated by JS --></nav>
+    </aside>
+
+    <div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+
+    <div class="main-wrapper">
+      <header class="topbar">
+        <button class="menu-btn" onclick="toggleSidebar()" aria-label="菜单">
+          <span></span><span></span><span></span>
+        </button>
+        <a class="topbar-home" href="#" onclick="window.location.hash='';showWelcome();return false;" title="回到首页">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M8.354 1.146a.5.5 0 0 0-.708 0l-6 6A.5.5 0 0 0 1.5 7.5v7a.5.5 0 0 0 .5.5h4.5a.5.5 0 0 0 .5-.5v-4h3v4a.5.5 0 0 0 .5.5H14a.5.5 0 0 0 .5-.5v-7a.5.5 0 0 0-.146-.354L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293L8.354 1.146z"/></svg>
+          首页
+        </a>
+        <span class="topbar-title" id="topbar-title">{{BOOK_TITLE}}</span>
+        <div class="topbar-actions">
+          <button class="share-btn" onclick="sharePage()" title="分享">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+            <span class="share-btn-label">分享</span>
+          </button>
+          <div class="share-toast" id="share-toast">已复制链接</div>
+          <!-- 可选：GitHub Star 按钮，不需要可删除 -->
+          <a class="star-btn" href="{{GITHUB_REPO_URL}}" target="_blank" rel="noopener" title="在 GitHub 上 Star">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.751.751 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Z"/></svg>
+            Star
+          </a>
+          <button class="theme-btn" onclick="toggleTheme()" title="切换主题">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          </button>
+        </div>
+      </header>
+
+      <main class="content" id="content">
+        <div class="content-inner" id="content-inner">
+          <div class="welcome">
+            <h1>{{BOOK_TITLE}}</h1>
+            <p class="welcome-subtitle">{{BOOK_SUBTITLE}}</p>
+            <p class="welcome-desc">{{BOOK_DESC}}</p>
+            <div class="welcome-meta">
+              <span>{{BOOK_AUTHORS}}</span>
+              <span>·</span>
+              <span>{{BOOK_STATUS}}</span>
+            </div>
+            <div class="welcome-actions">
+              <a class="welcome-start" href="#{{FIRST_CHAPTER_ID}}">开始阅读 →</a>
+              <!-- 可选：额外按钮，如 GitHub 链接 -->
+            </div>
+            <div class="welcome-cards" id="welcome-cards-placeholder">
+              <!-- JS 初始化后由 buildWelcomeCards() 填充 -->
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <footer class="footer">
+        <div class="footer-nav">
+          <button class="nav-btn" id="prev-btn" onclick="navigatePrev()" style="display:none">← 上一章</button>
+          <button class="nav-btn" id="next-btn" onclick="navigateNext()" style="display:none">下一章 →</button>
+        </div>
+      </footer>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

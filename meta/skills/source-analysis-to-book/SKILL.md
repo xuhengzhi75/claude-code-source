@@ -93,3 +93,38 @@ visibility: public
 5. `references/collaboration.md`（协作规范）
 6. `references/commit-conventions.md`（提交规范）
 7. `references/task-recipes.md`（具体任务配方）
+
+---
+
+## 博客模板（可选）
+
+`templates/` 目录提供了一套开箱即用的纯静态博客模板，可以把写好的章节发布成一个精美的技术博客站点。
+
+**文件说明：**
+
+- `templates/index.html`：页面骨架，包含侧边栏 TOC、顶栏、欢迎页、页脚导航
+- `templates/style.css`：完整样式，暖纸质感 + 暗色模式 + 响应式 + 骨架屏 + 锚点面板
+- `templates/app.js`：所有交互逻辑，章节路由、Markdown 渲染、Mermaid 图表、源码锚点面板、Lightbox 等
+
+**使用步骤：**
+
+1. 将三个模板文件复制到你的项目博客目录（如 `docs/blog/`）
+2. 打开 `app.js`，修改顶部"配置区"中的内容：
+   - `BOOK_TITLE`：书名
+   - `CHAPTERS`：主线章节列表（id、file、title、num）
+   - `SECONDARY_CHAPTERS`：次要章节（通俗版等），不需要则设为 `[]`
+   - `MD_BASE` / `SECONDARY_MD_BASE`：Markdown 文件目录
+   - `REPO_RAW_BASE` / `REPO_BLOB_BASE`：GitHub 源码链接（可选，用于源码锚点面板）
+3. 打开 `index.html`，替换 `{{BOOK_TITLE}}`、`{{BOOK_DESC}}`、`{{BOOK_SUBTITLE}}` 等占位符
+4. 将 Markdown 章节文件放到对应目录，部署到 GitHub Pages 或任意静态托管即可
+
+**功能亮点：**
+
+- 纯静态，零后端依赖，GitHub Pages 直接部署
+- 支持 Mermaid 图表（点击可全屏 Lightbox 缩放）
+- 代码块行号 + 一键复制
+- 源码锚点面板：`code.ts#L42` 格式的行内代码自动变成可悬停的源码预览卡片
+- 暗色模式（自动跟随系统 + 手动切换）
+- 骨架屏加载动画，章节切换有淡入淡出过渡
+- 移动端响应式，侧边栏抽屉式展开
+- `--accent` CSS 变量一键换主题色
