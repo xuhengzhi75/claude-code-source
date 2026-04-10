@@ -5,7 +5,7 @@
 
 // ===== Chapter Manifest =====
 const CHAPTERS = [
-  { id: 'ch00', file: 'ch00-工程设计哲学.md',     title: 'Claude code的工程设计哲学', num: '序章' },
+  { id: 'ch00', file: 'ch00-工程设计哲学.md',     title: 'Claude Code 的工程设计哲学', num: '序章' },
   { id: 'ch01', file: 'ch01-不只是聊天工具.md',  title: '不只是聊天工具',       num: '第1章' },
   { id: 'ch02', file: 'ch02-为什么强.md',          title: '为什么强',             num: '第2章' },
   { id: 'ch03', file: 'ch03-从入口到执行.md',      title: '从入口到执行',         num: '第3章' },
